@@ -1,8 +1,18 @@
 export interface User {
   id: string;
   email?: string;
+  roles?: string[];
+  permissions?: string[];
   created_at?: string;
   updated_at?: string;
+  googleProfile?: {
+    displayName?: string;
+    firstName?: string;
+    lastName?: string;
+    picture?: string;
+    accessToken?: string;
+    refreshToken?: string;
+  };
 }
 
 export interface Session {
