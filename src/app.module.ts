@@ -22,19 +22,15 @@ import sentryConfig from './config/sentry.config';
 import redisConfig from './config/redis.config';
 import healthConfig from './config/health.config';
 import { createMetricsConfig } from './config/metrics.config';
-import { ContentModule } from './content/content.module';
-import { OrganizationsModule } from './organizations/organizations.module';
-import { ApiModule } from './api/api.module';
-import configuration from './config/configuration';
-import { Request } from 'express';
-import { AppResolver } from './app.resolver';
+import type { Request } from 'express';
+import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
 @Module({
   imports: [
     // Configuration
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, authConfig, sentryConfig, redisConfig, healthConfig, createMetricsConfig, configuration],
+      load: [appConfig, authConfig, sentryConfig, redisConfig, healthConfig, createMetricsConfig],
     }),
 
     // GraphQL
@@ -43,14 +39,14 @@ import { AppResolver } from './app.resolver';
       autoSchemaFile: 'schema.gql',
       sortSchema: true,
       playground: process.env.NODE_ENV === 'development',
-      context: ({ req }: { req: Request }) => ({ req }),
+      context: ({ req }: { req: Request }): { req: Request } => ({ req }),
     }),
 
     // Database - Make it optional for development
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
+      useFactory: (configService: ConfigService): TypeOrmModuleOptions => {
         const dbConfig = configService.get('app.database');
         return {
           type: 'postgres',
@@ -68,14 +64,12 @@ import { AppResolver } from './app.resolver';
           logging: process.env.NODE_ENV === 'development',
           retryAttempts: 3,
           retryDelay: 3000,
-          connectTimeoutMS: dbConfig.pooling.connectionTimeoutMillis,
           extra: {
             max: dbConfig.pooling.max,
             min: dbConfig.pooling.min,
             idleTimeoutMillis: dbConfig.pooling.idleTimeoutMillis,
             connectionTimeoutMillis: dbConfig.pooling.connectionTimeoutMillis,
-          },
-          keepConnectionAlive: true,
+          }
         };
       },
     }),
@@ -87,9 +81,6 @@ import { AppResolver } from './app.resolver';
     AuthModule,
     CacheModule,
     RealTimeModule,
-    ContentModule,
-    OrganizationsModule,
-    ApiModule,
     
     // Metrics Module
     MetricsModule.register({
@@ -105,7 +96,6 @@ import { AppResolver } from './app.resolver';
   controllers: [AppController],
   providers: [
     AppService,
-    AppResolver,
     // Register the global exception filter at the app level
     {
       provide: APP_FILTER,

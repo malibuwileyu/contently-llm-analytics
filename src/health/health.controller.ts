@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import {
   HealthCheck,
   HealthCheckService,
@@ -20,6 +20,13 @@ import { Public } from '../auth/decorators/public.decorator';
 import { PrometheusMetricsService } from '../metrics/services/prometheus-metrics.service';
 import { ConfigService } from '@nestjs/config';
 import { SupabaseHealthIndicator } from './indicators/supabase.health';
+import { Controller, Get, Param } from '@nestjs/common';
+
+interface HealthHistory {
+  timestamp: string;
+  status: string;
+  details: Record<string, unknown>;
+}
 
 @Controller('health')
 export class HealthController {
@@ -39,11 +46,9 @@ export class HealthController {
     private configService: ConfigService,
     private supabaseHealthIndicator: SupabaseHealthIndicator,
   ) {
-    // Use environment-aware self URL
-    const port = this.configService.get<number>('app.port', 3000);
-    
     // When running in Docker, use localhost for self-checks since we're checking internally
     const host = 'localhost';
+    const port = this.configService.get<number>('app.port', 3000);
     this.selfUrl = `http://${host}:${port}/health`;
   }
 
@@ -328,7 +333,7 @@ export class HealthController {
 
   @Get('history')
   @Public()
-  async getHealthHistory() {
+  async getHealthHistory(): Promise<{ history: HealthHistory[] }> {
     return {
       history: await this.healthScheduler.getHealthHistory(),
     };
@@ -337,7 +342,7 @@ export class HealthController {
   @Get('test/:component')
   @Public()
   @HealthCheck()
-  testComponent(@Param('component') component: string): Promise<HealthCheckResult> {
+  async testComponent(@Param('component') component: string): Promise<HealthCheckResult> {
     switch (component) {
       case 'database':
         return this.databaseHealth();
