@@ -1,12 +1,40 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+  Inject,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { HealthCheckService, HealthCheckResult, HealthIndicatorResult, HttpHealthIndicator, DiskHealthIndicator, MemoryHealthIndicator } from '@nestjs/terminus';
+import {
+  HealthCheckService,
+  HealthCheckResult,
+  HealthIndicatorResult,
+  HttpHealthIndicator,
+  DiskHealthIndicator,
+  MemoryHealthIndicator,
+} from '@nestjs/terminus';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { DatabaseHealthIndicator } from '../indicators/database.health';
 import { ExternalServiceHealthIndicator } from '../indicators/external-service.health';
 import { PrometheusMetricsService } from '../../metrics/services/prometheus-metrics.service';
 import { SupabaseHealthIndicator } from '../indicators/supabase.health';
+
+interface HealthEntry {
+  timestamp: string;
+  status: string;
+  duration: number;
+  details: HealthCheckResult;
+}
+
+interface HealthError {
+  timestamp: string;
+  status: string;
+  error: string;
+}
+
+type HealthHistoryEntry = HealthEntry | HealthError;
 
 @Injectable()
 export class HealthSchedulerService implements OnModuleInit, OnModuleDestroy {
@@ -29,34 +57,40 @@ export class HealthSchedulerService implements OnModuleInit, OnModuleDestroy {
     private readonly metricsService: PrometheusMetricsService,
     private readonly supabaseHealthIndicator: SupabaseHealthIndicator,
   ) {
-    this.checkIntervalMs = this.configService.get('health.checkInterval', 60000); // Default: 1 minute
+    this.checkIntervalMs = this.configService.get(
+      'health.checkInterval',
+      60000,
+    ); // Default: 1 minute
     this.healthHistorySize = this.configService.get('health.historySize', 100); // Default: 100 entries
-    
+
     // Use environment-aware self URL
     const port = this.configService.get<number>('app.port', 3000);
     const host = process.env.NODE_ENV === 'production' ? 'app' : 'localhost';
     this.selfUrl = `http://${host}:${port}/health`;
   }
 
-  async onModuleInit() {
+  async onModuleInit(): Promise<void> {
     this.scheduleHealthChecks();
   }
 
-  onModuleDestroy() {
+  onModuleDestroy(): void {
     this.stopHealthChecks();
   }
 
-  private scheduleHealthChecks() {
+  private scheduleHealthChecks(): void {
     this.intervalId = setInterval(() => {
       this.performHealthCheck().catch(error => {
-        this.logger.error(`Failed to perform scheduled health check: ${error.message}`, error.stack);
+        this.logger.error(
+          `Failed to perform scheduled health check: ${error.message}`,
+          error.stack,
+        );
       });
     }, this.checkIntervalMs);
 
     this.logger.log(`Scheduled health checks every ${this.checkIntervalMs}ms`);
   }
 
-  private stopHealthChecks() {
+  private stopHealthChecks(): void {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
@@ -96,19 +130,19 @@ export class HealthSchedulerService implements OnModuleInit, OnModuleDestroy {
         // Memory health check
         (): Promise<HealthIndicatorResult> =>
           this.memory.checkHeap('memory', 150 * 1024 * 1024), // 150MB heap limit
-        // Disk health check  
+        // Disk health check
         (): Promise<HealthIndicatorResult> =>
-          this.disk.checkStorage('disk', { 
+          this.disk.checkStorage('disk', {
             thresholdPercent: 0.9, // 90% threshold
-            path: '/' 
+            path: '/',
           }),
         // Metrics health check
         async (): Promise<HealthIndicatorResult> => {
           return {
             metrics: {
               status: 'up',
-              message: 'Metrics service not yet implemented'
-            }
+              message: 'Metrics service not yet implemented',
+            },
           } as HealthIndicatorResult;
         },
         // Supabase health check
@@ -132,7 +166,7 @@ export class HealthSchedulerService implements OnModuleInit, OnModuleDestroy {
       ]);
 
       const duration = Date.now() - startTime;
-      const healthEntry = {
+      const healthEntry: HealthEntry = {
         timestamp: new Date().toISOString(),
         status: healthResult.status,
         duration,
@@ -140,45 +174,58 @@ export class HealthSchedulerService implements OnModuleInit, OnModuleDestroy {
       };
 
       await this.storeHealthHistory(healthEntry);
-      this.logger.debug(`Health check completed in ${duration}ms with status: ${healthResult.status}`);
-      
+      this.logger.debug(
+        `Health check completed in ${duration}ms with status: ${healthResult.status}`,
+      );
+
       return healthResult;
     } catch (error) {
       this.logger.error('Failed to perform health check', error);
-      
+
       // Store the error as a failed health check
-      const healthEntry = {
+      const healthError: HealthError = {
         timestamp: new Date().toISOString(),
         status: 'error',
         error: error instanceof Error ? error.message : 'Unknown error',
       };
-      
-      await this.storeHealthHistory(healthEntry);
+
+      await this.storeHealthHistory(healthError);
       throw error;
     }
   }
 
-  private async storeHealthHistory(healthEntry: any) {
+  private async storeHealthHistory(
+    healthEntry: HealthHistoryEntry,
+  ): Promise<void> {
     try {
       // Get current health history
-      const history = await this.cacheManager.get<any[]>(this.healthHistoryKey) || [];
-      
+      const history =
+        (await this.cacheManager.get<HealthHistoryEntry[]>(
+          this.healthHistoryKey,
+        )) || [];
+
       // Add new entry to the beginning
       history.unshift(healthEntry);
-      
+
       // Limit history size
       if (history.length > this.healthHistorySize) {
         history.length = this.healthHistorySize;
       }
-      
+
       // Store updated history
       await this.cacheManager.set(this.healthHistoryKey, history);
     } catch (error) {
-      this.logger.error(`Failed to store health history: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to store health history: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
-  async getHealthHistory(): Promise<any[]> {
-    return await this.cacheManager.get<any[]>(this.healthHistoryKey) || [];
+  async getHealthHistory(): Promise<HealthHistoryEntry[]> {
+    return (
+      (await this.cacheManager.get<HealthHistoryEntry[]>(
+        this.healthHistoryKey,
+      )) || []
+    );
   }
-} 
+}

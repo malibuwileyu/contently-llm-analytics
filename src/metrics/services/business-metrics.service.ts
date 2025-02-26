@@ -2,6 +2,13 @@ import { Injectable, Logger, OnModuleInit, Inject } from '@nestjs/common';
 import { PrometheusMetricsService } from './prometheus-metrics.service';
 import { MetricsConfig } from '../../config/metrics.config';
 
+export interface BusinessMetrics {
+  activeUsers: number;
+  totalRequests: number;
+  errorRate: number;
+  averageResponseTime: number;
+}
+
 /**
  * Service for tracking business metrics
  */
@@ -17,7 +24,7 @@ export class BusinessMetricsService implements OnModuleInit {
   /**
    * Initialize the business metrics service
    */
-  onModuleInit() {
+  onModuleInit(): void {
     if (!this.config.enabled) {
       this.logger.log('Business metrics service is disabled');
       return;
@@ -30,7 +37,7 @@ export class BusinessMetricsService implements OnModuleInit {
   /**
    * Sets up business metrics
    */
-  private setupBusinessMetrics() {
+  private setupBusinessMetrics(): void {
     // Content recommendation metrics
     this.metricsService.createCounter({
       name: `${this.config.prefix}content_recommendations_total`,
@@ -168,11 +175,9 @@ export class BusinessMetricsService implements OnModuleInit {
   setActiveUsers(role: string, count: number): void {
     if (!this.config.enabled) return;
 
-    this.metricsService.setGauge(
-      `${this.config.prefix}active_users`,
-      count,
-      { role },
-    );
+    this.metricsService.setGauge(`${this.config.prefix}active_users`, count, {
+      role,
+    });
   }
 
   /**
@@ -249,4 +254,29 @@ export class BusinessMetricsService implements OnModuleInit {
       { endpoint },
     );
   }
-} 
+
+  async recordUserActivity(userId: string, action: string): Promise<void> {
+    this.metricsService.incrementCounter('user_activity_total', {
+      user_id: userId,
+      action,
+    });
+  }
+
+  async recordFeatureUsage(featureId: string, userId: string): Promise<void> {
+    this.metricsService.incrementCounter('feature_usage_total', {
+      feature_id: featureId,
+      user_id: userId,
+    });
+  }
+
+  async getBusinessMetrics(): Promise<BusinessMetrics> {
+    const metrics = await this.metricsService.getMetrics();
+
+    return {
+      activeUsers: metrics.activeUsers || 0,
+      totalRequests: metrics.totalRequests || 0,
+      errorRate: metrics.errorRate || 0,
+      averageResponseTime: metrics.averageResponseTime || 0,
+    };
+  }
+}

@@ -1,8 +1,54 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 import { ConfigService } from '@nestjs/config';
-import { BaseError } from '../errors/base.error';
-import { LoggerService } from './logger.service';
+import { User } from '../../auth/entities/user.entity';
+
+interface SentryConfig {
+  dsn: string;
+  environment: string;
+  release?: string;
+  debug?: boolean;
+  tracesSampleRate?: number;
+}
+
+interface SentryContext {
+  user?: User;
+  tags?: Record<string, string>;
+  extra?: Record<string, unknown>;
+}
+
+interface SentryError {
+  message: string;
+  name: string;
+  stack?: string;
+  cause?: Error;
+}
+
+type SentryEventId = string;
+
+type SentryErrorResponse = {
+  message: string;
+  stack?: string;
+  code?: string;
+  details?: Record<string, unknown>;
+};
+
+type SentryLogContext = {
+  error: SentryErrorResponse;
+  context?: SentryContext;
+};
+
+type SentryLogMessage = {
+  message: string;
+  context: SentryLogContext;
+};
+
+interface SentryUserData {
+  id: string;
+  email?: string;
+  username?: string;
+  [key: string]: unknown;
+}
 
 /**
  * Service for Sentry error tracking integration
@@ -10,48 +56,47 @@ import { LoggerService } from './logger.service';
  */
 @Injectable()
 export class SentryService implements OnModuleInit {
+  private readonly logger = new Logger(SentryService.name);
   private isInitialized = false;
 
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly logger: LoggerService,
-  ) {
+  constructor(private readonly configService: ConfigService) {
     this.logger.setContext('SentryService');
   }
 
   /**
    * Initialize Sentry when the module is initialized
    */
-  onModuleInit() {
-    const dsn = this.configService.get<string>('sentry.dsn');
-    const environment = this.configService.get<string>('app.environment') || 'development';
-    
-    if (!dsn) {
-      this.logger.warn('Sentry DSN not configured. Error tracking is disabled.');
+  onModuleInit(): void {
+    const config = this.configService.get<SentryConfig>('sentry');
+    if (!config?.dsn) {
+      this.logger.warn('Sentry DSN not configured, error tracking disabled');
       return;
     }
 
-    try {
-      Sentry.init({
-        dsn,
-        environment,
-        // Adjust sample rate based on environment
-        tracesSampleRate: environment === 'production' ? 0.2 : 1.0,
-        // Don't send events in development unless explicitly enabled
-        beforeSend: (event) => {
-          if (environment === 'development' && 
-              !this.configService.get<boolean>('sentry.enableInDevelopment')) {
-            return null;
-          }
-          return event;
-        },
-      });
-      
-      this.isInitialized = true;
-      this.logger.log(`Sentry initialized in ${environment} environment`);
-    } catch (error) {
-      this.logger.error('Failed to initialize Sentry', error instanceof Error ? error.stack : undefined);
-    }
+    Sentry.init({
+      dsn: config.dsn,
+      environment: config.environment,
+      release: config.release,
+      debug: config.debug,
+      tracesSampleRate: config.tracesSampleRate || 1.0,
+    });
+
+    this.isInitialized = true;
+    this.logger.log('Sentry initialized successfully');
+  }
+
+  private logError(
+    message: string,
+    error: unknown,
+    context?: SentryContext,
+  ): void {
+    const errorResponse: SentryErrorResponse = {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    };
+    const logContext: SentryLogContext = { error: errorResponse, context };
+    const logMessage: SentryLogMessage = { message, context: logContext };
+    this.logger.error(logMessage.message, logMessage.context);
   }
 
   /**
@@ -59,37 +104,35 @@ export class SentryService implements OnModuleInit {
    * @param error The error to capture
    * @param context Additional context to include
    */
-  captureException(error: Error | BaseError, context?: Record<string, any>): string {
+  captureException(
+    error: Error | SentryError,
+    context?: SentryContext,
+  ): SentryEventId {
     if (!this.isInitialized) {
       this.logger.warn('Sentry not initialized. Error not captured.');
       return '';
     }
 
     try {
-      // Add BaseError specific information
-      if (error instanceof BaseError) {
-        Sentry.setTag('error.code', error.code);
-        Sentry.setTag('error.status', error.status.toString());
-        
-        if (error.context) {
-          // Add error context as extra data
-          Object.entries(error.context).forEach(([key, value]) => {
-            Sentry.setExtra(`error.context.${key}`, value);
-          });
-        }
-      }
-
-      // Add additional context
-      if (context) {
-        Object.entries(context).forEach(([key, value]) => {
-          Sentry.setExtra(key, value);
+      if (context?.user) {
+        Sentry.setUser({
+          id: context.user.id,
+          email: context.user.email,
+          username: context.user.username,
         });
       }
 
-      // Capture the exception
+      if (context?.tags) {
+        Sentry.setTags(context.tags);
+      }
+
+      if (context?.extra) {
+        Sentry.setExtras(context.extra);
+      }
+
       return Sentry.captureException(error);
-    } catch (e) {
-      this.logger.error('Failed to capture exception in Sentry', e instanceof Error ? e.stack : undefined);
+    } catch (error: unknown) {
+      this.logError('Failed to capture exception in Sentry', error, context);
       return '';
     }
   }
@@ -97,31 +140,34 @@ export class SentryService implements OnModuleInit {
   /**
    * Capture a message in Sentry
    * @param message The message to capture
-   * @param level The severity level
    * @param context Additional context to include
    */
-  captureMessage(
-    message: string, 
-    level: 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug' = 'info',
-    context?: Record<string, any>,
-  ): string {
+  captureMessage(message: string, context?: SentryContext): SentryEventId {
     if (!this.isInitialized) {
       this.logger.warn('Sentry not initialized. Message not captured.');
       return '';
     }
 
     try {
-      // Add context information
-      if (context) {
-        Object.entries(context).forEach(([key, value]) => {
-          Sentry.setExtra(key, value);
+      if (context?.user) {
+        Sentry.setUser({
+          id: context.user.id,
+          email: context.user.email,
+          username: context.user.username,
         });
       }
 
-      // Capture the message with the specified level
-      return Sentry.captureMessage(message, level);
-    } catch (e) {
-      this.logger.error('Failed to capture message in Sentry', e instanceof Error ? e.stack : undefined);
+      if (context?.tags) {
+        Sentry.setTags(context.tags);
+      }
+
+      if (context?.extra) {
+        Sentry.setExtras(context.extra);
+      }
+
+      return Sentry.captureMessage(message);
+    } catch (error: unknown) {
+      this.logError('Failed to capture message in Sentry', error, context);
       return '';
     }
   }
@@ -130,15 +176,15 @@ export class SentryService implements OnModuleInit {
    * Set user information for the current scope
    * @param user User information
    */
-  setUser(user: { id: string; email?: string; username?: string; [key: string]: any }): void {
+  setUser(user: SentryUserData): void {
     if (!this.isInitialized) {
       return;
     }
 
     try {
       Sentry.setUser(user);
-    } catch (e) {
-      this.logger.error('Failed to set user in Sentry', e instanceof Error ? e.stack : undefined);
+    } catch (error: unknown) {
+      this.logError('Failed to set user in Sentry', error);
     }
   }
 
@@ -154,8 +200,8 @@ export class SentryService implements OnModuleInit {
 
     try {
       Sentry.setTag(key, value);
-    } catch (e) {
-      this.logger.error('Failed to set tag in Sentry', e instanceof Error ? e.stack : undefined);
+    } catch (error: unknown) {
+      this.logError('Failed to set tag in Sentry', error);
     }
   }
 
@@ -170,9 +216,17 @@ export class SentryService implements OnModuleInit {
 
     try {
       return Sentry.close(timeout);
-    } catch (e) {
-      this.logger.error('Failed to close Sentry', e instanceof Error ? e.stack : undefined);
+    } catch (error: unknown) {
+      this.logError('Failed to close Sentry', error);
       return false;
     }
   }
-} 
+
+  setContext(name: string, context: Record<string, unknown>): void {
+    try {
+      Sentry.setContext(name, context);
+    } catch (error: unknown) {
+      this.logError('Failed to set context in Sentry', error);
+    }
+  }
+}

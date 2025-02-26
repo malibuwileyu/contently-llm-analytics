@@ -1,6 +1,5 @@
 declare module '@nestjs/websockets' {
-  import { Observable } from 'rxjs';
-  import { Server, Socket } from 'socket.io';
+  import { Socket } from 'socket.io';
 
   export interface WsResponse<T> {
     event: string;
@@ -8,12 +7,12 @@ declare module '@nestjs/websockets' {
   }
 
   export interface WebSocketGateway {
-    afterInit?: (server: Server) => void;
+    afterInit?: () => void;
     handleConnection?: (client: Socket) => void;
     handleDisconnect?: (client: Socket) => void;
   }
 
-  export const WebSocketGateway: (options?: any) => ClassDecorator;
+  export const WebSocketGateway: (options?: WebSocketOptions) => ClassDecorator;
   export const WebSocketServer: () => PropertyDecorator;
   export const SubscribeMessage: (message: string) => MethodDecorator;
   export const ConnectedSocket: () => ParameterDecorator;
@@ -30,4 +29,18 @@ declare module '@nestjs/websockets' {
   export class WsException extends Error {
     constructor(message: string | object);
   }
-} 
+
+  export interface WebSocketOptions {
+    namespace?: string;
+    cors?:
+      | boolean
+      | {
+          origin: string | string[];
+          credentials?: boolean;
+        };
+  }
+
+  export interface WebSocketServer {
+    emit<T>(event: string, data: T): boolean;
+  }
+}

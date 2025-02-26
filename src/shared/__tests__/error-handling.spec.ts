@@ -1,23 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { HttpStatus, INestApplication } from '@nestjs/common';
+import { HttpStatus, INestApplication, Controller, Get } from '@nestjs/common';
 import * as request from 'supertest';
 import { ConfigModule } from '@nestjs/config';
-import { ErrorHandlingModule } from '../error-handling.module';
 import { BaseError } from '../errors/base.error';
 import { ErrorCategory } from '../errors/error-category.enum';
 import { ValidationError, NotFoundError } from '../errors/application.errors';
 import { LoggerService } from '../services/logger.service';
 import { SentryService } from '../services/sentry.service';
-import { Controller, Get, Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { GlobalExceptionFilter } from '../filters/global-exception.filter';
 
 // Create a test controller that throws different types of errors
 @Controller('test-errors')
 class TestErrorsController {
-  constructor(
-    private readonly logger: LoggerService
-  ) {}
+  constructor(private readonly logger: LoggerService) {}
 
   @Get('validation')
   throwValidationError() {
@@ -110,7 +106,7 @@ describe('Error Handling System', () => {
       await app.close();
     }
   });
-  
+
   // Reset mocks before each test
   beforeEach(() => {
     jest.clearAllMocks();
@@ -203,4 +199,4 @@ describe('Error Handling System', () => {
       expect(sentryService.captureException).not.toHaveBeenCalled();
     });
   });
-}); 
+});

@@ -4,24 +4,20 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
-  Inject,
   Injectable,
-  Logger
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { GqlArgumentsHost, GqlExceptionFilter } from '@nestjs/graphql';
 import { BaseError } from '../errors/base.error';
-import { ValidationError, NotFoundError } from '../errors/application.errors';
 import { LoggerService } from '../services/logger.service';
 import { SentryService } from '../services/sentry.service';
 import { ErrorCategory } from '../errors/error-category.enum';
-import { formatErrorResponse, wrapError } from '../utils/error.utils';
+import { UnknownRecord } from '../../types/common';
 
 interface ErrorResponse {
   status: string;
   code: string;
   message: string;
-  details?: any;
+  details?: UnknownRecord;
   timestamp: string;
   path: string;
 }
@@ -32,20 +28,15 @@ interface ErrorResponse {
  */
 @Catch()
 @Injectable()
-export class GlobalExceptionFilter implements ExceptionFilter, GqlExceptionFilter {
+export class GlobalExceptionFilter implements ExceptionFilter {
   constructor(
     private readonly logger: LoggerService,
-    private readonly sentryService: SentryService
+    private readonly sentryService: SentryService,
   ) {
     this.logger.setContext('GlobalExceptionFilter');
   }
 
-  /**
-   * Catch and handle any exception
-   * @param exception The thrown exception
-   * @param host The arguments host
-   */
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
@@ -61,7 +52,7 @@ export class GlobalExceptionFilter implements ExceptionFilter, GqlExceptionFilte
         exception.code,
         exception.message,
         exception.context,
-        path
+        path,
       );
 
       // Log based on error category
@@ -78,15 +69,19 @@ export class GlobalExceptionFilter implements ExceptionFilter, GqlExceptionFilte
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
-      const message = typeof exceptionResponse === 'object' 
-        ? (exceptionResponse as any).message || exception.message
-        : exception.message;
-      
+      const message =
+        typeof exceptionResponse === 'object'
+          ? (exceptionResponse as { message?: string }).message ||
+            exception.message
+          : exception.message;
+
       errorResponse = this.createErrorResponse(
         `HTTP_${status}`,
         Array.isArray(message) ? message.join(', ') : message,
-        typeof exceptionResponse === 'object' ? exceptionResponse : undefined,
-        path
+        typeof exceptionResponse === 'object'
+          ? (exceptionResponse as UnknownRecord)
+          : undefined,
+        path,
       );
 
       if (status < 500) {
@@ -103,12 +98,12 @@ export class GlobalExceptionFilter implements ExceptionFilter, GqlExceptionFilte
       // Unhandled errors
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       const error = exception as Error;
-      
+
       errorResponse = this.createErrorResponse(
         'INTERNAL_ERROR',
         error.message || 'Internal server error',
         undefined,
-        path
+        path,
       );
 
       this.logger.error(error);
@@ -118,157 +113,11 @@ export class GlobalExceptionFilter implements ExceptionFilter, GqlExceptionFilte
     response.status(status).json(errorResponse);
   }
 
-  /**
-   * Handle HTTP exceptions
-   * @param exception The thrown exception
-   * @param host The arguments host
-   */
-  private handleHttpException(exception: unknown, host: ArgumentsHost): void {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
-    
-    // Convert to domain error
-    const error = this.normalizeError(exception);
-    
-    // Log the error
-    this.logError(error, request);
-    
-    // Create standardized error response
-    const errorResponse = formatErrorResponse(error);
-    errorResponse.path = request.url;
-    
-    // Send response
-    response.status(error.status).json(errorResponse);
-  }
-
-  /**
-   * Handle GraphQL exceptions
-   * @param exception The thrown exception
-   * @param gqlHost The GraphQL arguments host
-   */
-  private handleGraphQLException(
-    exception: unknown,
-    gqlHost: GqlArgumentsHost,
-  ): Error {
-    const { req } = gqlHost.getContext();
-    
-    // Convert to domain error
-    const error = this.normalizeError(exception);
-    
-    // Log the error
-    this.logError(error, req);
-    
-    // For GraphQL, we need to return an Error object
-    // The extensions will be included in the GraphQL response
-    const gqlError = new Error(error.message);
-    (gqlError as any).extensions = {
-      code: error.code,
-      status: error.status,
-      timestamp: new Date().toISOString(),
-      path: req?.url,
-    };
-    
-    return gqlError;
-  }
-
-  /**
-   * Normalize any error to a BaseError
-   * @param exception The exception to normalize
-   * @returns A BaseError instance
-   */
-  private normalizeError(exception: unknown): BaseError {
-    // If it's already a BaseError, just return it
-    if (exception instanceof BaseError) {
-      return exception;
-    }
-    
-    // If it's an HTTP exception, convert it to a BaseError
-    if (exception instanceof HttpException) {
-      const status = exception.getStatus();
-      const response = exception.getResponse();
-      
-      const message = typeof response === 'string'
-        ? response
-        : (response as any).message || exception.message;
-      
-      return wrapError(exception, message, {
-        status,
-        response,
-      });
-    }
-    
-    // For any other error, wrap it
-    return wrapError(exception);
-  }
-
-  /**
-   * Log the error with appropriate context
-   * @param error The error to log
-   * @param request The request object
-   */
-  private logError(error: BaseError, request?: Request): void {
-    const context = {
-      url: request?.url,
-      method: request?.method,
-      headers: this.sanitizeHeaders(request?.headers),
-      query: request?.query,
-      params: request?.params,
-      userId: request?.user ? (request.user as any).id : undefined,
-    };
-    
-    // Log with different levels based on status code
-    if (error.status >= 500) {
-      this.logger.error(error, error.stack, 'ExceptionFilter', context);
-    } else if (error.status >= 400) {
-      this.logger.warn(error, 'ExceptionFilter', context);
-    } else {
-      this.logger.debug(error, 'ExceptionFilter', context);
-    }
-  }
-
-  /**
-   * Sanitize headers to remove sensitive information
-   * @param headers The headers object
-   * @returns Sanitized headers
-   */
-  private sanitizeHeaders(headers?: Record<string, unknown>): Record<string, unknown> {
-    if (!headers) {
-      return {};
-    }
-    
-    const sanitized = { ...headers };
-    
-    // Remove sensitive headers
-    const sensitiveHeaders = [
-      'authorization',
-      'cookie',
-      'x-api-key',
-      'x-auth-token',
-    ];
-    
-    sensitiveHeaders.forEach(header => {
-      if (header in sanitized) {
-        sanitized[header] = '[REDACTED]';
-      }
-    });
-    
-    return sanitized;
-  }
-
-  /**
-   * Create a standardized error response object
-   * @param code Error code
-   * @param message Error message
-   * @param details Additional error details
-   * @param path Request path
-   * @returns Standardized error response
-   */
   private createErrorResponse(
     code: string,
     message: string,
-    details?: any,
-    path?: string
+    details?: UnknownRecord,
+    path?: string,
   ): ErrorResponse {
     return {
       status: 'error',
@@ -279,4 +128,4 @@ export class GlobalExceptionFilter implements ExceptionFilter, GqlExceptionFilte
       path: path || 'unknown',
     };
   }
-} 
+}

@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit, Inject } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Counter, Gauge, Histogram, Registry, Summary } from 'prom-client';
 import { MetricsConfig } from '../../config/metrics.config';
 import {
@@ -8,6 +8,7 @@ import {
   MetricsService,
   SummaryOptions,
 } from '../interfaces/metrics.interface';
+import { ConfigService } from '@nestjs/config';
 
 /**
  * Prometheus metrics service implementation
@@ -20,10 +21,15 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
   private readonly gauges: Map<string, Gauge<string>> = new Map();
   private readonly histograms: Map<string, Histogram<string>> = new Map();
   private readonly summaries: Map<string, Summary<string>> = new Map();
+  private readonly config: MetricsConfig;
 
-  constructor(@Inject('METRICS_CONFIG') private readonly config: MetricsConfig) {
+  constructor(private readonly configService: ConfigService) {
     this.registry = new Registry();
-    
+    this.config = {
+      prefix: this.configService.get('metrics.prefix', 'app_'),
+      defaultLabels: this.configService.get('metrics.defaultLabels', {}),
+    };
+
     // Set default labels
     this.registry.setDefaultLabels(this.config.defaultLabels);
   }
@@ -31,10 +37,10 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
   /**
    * Initialize the metrics service
    */
-  onModuleInit() {
+  onModuleInit(): void {
     if (this.config.enabled) {
       this.logger.log('Initializing Prometheus metrics service');
-      
+
       if (this.config.collectDefaultMetrics) {
         this.logger.log('Collecting default metrics');
         require('prom-client').collectDefaultMetrics({
@@ -43,7 +49,7 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
           timeout: this.config.defaultMetricsInterval,
         });
       }
-      
+
       // Register application-specific metrics
       this.registerApplicationMetrics();
     } else {
@@ -54,7 +60,7 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
   /**
    * Register application-specific metrics
    */
-  private registerApplicationMetrics() {
+  private registerApplicationMetrics(): void {
     // HTTP metrics
     this.createCounter({
       name: `${this.config.prefix}http_requests_total`,
@@ -133,7 +139,10 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
       if (error.message.includes('already registered')) {
         this.logger.debug(`Counter metric already registered: ${options.name}`);
       } else {
-        this.logger.error(`Failed to create counter metric: ${options.name}`, error.stack);
+        this.logger.error(
+          `Failed to create counter metric: ${options.name}`,
+          error.stack,
+        );
       }
     }
   }
@@ -144,7 +153,11 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
    * @param value Value to increment by
    * @param labels Metric labels
    */
-  incrementCounter(name: string, value = 1, labels?: Record<string, string | number>): void {
+  incrementCounter(
+    name: string,
+    value = 1,
+    labels?: Record<string, string | number>,
+  ): void {
     if (!this.config.enabled) return;
 
     const counter = this.counters.get(name);
@@ -156,7 +169,10 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
     try {
       counter.inc(labels || {}, value);
     } catch (error) {
-      this.logger.error(`Failed to increment counter metric: ${name}`, error.stack);
+      this.logger.error(
+        `Failed to increment counter metric: ${name}`,
+        error.stack,
+      );
     }
   }
 
@@ -181,7 +197,10 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
       if (error.message.includes('already registered')) {
         this.logger.debug(`Gauge metric already registered: ${options.name}`);
       } else {
-        this.logger.error(`Failed to create gauge metric: ${options.name}`, error.stack);
+        this.logger.error(
+          `Failed to create gauge metric: ${options.name}`,
+          error.stack,
+        );
       }
     }
   }
@@ -192,7 +211,11 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
    * @param value Value to set
    * @param labels Metric labels
    */
-  setGauge(name: string, value: number, labels?: Record<string, string | number>): void {
+  setGauge(
+    name: string,
+    value: number,
+    labels?: Record<string, string | number>,
+  ): void {
     if (!this.config.enabled) return;
 
     const gauge = this.gauges.get(name);
@@ -214,7 +237,11 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
    * @param value Value to increment by
    * @param labels Metric labels
    */
-  incrementGauge(name: string, value = 1, labels?: Record<string, string | number>): void {
+  incrementGauge(
+    name: string,
+    value = 1,
+    labels?: Record<string, string | number>,
+  ): void {
     if (!this.config.enabled) return;
 
     const gauge = this.gauges.get(name);
@@ -226,7 +253,10 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
     try {
       gauge.inc(labels || {}, value);
     } catch (error) {
-      this.logger.error(`Failed to increment gauge metric: ${name}`, error.stack);
+      this.logger.error(
+        `Failed to increment gauge metric: ${name}`,
+        error.stack,
+      );
     }
   }
 
@@ -236,7 +266,11 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
    * @param value Value to decrement by
    * @param labels Metric labels
    */
-  decrementGauge(name: string, value = 1, labels?: Record<string, string | number>): void {
+  decrementGauge(
+    name: string,
+    value = 1,
+    labels?: Record<string, string | number>,
+  ): void {
     if (!this.config.enabled) return;
 
     const gauge = this.gauges.get(name);
@@ -248,7 +282,10 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
     try {
       gauge.dec(labels || {}, value);
     } catch (error) {
-      this.logger.error(`Failed to decrement gauge metric: ${name}`, error.stack);
+      this.logger.error(
+        `Failed to decrement gauge metric: ${name}`,
+        error.stack,
+      );
     }
   }
 
@@ -272,9 +309,14 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
       this.logger.debug(`Created histogram metric: ${options.name}`);
     } catch (error) {
       if (error.message.includes('already registered')) {
-        this.logger.debug(`Histogram metric already registered: ${options.name}`);
+        this.logger.debug(
+          `Histogram metric already registered: ${options.name}`,
+        );
       } else {
-        this.logger.error(`Failed to create histogram metric: ${options.name}`, error.stack);
+        this.logger.error(
+          `Failed to create histogram metric: ${options.name}`,
+          error.stack,
+        );
       }
     }
   }
@@ -285,7 +327,11 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
    * @param value Value to observe
    * @param labels Metric labels
    */
-  observeHistogram(name: string, value: number, labels?: Record<string, string | number>): void {
+  observeHistogram(
+    name: string,
+    value: number,
+    labels?: Record<string, string | number>,
+  ): void {
     if (!this.config.enabled) return;
 
     const histogram = this.histograms.get(name);
@@ -297,7 +343,10 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
     try {
       histogram.observe(labels || {}, value);
     } catch (error) {
-      this.logger.error(`Failed to observe histogram metric: ${name}`, error.stack);
+      this.logger.error(
+        `Failed to observe histogram metric: ${name}`,
+        error.stack,
+      );
     }
   }
 
@@ -325,7 +374,10 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
       if (error.message.includes('already registered')) {
         this.logger.debug(`Summary metric already registered: ${options.name}`);
       } else {
-        this.logger.error(`Failed to create summary metric: ${options.name}`, error.stack);
+        this.logger.error(
+          `Failed to create summary metric: ${options.name}`,
+          error.stack,
+        );
       }
     }
   }
@@ -336,7 +388,11 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
    * @param value Value to observe
    * @param labels Metric labels
    */
-  observeSummary(name: string, value: number, labels?: Record<string, string | number>): void {
+  observeSummary(
+    name: string,
+    value: number,
+    labels?: Record<string, string | number>,
+  ): void {
     if (!this.config.enabled) return;
 
     const summary = this.summaries.get(name);
@@ -348,7 +404,10 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
     try {
       summary.observe(labels || {}, value);
     } catch (error) {
-      this.logger.error(`Failed to observe summary metric: ${name}`, error.stack);
+      this.logger.error(
+        `Failed to observe summary metric: ${name}`,
+        error.stack,
+      );
     }
   }
 
@@ -358,7 +417,10 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
    * @param labels Metric labels
    * @returns Function to stop the timer and observe the duration
    */
-  startTimer(name: string, labels?: Record<string, string | number>): () => number {
+  startTimer(
+    name: string,
+    labels?: Record<string, string | number>,
+  ): () => number {
     if (!this.config.enabled) {
       return () => 0;
     }
@@ -430,4 +492,4 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
       return '';
     }
   }
-} 
+}

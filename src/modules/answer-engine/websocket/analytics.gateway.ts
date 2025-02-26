@@ -4,7 +4,7 @@ import {
   SubscribeMessage,
   OnGatewayConnection,
   OnGatewayDisconnect,
-  WsException,
+  OnGatewayInit,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { UseGuards } from '@nestjs/common';
@@ -15,6 +15,12 @@ interface AnalyticsSubscription {
   metrics?: string[];
 }
 
+interface AnalyticsUpdate {
+  brandId: string;
+  timestamp: Date;
+  data: UnknownRecord;
+}
+
 @WebSocketGateway({
   namespace: 'analytics',
   cors: {
@@ -23,7 +29,9 @@ interface AnalyticsSubscription {
   },
 })
 @UseGuards(JwtAuthGuard)
-export class AnalyticsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class AnalyticsGateway
+  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
+{
   @WebSocketServer()
   server: Server;
 
@@ -31,8 +39,8 @@ export class AnalyticsGateway implements OnGatewayConnection, OnGatewayDisconnec
 
   async handleConnection(client: Socket): Promise<void> {
     // Client connection is already authenticated by JwtAuthGuard
-    const userId = client.data.user.id;
-    this.subscriptions.set(client.id, new Set());
+    const clientId = client.id;
+    this.subscriptions.set(clientId, new Set());
   }
 
   handleDisconnect(client: Socket): void {
@@ -42,11 +50,11 @@ export class AnalyticsGateway implements OnGatewayConnection, OnGatewayDisconnec
   @SubscribeMessage('subscribeToAnalytics')
   handleSubscribeToAnalytics(
     client: Socket,
-    payload: AnalyticsSubscription
+    payload: AnalyticsSubscription,
   ): void {
     const room = `analytics:${payload.brandId}`;
     client.join(room);
-    
+
     const clientSubs = this.subscriptions.get(client.id);
     if (clientSubs) {
       clientSubs.add(room);
@@ -56,11 +64,11 @@ export class AnalyticsGateway implements OnGatewayConnection, OnGatewayDisconnec
   @SubscribeMessage('unsubscribeFromAnalytics')
   handleUnsubscribeFromAnalytics(
     client: Socket,
-    payload: AnalyticsSubscription
+    payload: AnalyticsSubscription,
   ): void {
     const room = `analytics:${payload.brandId}`;
     client.leave(room);
-    
+
     const clientSubs = this.subscriptions.get(client.id);
     if (clientSubs) {
       clientSubs.delete(room);
@@ -70,30 +78,28 @@ export class AnalyticsGateway implements OnGatewayConnection, OnGatewayDisconnec
   // Method to broadcast updates to subscribed clients
   async broadcastAnalyticsUpdate(
     brandId: string,
-    data: any,
-    metrics?: string[]
+    data: UnknownRecord,
+    metrics?: string[],
   ): Promise<void> {
     const room = `analytics:${brandId}`;
-    
+
     // If specific metrics are provided, only send those
-    const update = metrics ? 
-      this.filterMetrics(data, metrics) : 
-      data;
+    const update = metrics ? this.filterMetrics(data, metrics) : data;
 
     this.server.to(room).emit('analyticsUpdate', {
       brandId,
       timestamp: new Date(),
-      data: update
-    });
+      data: update,
+    } as AnalyticsUpdate);
   }
 
   // Helper to filter metrics based on subscription
-  private filterMetrics(data: any, metrics: string[]): any {
+  private filterMetrics(data: UnknownRecord, metrics: string[]): UnknownRecord {
     return Object.keys(data)
       .filter(key => metrics.includes(key))
       .reduce((obj, key) => {
         obj[key] = data[key];
         return obj;
-      }, {} as any);
+      }, {} as UnknownRecord);
   }
-} 
+}

@@ -18,27 +18,24 @@ import { RequestLoggerMiddleware } from './middleware/request-logger.middleware'
     // Services
     LoggerService,
     SentryService,
-    
+
     // Global exception filter
     {
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
     },
-    
+
     // Sentry interceptor for error tracking
     {
       provide: APP_INTERCEPTOR,
       useClass: SentryInterceptor,
     },
   ],
-  exports: [
-    LoggerService,
-    SentryService,
-  ],
+  exports: [LoggerService, SentryService],
 })
 export class ErrorHandlingModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
+  configure(consumer: MiddlewareConsumer): void {
     // Apply request logger middleware to all routes
     consumer.apply(RequestLoggerMiddleware).forRoutes('*');
   }
-} 
+}

@@ -1,4 +1,3 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import {
   HealthCheck,
   HealthCheckService,
@@ -106,8 +105,7 @@ export class HealthController {
       (): Promise<HealthIndicatorResult> =>
         this.http.pingCheck('self', this.selfUrl),
       // Check if the database is ready
-      (): Promise<HealthIndicatorResult> =>
-        this.database.isHealthy('database'),
+      (): Promise<HealthIndicatorResult> => this.database.isHealthy('database'),
       // Check if Redis is ready
       async (): Promise<HealthIndicatorResult> => {
         try {
@@ -146,8 +144,7 @@ export class HealthController {
   @HealthCheck()
   databaseHealth(): Promise<HealthCheckResult> {
     return this.health.check([
-      (): Promise<HealthIndicatorResult> =>
-        this.database.isHealthy('database'),
+      (): Promise<HealthIndicatorResult> => this.database.isHealthy('database'),
     ]);
   }
 
@@ -192,8 +189,7 @@ export class HealthController {
   @HealthCheck()
   memoryHealth(): Promise<HealthCheckResult> {
     return this.health.check([
-      (): Promise<HealthIndicatorResult> =>
-        this.memory.isHealthy('memory'),
+      (): Promise<HealthIndicatorResult> => this.memory.isHealthy('memory'),
     ]);
   }
 
@@ -202,8 +198,7 @@ export class HealthController {
   @HealthCheck()
   diskHealth(): Promise<HealthCheckResult> {
     return this.health.check([
-      (): Promise<HealthIndicatorResult> =>
-        this.disk.isHealthy('disk'),
+      (): Promise<HealthIndicatorResult> => this.disk.isHealthy('disk'),
     ]);
   }
 
@@ -240,11 +235,15 @@ export class HealthController {
       async (): Promise<HealthIndicatorResult> => {
         try {
           // Check if auth configuration is available
-          const jwtSecret = this.configService.get<string>('auth.supabase.jwtSecret');
+          const jwtSecret = this.configService.get<string>(
+            'auth.supabase.jwtSecret',
+          );
           return {
             auth: {
               status: jwtSecret ? 'up' : 'down',
-              message: jwtSecret ? 'Auth configuration is valid' : 'Auth configuration is missing',
+              message: jwtSecret
+                ? 'Auth configuration is valid'
+                : 'Auth configuration is missing',
             },
           } as HealthIndicatorResult;
         } catch (error) {
@@ -266,8 +265,7 @@ export class HealthController {
     return this.health.check([
       (): Promise<HealthIndicatorResult> =>
         this.http.pingCheck('self', this.selfUrl),
-      (): Promise<HealthIndicatorResult> =>
-        this.database.isHealthy('database'),
+      (): Promise<HealthIndicatorResult> => this.database.isHealthy('database'),
       async (): Promise<HealthIndicatorResult> => {
         try {
           await this.cacheManager.set('health-check', 'ok', 10);
@@ -288,10 +286,8 @@ export class HealthController {
       },
       (): Promise<HealthIndicatorResult> =>
         this.externalService.isHealthy('external-services'),
-      (): Promise<HealthIndicatorResult> =>
-        this.memory.isHealthy('memory'),
-      (): Promise<HealthIndicatorResult> =>
-        this.disk.isHealthy('disk'),
+      (): Promise<HealthIndicatorResult> => this.memory.isHealthy('memory'),
+      (): Promise<HealthIndicatorResult> => this.disk.isHealthy('disk'),
       async (): Promise<HealthIndicatorResult> => {
         try {
           const metrics = await this.metricsService.getMetrics();
@@ -312,11 +308,15 @@ export class HealthController {
       async (): Promise<HealthIndicatorResult> => {
         try {
           // Check if auth configuration is available
-          const jwtSecret = this.configService.get<string>('auth.supabase.jwtSecret');
+          const jwtSecret = this.configService.get<string>(
+            'auth.supabase.jwtSecret',
+          );
           return {
             auth: {
               status: jwtSecret ? 'up' : 'down',
-              message: jwtSecret ? 'Auth configuration is valid' : 'Auth configuration is missing',
+              message: jwtSecret
+                ? 'Auth configuration is valid'
+                : 'Auth configuration is missing',
             },
           } as HealthIndicatorResult;
         } catch (error) {
@@ -342,7 +342,9 @@ export class HealthController {
   @Get('test/:component')
   @Public()
   @HealthCheck()
-  async testComponent(@Param('component') component: string): Promise<HealthCheckResult> {
+  async testComponent(
+    @Param('component') component: string,
+  ): Promise<HealthCheckResult> {
     switch (component) {
       case 'database':
         return this.databaseHealth();

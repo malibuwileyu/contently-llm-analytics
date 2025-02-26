@@ -1,5 +1,5 @@
 import { BaseError } from '../errors/base.error';
-import { DatabaseError, ErrorCode, InternalError } from '../errors/application.errors';
+import { DatabaseError, InternalError } from '../errors/application.errors';
 
 /**
  * Wraps an error in a domain-specific error if it's not already one
@@ -40,10 +40,7 @@ export function wrapError(
     }
 
     // Use the original error message if no custom message is provided
-    return new InternalError(
-      message || error.message,
-      errorContext,
-    );
+    return new InternalError(message || error.message, errorContext);
   }
 
   // For non-Error objects
@@ -78,7 +75,7 @@ export async function tryCatch<T>(
  */
 export function formatErrorResponse(error: unknown): Record<string, unknown> {
   const domainError = wrapError(error);
-  
+
   return {
     status: 'error',
     code: domainError.code,
@@ -86,4 +83,4 @@ export function formatErrorResponse(error: unknown): Record<string, unknown> {
     timestamp: new Date().toISOString(),
     path: undefined, // This should be filled in by the exception filter
   };
-} 
+}

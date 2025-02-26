@@ -1,5 +1,5 @@
 declare module '@supabase/supabase-js' {
-  import { Database } from './supabase';
+  import { SupabaseClient } from '@supabase/supabase-js';
 
   export interface SupabaseClientOptions {
     auth?: {
@@ -7,6 +7,36 @@ declare module '@supabase/supabase-js' {
       persistSession?: boolean;
       detectSessionInUrl?: boolean;
     };
+    global?: {
+      headers?: Record<string, string>;
+    };
+  }
+
+  export interface User {
+    id: string;
+    email?: string;
+    role?: string;
+    [key: string]: unknown;
+  }
+
+  export interface Session {
+    user: User;
+    access_token: string;
+    refresh_token: string;
+    expires_at?: number;
+  }
+
+  export interface AuthResponse {
+    data: {
+      user: User;
+      session: Session;
+    } | null;
+    error: Error | null;
+  }
+
+  export interface AuthChangeEvent {
+    event: 'SIGNED_IN' | 'SIGNED_OUT' | 'TOKEN_REFRESHED';
+    session: Session | null;
   }
 
   export interface PostgrestError {
@@ -24,20 +54,39 @@ declare module '@supabase/supabase-js' {
     statusText: string;
   }
 
-  export interface SupabaseClient<T = any> {
+  export interface SupabaseClient<
+    T extends Record<string, unknown> = Record<string, unknown>,
+  > {
     from<TableName extends keyof T['public']['Tables']>(
-      table: TableName
-    ): any;
+      table: TableName,
+    ): PostgrestResponse<T['public']['Tables'][TableName]>;
     rpc<FunctionName extends keyof T['public']['Functions']>(
       fn: FunctionName,
-      args?: T['public']['Functions'][FunctionName]['Args']
-    ): Promise<PostgrestResponse<T['public']['Functions'][FunctionName]['Returns']>>;
-    auth: any;
+      args?: T['public']['Functions'][FunctionName]['Args'],
+    ): Promise<
+      PostgrestResponse<T['public']['Functions'][FunctionName]['Returns']>
+    >;
+    auth: {
+      signUp(credentials: {
+        email: string;
+        password: string;
+      }): Promise<AuthResponse>;
+      signInWithPassword(credentials: {
+        email: string;
+        password: string;
+      }): Promise<AuthResponse>;
+      signOut(): Promise<{ error: Error | null }>;
+      getUser(
+        token: string,
+      ): Promise<{ data: { user: User | null }; error: Error | null }>;
+    };
   }
 
-  export function createClient<T = any>(
+  export function createClient<
+    T extends Record<string, unknown> = Record<string, unknown>,
+  >(
     supabaseUrl: string,
     supabaseKey: string,
-    options?: SupabaseClientOptions
+    options?: SupabaseClientOptions,
   ): SupabaseClient<T>;
-} 
+}

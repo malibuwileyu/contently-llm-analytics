@@ -1,7 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { Socket, Server } from 'socket.io';
 import { AnalyticsGateway } from '../analytics.gateway';
-import { createMockService } from '../../../../shared/test-utils';
 
 describe('AnalyticsGateway', () => {
   let gateway: AnalyticsGateway;
@@ -17,13 +16,13 @@ describe('AnalyticsGateway', () => {
     mockClient = {
       id: 'test-client-id',
       data: {
-        user: { id: 'test-user-id' }
+        user: { id: 'test-user-id' },
       },
       join: jest.fn(),
       leave: jest.fn(),
     } as any;
 
-    const module: TestingModule = await Test.createTestingModule({
+    const module = await Test.createTestingModule({
       providers: [AnalyticsGateway],
     }).compile();
 
@@ -108,7 +107,7 @@ describe('AnalyticsGateway', () => {
       const brandId = 'test-brand';
       const data = {
         metric1: 'value1',
-        metric2: 'value2'
+        metric2: 'value2',
       };
 
       // Act
@@ -119,7 +118,7 @@ describe('AnalyticsGateway', () => {
       expect(mockServer.emit).toHaveBeenCalledWith('analyticsUpdate', {
         brandId,
         timestamp: expect.any(Date),
-        data
+        data,
       });
     });
 
@@ -129,7 +128,7 @@ describe('AnalyticsGateway', () => {
       const data = {
         metric1: 'value1',
         metric2: 'value2',
-        metric3: 'value3'
+        metric3: 'value3',
       };
       const metrics = ['metric1', 'metric3'];
 
@@ -143,9 +142,9 @@ describe('AnalyticsGateway', () => {
         timestamp: expect.any(Date),
         data: {
           metric1: 'value1',
-          metric3: 'value3'
-        }
+          metric3: 'value3',
+        },
       });
     });
   });
-}); 
+});

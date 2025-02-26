@@ -1,19 +1,26 @@
 import { SetMetadata } from '@nestjs/common';
-import { CACHE_KEY_METADATA, CACHE_TTL_METADATA } from '../interceptors/cache.interceptor';
+
+export const CACHE_KEY_METADATA = 'cache:key';
+export const CACHE_TTL_METADATA = 'cache:ttl';
+export const NO_CACHE_METADATA = 'cache:none';
 
 /**
- * Sets a custom cache key for a controller method
- * @param key The cache key to use
+ * Sets the cache key for a method
  */
-export const CacheKey = (key: string) => SetMetadata(CACHE_KEY_METADATA, key);
+export const CacheKey = (key: string): MethodDecorator => {
+  return SetMetadata(CACHE_KEY_METADATA, key);
+};
 
 /**
- * Sets a custom TTL (time to live) for a cached controller method
- * @param ttl Time to live in seconds
+ * Sets the cache TTL for a method
  */
-export const CacheTTL = (ttl: number) => SetMetadata(CACHE_TTL_METADATA, ttl);
+export const CacheTTL = (ttl: number): MethodDecorator => {
+  return SetMetadata(CACHE_TTL_METADATA, ttl);
+};
 
 /**
- * Disables caching for a controller method
+ * Disables caching for a method
  */
-export const NoCache = () => SetMetadata(CACHE_KEY_METADATA, null); 
+export const NoCache = (): MethodDecorator => {
+  return SetMetadata(NO_CACHE_METADATA, true);
+};

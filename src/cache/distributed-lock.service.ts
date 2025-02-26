@@ -1,4 +1,4 @@
-import { Injectable, Inject, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, RedisClientType } from 'redis';
 import { RedisConfig } from '../config/redis.config';
@@ -13,13 +13,13 @@ export interface LockOptions {
    * Default: 10000 (10 seconds)
    */
   ttl?: number;
-  
+
   /**
    * Retry delay in milliseconds between lock acquisition attempts
    * Default: 100
    */
   retryDelay?: number;
-  
+
   /**
    * Maximum number of retry attempts
    * Default: 10
@@ -53,7 +53,7 @@ export class DistributedLockService implements OnModuleInit {
     this.useRedis = !!(redisConfig?.host && process.env.NODE_ENV !== 'test');
   }
 
-  async onModuleInit() {
+  async onModuleInit(): Promise<void> {
     if (this.useRedis) {
       await this.initRedisClient();
     }
@@ -67,7 +67,7 @@ export class DistributedLockService implements OnModuleInit {
 
     this.isConnecting = true;
     this.connectionPromise = this.connectToRedis();
-    
+
     try {
       await this.connectionPromise;
     } finally {
@@ -88,7 +88,9 @@ export class DistributedLockService implements OnModuleInit {
         try {
           await this.redisClient.quit();
         } catch (error) {
-          this.logger.warn(`Error closing existing Redis client: ${error.message}`);
+          this.logger.warn(
+            `Error closing existing Redis client: ${error.message}`,
+          );
         }
       }
 
@@ -97,7 +99,7 @@ export class DistributedLockService implements OnModuleInit {
           host: redisConfig.host,
           port: redisConfig.port,
           connectTimeout: 10000, // 10 seconds
-          reconnectStrategy: (retries) => {
+          reconnectStrategy: retries => {
             // Maximum retry delay is 10 seconds
             const delay = Math.min(retries * 100, 10000);
             return delay;
@@ -107,7 +109,7 @@ export class DistributedLockService implements OnModuleInit {
         database: redisConfig.db,
       });
 
-      this.redisClient.on('error', (err) => {
+      this.redisClient.on('error', err => {
         this.logger.error(`Redis client error: ${err.message}`, err.stack);
       });
 
@@ -122,17 +124,26 @@ export class DistributedLockService implements OnModuleInit {
 
       await this.redisClient.connect();
     } catch (error) {
-      this.logger.error(`Failed to initialize Redis client: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to initialize Redis client: ${error.message}`,
+        error.stack,
+      );
       this.redisClient = null;
-      
+
       // Retry connection if we haven't exceeded max attempts
       this.connectionAttempts++;
       if (this.connectionAttempts < this.maxConnectionAttempts) {
-        this.logger.log(`Retrying Redis connection (attempt ${this.connectionAttempts}/${this.maxConnectionAttempts}) in ${this.connectionRetryTimeout}ms`);
-        await new Promise(resolve => setTimeout(resolve, this.connectionRetryTimeout));
+        this.logger.log(
+          `Retrying Redis connection (attempt ${this.connectionAttempts}/${this.maxConnectionAttempts}) in ${this.connectionRetryTimeout}ms`,
+        );
+        await new Promise(resolve =>
+          setTimeout(resolve, this.connectionRetryTimeout),
+        );
         await this.connectToRedis();
       } else {
-        this.logger.warn(`Max Redis connection attempts (${this.maxConnectionAttempts}) reached. Giving up.`);
+        this.logger.warn(
+          `Max Redis connection attempts (${this.maxConnectionAttempts}) reached. Giving up.`,
+        );
       }
     }
   }
@@ -150,7 +161,9 @@ export class DistributedLockService implements OnModuleInit {
       try {
         await this.initRedisClient();
       } catch (error) {
-        this.logger.error(`Failed to initialize Redis client: ${error.message}`);
+        this.logger.error(
+          `Failed to initialize Redis client: ${error.message}`,
+        );
         return false;
       }
     }
@@ -186,38 +199,44 @@ export class DistributedLockService implements OnModuleInit {
     const opts = { ...this.defaultOptions, ...options };
     const lockToken = randomUUID();
     const lockResource = `lock:${lockKey}`;
-    
+
     let retries = 0;
-    
+
     while (retries < opts.maxRetries) {
       try {
         // Try to set the lock with NX (only if it doesn't exist)
-        const result = await this.redisClient!.set(
-          lockResource,
-          lockToken,
-          {
-            NX: true,
-            PX: opts.ttl,
-          },
-        );
-        
+        const result = await this.redisClient!.set(lockResource, lockToken, {
+          NX: true,
+          PX: opts.ttl,
+        });
+
         if (result === 'OK') {
-          this.logger.debug(`Acquired lock for ${lockKey} with token ${lockToken}`);
+          this.logger.debug(
+            `Acquired lock for ${lockKey} with token ${lockToken}`,
+          );
           return lockToken;
         }
-        
+
         // Lock acquisition failed, wait and retry
         await new Promise(resolve => setTimeout(resolve, opts.retryDelay));
         retries++;
       } catch (error) {
-        this.logger.error(`Error acquiring lock for ${lockKey}: ${error.message}`, error.stack);
-        
+        this.logger.error(
+          `Error acquiring lock for ${lockKey}: ${error.message}`,
+          error.stack,
+        );
+
         // Try to reconnect if there's a connection issue
-        if (error.message.includes('connection') || error.message.includes('network')) {
+        if (
+          error.message.includes('connection') ||
+          error.message.includes('network')
+        ) {
           try {
             await this.initRedisClient();
           } catch (reconnectError) {
-            this.logger.error(`Failed to reconnect to Redis: ${reconnectError.message}`);
+            this.logger.error(
+              `Failed to reconnect to Redis: ${reconnectError.message}`,
+            );
             return null;
           }
         } else {
@@ -225,8 +244,10 @@ export class DistributedLockService implements OnModuleInit {
         }
       }
     }
-    
-    this.logger.warn(`Failed to acquire lock for ${lockKey} after ${retries} retries`);
+
+    this.logger.warn(
+      `Failed to acquire lock for ${lockKey} after ${retries} retries`,
+    );
     return null;
   }
 
@@ -244,7 +265,7 @@ export class DistributedLockService implements OnModuleInit {
     }
 
     const lockResource = `lock:${lockKey}`;
-    
+
     try {
       // Use Lua script to ensure we only delete the lock if it matches our token
       const script = `
@@ -254,35 +275,44 @@ export class DistributedLockService implements OnModuleInit {
           return 0
         end
       `;
-      
-      const result = await this.redisClient!.eval(
-        script,
-        {
-          keys: [lockResource],
-          arguments: [lockToken],
-        },
-      );
-      
+
+      const result = await this.redisClient!.eval(script, {
+        keys: [lockResource],
+        arguments: [lockToken],
+      });
+
       const success = result === 1;
       if (success) {
-        this.logger.debug(`Released lock for ${lockKey} with token ${lockToken}`);
+        this.logger.debug(
+          `Released lock for ${lockKey} with token ${lockToken}`,
+        );
       } else {
-        this.logger.warn(`Failed to release lock for ${lockKey} with token ${lockToken} (lock not owned or expired)`);
+        this.logger.warn(
+          `Failed to release lock for ${lockKey} with token ${lockToken} (lock not owned or expired)`,
+        );
       }
-      
+
       return success;
     } catch (error) {
-      this.logger.error(`Error releasing lock for ${lockKey}: ${error.message}`, error.stack);
-      
+      this.logger.error(
+        `Error releasing lock for ${lockKey}: ${error.message}`,
+        error.stack,
+      );
+
       // Try to reconnect if there's a connection issue
-      if (error.message.includes('connection') || error.message.includes('network')) {
+      if (
+        error.message.includes('connection') ||
+        error.message.includes('network')
+      ) {
         try {
           await this.initRedisClient();
         } catch (reconnectError) {
-          this.logger.error(`Failed to reconnect to Redis: ${reconnectError.message}`);
+          this.logger.error(
+            `Failed to reconnect to Redis: ${reconnectError.message}`,
+          );
         }
       }
-      
+
       return false;
     }
   }
@@ -303,17 +333,22 @@ export class DistributedLockService implements OnModuleInit {
     if (!lockToken) {
       // If we're in development mode and Redis is not available, execute the function anyway
       if (process.env.NODE_ENV === 'development' && !this.useRedis) {
-        this.logger.warn('Executing function without distributed lock in development mode');
+        this.logger.warn(
+          'Executing function without distributed lock in development mode',
+        );
         try {
           return await fn();
         } catch (error) {
-          this.logger.error(`Error executing function without lock: ${error.message}`, error.stack);
+          this.logger.error(
+            `Error executing function without lock: ${error.message}`,
+            error.stack,
+          );
           throw error;
         }
       }
       return null;
     }
-    
+
     try {
       return await fn();
     } finally {
@@ -332,24 +367,32 @@ export class DistributedLockService implements OnModuleInit {
       this.logger.warn('Distributed locking unavailable: Redis not connected');
       return false;
     }
-    
+
     try {
       const lockResource = `lock:${lockKey}`;
       const result = await this.redisClient!.exists(lockResource);
       return result === 1;
     } catch (error) {
-      this.logger.error(`Error checking lock for ${lockKey}: ${error.message}`, error.stack);
-      
+      this.logger.error(
+        `Error checking lock for ${lockKey}: ${error.message}`,
+        error.stack,
+      );
+
       // Try to reconnect if there's a connection issue
-      if (error.message.includes('connection') || error.message.includes('network')) {
+      if (
+        error.message.includes('connection') ||
+        error.message.includes('network')
+      ) {
         try {
           await this.initRedisClient();
         } catch (reconnectError) {
-          this.logger.error(`Failed to reconnect to Redis: ${reconnectError.message}`);
+          this.logger.error(
+            `Failed to reconnect to Redis: ${reconnectError.message}`,
+          );
         }
       }
-      
+
       return false;
     }
   }
-} 
+}

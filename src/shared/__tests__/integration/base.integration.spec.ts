@@ -1,10 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { Test } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { BaseService } from '../../classes/base.service';
 import { TestEntity } from '../test.entity';
 import { Repository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
-import { createTestDatabaseModule, withTestTransaction } from '../../test-utils';
+import {
+  createTestDatabaseModule,
+  withTestTransaction,
+} from '../../test-utils';
 
 // Create test entity factory inline since we're having import issues
 const testEntityFactory = {
@@ -12,8 +15,11 @@ const testEntityFactory = {
     name: overrides.name ?? 'Test Entity',
     description: overrides.description ?? 'Test Description',
   }),
-  buildList: (count: number, overrides: Partial<TestEntity> = {}): Partial<TestEntity>[] => 
-    Array.from({ length: count }, () => testEntityFactory.build(overrides))
+  buildList: (
+    count: number,
+    overrides: Partial<TestEntity> = {},
+  ): Partial<TestEntity>[] =>
+    Array.from({ length: count }, () => testEntityFactory.build(overrides)),
 };
 
 class TestEntityService extends BaseService<TestEntity> {
@@ -34,14 +40,17 @@ describe('Base Integration Tests', () => {
       providers: [
         {
           provide: TestEntityService,
-          useFactory: (repo: Repository<TestEntity>) => new TestEntityService(repo),
-          inject: [getRepositoryToken(TestEntity)]
-        }
-      ]
+          useFactory: (repo: Repository<TestEntity>) =>
+            new TestEntityService(repo),
+          inject: [getRepositoryToken(TestEntity)],
+        },
+      ],
     }).compile();
 
     service = module.get<TestEntityService>(TestEntityService);
-    repository = module.get<Repository<TestEntity>>(getRepositoryToken(TestEntity));
+    repository = module.get<Repository<TestEntity>>(
+      getRepositoryToken(TestEntity),
+    );
   });
 
   afterAll(async () => {
@@ -102,7 +111,9 @@ describe('Base Integration Tests', () => {
         await service.delete(entity.id);
 
         // Assert
-        await expect(service.findById(entity.id)).rejects.toThrow(NotFoundException);
+        await expect(service.findById(entity.id)).rejects.toThrow(
+          NotFoundException,
+        );
       });
     });
 
@@ -111,7 +122,7 @@ describe('Base Integration Tests', () => {
         // Arrange
         const testEntities = testEntityFactory.buildList(3);
         const createdEntities = await Promise.all(
-          testEntities.map((entity) => service.create(entity))
+          testEntities.map(entity => service.create(entity)),
         );
 
         // Act
@@ -119,8 +130,8 @@ describe('Base Integration Tests', () => {
 
         // Assert
         expect(entities).toHaveLength(3);
-        expect(entities.map((e) => e.name)).toEqual(
-          expect.arrayContaining(createdEntities.map((e) => e.name))
+        expect(entities.map(e => e.name)).toEqual(
+          expect.arrayContaining(createdEntities.map(e => e.name)),
         );
       });
     });
@@ -130,10 +141,10 @@ describe('Base Integration Tests', () => {
         // Arrange
         const targetEntity = testEntityFactory.build({ name: 'Search Target' });
         const otherEntity = testEntityFactory.build({ name: 'Other Entity' });
-        
+
         await Promise.all([
           service.create(targetEntity),
-          service.create(otherEntity)
+          service.create(otherEntity),
         ]);
 
         // Act
@@ -145,4 +156,4 @@ describe('Base Integration Tests', () => {
       });
     });
   });
-}); 
+});

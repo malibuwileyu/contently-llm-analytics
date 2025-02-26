@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, VerifyCallback, Profile, StrategyOptions } from 'passport-google-oauth20';
+import { Strategy, VerifyCallback, Profile } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../types/auth.types';
 import { Role } from '../enums/role.enum';
@@ -23,10 +23,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       callbackURL: callbackURL || 'http://localhost/auth/google/callback',
       scope: ['email', 'profile'],
     });
-    
+
     // Log warning if Google OAuth is not properly configured
     if (!clientID || !clientSecret || !callbackURL) {
-      this.logger.warn('Google OAuth is not properly configured. The strategy will be disabled.');
+      this.logger.warn(
+        'Google OAuth is not properly configured. The strategy will be disabled.',
+      );
     }
   }
 
@@ -63,4 +65,4 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       done(error, undefined);
     }
   }
-} 
+}

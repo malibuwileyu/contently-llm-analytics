@@ -13,18 +13,19 @@ import {
 import { SupabaseService } from '../supabase/supabase.service';
 import { AuthDto } from './dto/auth.dto';
 import { AuthResponse } from './types/auth.types';
-import { SupabaseGuard } from './guards/supabase.guard';
-import { CurrentUser } from './decorators/current-user.decorator';
 import { User } from './types/auth.types';
 import { ConfigService } from '@nestjs/config';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly configService: ConfigService,
+    private readonly authService: AuthService,
   ) {}
 
   @Post('signup')
@@ -68,45 +69,36 @@ export class AuthController {
     return { message: 'Signed out successfully' };
   }
 
-  @Get('me')
-  @UseGuards(SupabaseGuard)
-  @HttpCode(HttpStatus.OK)
-  async getProfile(@CurrentUser() user: User): Promise<User> {
-    return user;
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@Req() req: Request): Promise<User> {
+    return req.user as User;
   }
 
   @Get('google')
   @UseGuards(GoogleAuthGuard)
   async googleAuth(): Promise<void> {
-    // Guard redirects to Google
+    // Guard will handle the auth flow
   }
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  async googleAuthCallback(@Req() req: any, @Res() res: Response): Promise<void> {
-    // Check for authentication error
-    if (req.query.error) {
-      const clientUrl = this.configService.get<string>('app.clientUrl');
-      res.redirect(`${clientUrl}/auth/callback?error=${req.query.error}`);
+  async googleAuthCallback(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    const { user } = req;
+    if (!user) {
+      res.redirect('/auth/login?error=authentication_failed');
       return;
     }
 
-    const user = req.user as User;
-    
-    // Create or update user in Supabase
-    const { data, error } = await this.supabaseService.signUp(
-      user.email || '',
-      // Generate a random password for SSO users
-      Math.random().toString(36).slice(-8),
-    );
+    const token = await this.authService.generateToken(user as User);
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    });
 
-    if (error && error.message !== 'User already registered') {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
-
-    // Redirect to frontend with token
-    const clientUrl = this.configService.get<string>('app.clientUrl');
-    const token = data.session?.access_token;
-    res.redirect(`${clientUrl}/auth/callback?token=${token}`);
+    res.redirect('/');
   }
 }

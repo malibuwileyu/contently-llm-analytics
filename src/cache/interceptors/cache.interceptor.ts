@@ -11,15 +11,18 @@ import { CacheService } from '../cache.service';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { Request } from 'express';
+import {
+  CACHE_KEY_METADATA,
+  CACHE_TTL_METADATA,
+  NO_CACHE_METADATA,
+} from '../decorators/cache.decorators';
+import { CacheValue } from '../../types/common';
 
 export interface CacheOptions {
   ttl?: number;
   keyPrefix?: string;
   keyGenerator?: (context: ExecutionContext) => string;
 }
-
-export const CACHE_KEY_METADATA = 'cache_key_metadata';
-export const CACHE_TTL_METADATA = 'cache_ttl_metadata';
 
 @Injectable()
 export class CacheInterceptor implements NestInterceptor {
@@ -33,80 +36,64 @@ export class CacheInterceptor implements NestInterceptor {
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
-  ): Promise<Observable<any>> {
-    // Get cache options from metadata
-    const cacheKey = this.getCacheKey(context);
-    const ttl = this.getTtl(context);
-
-    if (!cacheKey) {
+  ): Promise<Observable<CacheValue>> {
+    const noCache = this.reflector.get(NO_CACHE_METADATA, context.getHandler());
+    if (noCache) {
       return next.handle();
     }
 
-    try {
-      // Try to get from cache
-      const cachedData = await this.cacheService.get(cacheKey);
-      if (cachedData !== null) {
-        this.logger.debug(`Cache hit for key: ${cacheKey}`);
-        return of(cachedData);
-      }
+    const key = this.getCacheKey(context);
+    const ttl = this.reflector.get(CACHE_TTL_METADATA, context.getHandler());
 
-      // Cache miss, get fresh data
-      this.logger.debug(`Cache miss for key: ${cacheKey}`);
-      return next.handle().pipe(
-        tap(async (data) => {
-          try {
-            await this.cacheService.set(cacheKey, data, ttl);
-          } catch (error) {
-            this.logger.error(`Failed to cache response: ${error.message}`, error.stack);
-          }
-        }),
-      );
-    } catch (error) {
-      this.logger.error(`Cache interceptor error: ${error.message}`, error.stack);
-      return next.handle();
+    const cachedValue = await this.cacheService.get(key);
+    if (cachedValue !== null) {
+      this.logger.debug(`Cache hit for key: ${key}`);
+      return of(cachedValue);
     }
+
+    this.logger.debug(`Cache miss for key: ${key}`);
+    return next.handle().pipe(
+      tap(async response => {
+        try {
+          await this.cacheService.set(key, response, ttl);
+        } catch (error) {
+          this.logger.error(
+            `Failed to cache response: ${error.message}`,
+            error.stack,
+          );
+        }
+      }),
+    );
   }
 
-  private getCacheKey(context: ExecutionContext): string | null {
-    // Check if a custom key generator is provided
-    const customKey = this.reflector.get(CACHE_KEY_METADATA, context.getHandler());
+  private getCacheKey(context: ExecutionContext): string {
+    const customKey = this.reflector.get(
+      CACHE_KEY_METADATA,
+      context.getHandler(),
+    );
     if (customKey) {
       return customKey;
     }
 
-    // Generate key based on context type
-    const contextType = context.getType();
-    if (contextType === 'http') {
-      return this.getHttpCacheKey(context);
-    } 
-    
-    // Check if it's a GraphQL context by trying to create a GqlExecutionContext
-    try {
-      const gqlContext = GqlExecutionContext.create(context);
-      if (gqlContext.getInfo()) {
-        return this.getGraphQLCacheKey(context);
-      }
-    } catch (error) {
-      // Not a GraphQL context
-    }
-
-    return null;
+    const request = context.switchToHttp().getRequest();
+    const { url, method, body, query } = request;
+    return `${method}:${url}:${JSON.stringify(body)}:${JSON.stringify(query)}`;
   }
 
   private getHttpCacheKey(context: ExecutionContext): string | null {
     const request = context.switchToHttp().getRequest<Request>();
     const { method, url, query, params } = request;
-    
+
     // Don't cache non-GET requests by default
     if (method !== 'GET') {
       return null;
     }
 
     // Create a key based on the URL, query params, and route params
-    const queryString = Object.keys(query).length 
+    const queryString = Object.keys(query).length
       ? `?${new URLSearchParams(query as Record<string, string>).toString()}`
       : '';
-    
+
     const paramsString = Object.keys(params).length
       ? `:${Object.values(params).join(':')}`
       : '';
@@ -118,7 +105,7 @@ export class CacheInterceptor implements NestInterceptor {
     const gqlContext = GqlExecutionContext.create(context);
     const info = gqlContext.getInfo();
     const variables = gqlContext.getArgs();
-    
+
     if (!info) {
       return null;
     }
@@ -136,4 +123,4 @@ export class CacheInterceptor implements NestInterceptor {
   private getTtl(context: ExecutionContext): number | undefined {
     return this.reflector.get(CACHE_TTL_METADATA, context.getHandler());
   }
-} 
+}

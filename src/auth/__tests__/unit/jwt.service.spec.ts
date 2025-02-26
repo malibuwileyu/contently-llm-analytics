@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { JwtService } from '../../services/jwt.service';
+import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { JwtService as NestJwtService } from '@nestjs/jwt';
-import { User } from '../../types/auth.types';
+import { JwtAuthService } from '../../services/jwt-auth.service';
 
 interface JwtPayload {
   sub: string;
@@ -11,16 +10,15 @@ interface JwtPayload {
   permissions: string[];
 }
 
-describe('JwtService', () => {
-  let service: JwtService;
-  let nestJwtService: NestJwtService;
-  let configService: ConfigService;
+describe('JwtAuthService', () => {
+  let service: JwtAuthService;
+  let jwtService: JwtService;
 
-  const mockUser: User = {
+  const mockUser = {
     id: 'test-user-id',
     email: 'test@example.com',
     roles: ['user'],
-    permissions: ['read:content']
+    permissions: ['read:content'],
   };
 
   const mockJwtSecret = 'test-secret';
@@ -29,14 +27,14 @@ describe('JwtService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        JwtService,
+        JwtAuthService,
         {
-          provide: NestJwtService,
+          provide: JwtService,
           useValue: {
             sign: jest.fn(),
             verify: jest.fn(),
-            decode: jest.fn()
-          }
+            decode: jest.fn(),
+          },
         },
         {
           provide: ConfigService,
@@ -50,21 +48,24 @@ describe('JwtService', () => {
                 default:
                   return null;
               }
-            })
-          }
-        }
-      ]
+            }),
+          },
+        },
+      ],
     }).compile();
 
-    service = module.get<JwtService>(JwtService);
-    nestJwtService = module.get<NestJwtService>(NestJwtService);
-    configService = module.get<ConfigService>(ConfigService);
+    service = module.get<JwtAuthService>(JwtAuthService);
+    jwtService = module.get<JwtService>(JwtService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
   });
 
   describe('generateToken', () => {
     it('should generate a token with correct payload', async () => {
       const mockToken = 'mock-token';
-      const signSpy = jest.spyOn(nestJwtService, 'sign').mockReturnValue(mockToken);
+      const signSpy = jest.spyOn(jwtService, 'sign').mockReturnValue(mockToken);
 
       const token = await service.generateToken(mockUser);
 
@@ -75,19 +76,19 @@ describe('JwtService', () => {
           email: mockUser.email,
           roles: mockUser.roles,
           permissions: mockUser.permissions,
-          iat: expect.any(Number)
+          iat: expect.any(Number),
         }),
         {
           secret: mockJwtSecret,
-          expiresIn: mockSessionMaxAge
-        }
+          expiresIn: mockSessionMaxAge,
+        },
       );
     });
 
     it('should handle missing optional user fields', async () => {
       const mockToken = 'mock-token';
-      const partialUser: User = { id: 'test-id' };
-      jest.spyOn(nestJwtService, 'sign').mockReturnValue(mockToken);
+      const partialUser = { id: 'test-id' };
+      jest.spyOn(jwtService, 'sign').mockReturnValue(mockToken);
 
       const token = await service.generateToken(partialUser);
 
@@ -96,15 +97,15 @@ describe('JwtService', () => {
 
     it('should include expiration time in token', async () => {
       const mockToken = 'mock-token';
-      const signSpy = jest.spyOn(nestJwtService, 'sign').mockReturnValue(mockToken);
+      const signSpy = jest.spyOn(jwtService, 'sign').mockReturnValue(mockToken);
 
       await service.generateToken(mockUser);
 
       expect(signSpy).toHaveBeenCalledWith(
         expect.any(Object),
         expect.objectContaining({
-          expiresIn: mockSessionMaxAge
-        })
+          expiresIn: mockSessionMaxAge,
+        }),
       );
     });
   });
@@ -115,44 +116,52 @@ describe('JwtService', () => {
         sub: 'user123',
         username: 'testuser',
         roles: ['USER'],
-        permissions: ['READ']
+        permissions: ['READ'],
       };
 
-      const verifySpy = jest.spyOn(nestJwtService, 'verify').mockImplementation(() => mockPayload);
+      const verifySpy = jest
+        .spyOn(jwtService, 'verify')
+        .mockImplementation(() => mockPayload);
 
       const result = await service.verifyToken('valid-token');
 
       expect(result).toEqual(mockPayload);
       expect(verifySpy).toHaveBeenCalledWith('valid-token', {
-        secret: mockJwtSecret
+        secret: mockJwtSecret,
       });
     });
 
     it('should throw error for invalid token', async () => {
       const mockToken = 'invalid-token';
-      jest.spyOn(nestJwtService, 'verify').mockRejectedValue(new Error('Invalid token') as never);
+      jest
+        .spyOn(jwtService, 'verify')
+        .mockRejectedValue(new Error('Invalid token') as never);
 
-      await expect(service.verifyToken(mockToken))
-        .rejects
-        .toThrow('Invalid token');
+      await expect(service.verifyToken(mockToken)).rejects.toThrow(
+        'Invalid token',
+      );
     });
 
     it('should throw error for expired token', async () => {
       const mockToken = 'expired-token';
-      jest.spyOn(nestJwtService, 'verify').mockRejectedValue(new Error('jwt expired') as never);
+      jest
+        .spyOn(jwtService, 'verify')
+        .mockRejectedValue(new Error('jwt expired') as never);
 
-      await expect(service.verifyToken(mockToken))
-        .rejects
-        .toThrow('Invalid token');
+      await expect(service.verifyToken(mockToken)).rejects.toThrow(
+        'Invalid token',
+      );
     });
 
     it('should throw error for malformed token', async () => {
       const mockToken = 'malformed-token';
-      jest.spyOn(nestJwtService, 'verify').mockRejectedValue(new Error('jwt malformed') as never);
+      jest
+        .spyOn(jwtService, 'verify')
+        .mockRejectedValue(new Error('jwt malformed') as never);
 
-      await expect(service.verifyToken(mockToken))
-        .rejects
-        .toThrow('Invalid token');
+      await expect(service.verifyToken(mockToken)).rejects.toThrow(
+        'Invalid token',
+      );
     });
   });
 
@@ -161,20 +170,20 @@ describe('JwtService', () => {
       const mockToken = 'token-to-decode';
       const mockPayload = {
         sub: mockUser.id,
-        email: mockUser.email
+        email: mockUser.email,
       };
 
-      jest.spyOn(nestJwtService, 'decode').mockReturnValue(mockPayload);
+      jest.spyOn(jwtService, 'decode').mockReturnValue(mockPayload);
 
       const result = await service.decodeToken(mockToken);
 
       expect(result).toEqual(mockPayload);
-      expect(nestJwtService.decode).toHaveBeenCalledWith(mockToken);
+      expect(jwtService.decode).toHaveBeenCalledWith(mockToken);
     });
 
     it('should handle null decode result', async () => {
       const mockToken = 'invalid-token';
-      jest.spyOn(nestJwtService, 'decode').mockReturnValue(null);
+      jest.spyOn(jwtService, 'decode').mockReturnValue(null);
 
       const result = await service.decodeToken(mockToken);
 
@@ -183,9 +192,9 @@ describe('JwtService', () => {
 
     it('should not throw on invalid token format', async () => {
       const mockToken = 'invalid-format';
-      jest.spyOn(nestJwtService, 'decode').mockReturnValue(null);
+      jest.spyOn(jwtService, 'decode').mockReturnValue(null);
 
       await expect(service.decodeToken(mockToken)).resolves.not.toThrow();
     });
   });
-}); 
+});

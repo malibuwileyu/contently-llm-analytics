@@ -1,28 +1,19 @@
-import { Resolver, Query, ObjectType, Field } from '@nestjs/graphql';
-import { UseGuards, UnauthorizedException } from '@nestjs/common';
-import { AuthGuard } from '../guards/auth.guard';
-
-@ObjectType()
-class ProtectedData {
-  @Field()
-  id: string;
-
-  @Field()
-  name: string;
-}
+import { Args, Query, Resolver } from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/roles.decorator';
+import { Role } from '../enums/role.enum';
 
 @Resolver()
 export class TestResolver {
-  @Query(() => ProtectedData)
-  @UseGuards(AuthGuard)
-  async protectedData(): Promise<ProtectedData> {
-    try {
-      return {
-        id: 'test-id',
-        name: 'Protected Data'
-      };
-    } catch (error) {
-      throw new UnauthorizedException('Unauthorized');
+  @Query(() => String)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  async testAuth(@Args('input') input: string): Promise<string> {
+    if (!input) {
+      throw new Error('Input required');
     }
+    return `Authenticated with input: ${input}`;
   }
-} 
+}

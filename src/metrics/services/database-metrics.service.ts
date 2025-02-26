@@ -3,6 +3,13 @@ import { Connection, QueryRunner } from 'typeorm';
 import { PrometheusMetricsService } from './prometheus-metrics.service';
 import { MetricsConfig } from '../../config/metrics.config';
 
+export interface DatabaseMetrics {
+  activeConnections: number;
+  queryCount: number;
+  averageQueryTime: number;
+  errorCount: number;
+}
+
 /**
  * Service for tracking database query metrics
  */
@@ -22,7 +29,7 @@ export class DatabaseMetricsService implements OnModuleInit {
   /**
    * Initialize the database metrics service
    */
-  onModuleInit() {
+  onModuleInit(): void {
     if (!this.config.enabled) {
       this.logger.log('Database metrics service is disabled');
       return;
@@ -35,7 +42,7 @@ export class DatabaseMetricsService implements OnModuleInit {
   /**
    * Sets up query metrics tracking
    */
-  private setupQueryMetrics() {
+  private setupQueryMetrics(): void {
     // Create histogram for query duration
     this.metricsService.createHistogram({
       name: this.queryMetricName,
@@ -64,7 +71,7 @@ export class DatabaseMetricsService implements OnModuleInit {
   /**
    * Collects connection pool metrics
    */
-  private async collectConnectionMetrics() {
+  private async collectConnectionMetrics(): Promise<void> {
     if (!this.config.enabled) return;
 
     try {
@@ -73,7 +80,7 @@ export class DatabaseMetricsService implements OnModuleInit {
 
       // Get connection pool stats
       const poolStats = await this.getConnectionPoolStats(queryRunner);
-      
+
       // Update gauge with active connections
       this.metricsService.setGauge(
         `${this.config.prefix}db_connections_active`,
@@ -131,7 +138,7 @@ export class DatabaseMetricsService implements OnModuleInit {
 
     // Extract query type (SELECT, INSERT, etc.)
     const queryType = this.getQueryType(query);
-    
+
     // Start timer
     const endTimer = this.metricsService.startTimer(this.queryMetricName, {
       query: queryType,
@@ -141,15 +148,15 @@ export class DatabaseMetricsService implements OnModuleInit {
     try {
       // Execute query
       const result = await callback();
-      
+
       // End timer
       endTimer();
-      
+
       return result;
     } catch (error) {
       // End timer
       endTimer();
-      
+
       // Increment error counter
       this.metricsService.incrementCounter(
         `${this.config.prefix}db_query_errors_total`,
@@ -160,7 +167,7 @@ export class DatabaseMetricsService implements OnModuleInit {
           error: error.code || 'unknown',
         },
       );
-      
+
       throw error;
     }
   }
@@ -172,7 +179,7 @@ export class DatabaseMetricsService implements OnModuleInit {
    */
   private getQueryType(query: string): string {
     const normalizedQuery = query.trim().toUpperCase();
-    
+
     if (normalizedQuery.startsWith('SELECT')) return 'SELECT';
     if (normalizedQuery.startsWith('INSERT')) return 'INSERT';
     if (normalizedQuery.startsWith('UPDATE')) return 'UPDATE';
@@ -180,7 +187,7 @@ export class DatabaseMetricsService implements OnModuleInit {
     if (normalizedQuery.startsWith('CREATE')) return 'CREATE';
     if (normalizedQuery.startsWith('ALTER')) return 'ALTER';
     if (normalizedQuery.startsWith('DROP')) return 'DROP';
-    
+
     return 'OTHER';
   }
-} 
+}

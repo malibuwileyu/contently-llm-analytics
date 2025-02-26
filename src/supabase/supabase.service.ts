@@ -4,11 +4,13 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/supabase';
 import { AuthResult, AuthError, User } from '../auth/types/auth.types';
 import { CacheService } from '../cache/cache.service';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class SupabaseService {
   private readonly supabase;
   private readonly USER_CACHE_TTL = 300; // 5 minutes
+  private readonly logger = new Logger(SupabaseService.name);
 
   constructor(
     private configService: ConfigService,
@@ -26,16 +28,16 @@ export class SupabaseService {
 
   async checkHealth(): Promise<boolean> {
     try {
-      const { data, error } = await this.supabase.rpc('health_check');
+      const { error } = await this.supabase.rpc('health_check');
       if (error) throw error;
       return true;
     } catch (error) {
-      console.error('Supabase health check failed:', error);
+      this.logger.error('Supabase health check failed:', error);
       return false;
     }
   }
 
-  getClient() {
+  getClient(): SupabaseClient<Database> {
     return this.supabase;
   }
 

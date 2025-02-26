@@ -1,30 +1,28 @@
-import { Controller, Get, Post, UseGuards, HttpCode } from '@nestjs/common';
-import { AuthGuard } from '../guards/auth.guard';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
-import { Permissions } from '../decorators/permissions.decorator';
 import { Role } from '../enums/role.enum';
-import { Permission } from '../enums/permission.enum';
 
-@Controller()
+@Controller('test')
 export class TestController {
   @Get('protected')
-  @UseGuards(AuthGuard)
-  getProtected() {
+  @UseGuards(JwtAuthGuard)
+  async getProtected(): Promise<{ message: string }> {
     return { message: 'Protected route accessed successfully' };
   }
 
-  @Get('admin/dashboard')
-  @UseGuards(AuthGuard)
+  @Get('admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  getAdminDashboard() {
+  async getAdminDashboard(): Promise<{ message: string }> {
     return { message: 'Admin dashboard accessed successfully' };
   }
 
-  @Post('system/settings')
-  @HttpCode(200)
-  @UseGuards(AuthGuard)
-  @Permissions(Permission.MANAGE_SYSTEM)
-  updateSystemSettings() {
+  @Get('settings')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  async updateSystemSettings(): Promise<{ message: string }> {
     return { message: 'System settings updated successfully' };
   }
-} 
+}
