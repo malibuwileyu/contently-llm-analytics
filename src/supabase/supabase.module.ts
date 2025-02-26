@@ -1,10 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { SupabaseService } from './supabase.service';
 import { CacheModule } from '../cache/cache.module';
 
 @Module({
-  imports: [ConfigModule, CacheModule],
+  imports: [ConfigModule, forwardRef(() => CacheModule)],
   providers: [SupabaseService],
   exports: [SupabaseService],
 })
