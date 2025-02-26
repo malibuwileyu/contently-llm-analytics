@@ -6,39 +6,32 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=postgres
-      - DB_DATABASE=contently
+      # Supabase Configuration
+      - SUPABASE_URL=https://bbsgwltocnbqalptlchw.supabase.co
+      - SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJic2d3bHRvY25icWFscHRsY2h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA0OTQwNzEsImV4cCI6MjA1NjA3MDA3MX0.s3i8lN92lze0GEXonHbPvj3p3mhd-jbALSYLzmIH8bw
+      - SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJic2d3bHRvY25icWFscHRsY2h3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDQ5NDA3MSwiZXhwIjoyMDU2MDcwMDcxfQ.QlS_99b6VnfxvyT_QtQr2EM50y3GhAAZ1uejsPL0OMM
+      - SUPABASE_JWT_SECRET=yGIi+x+j+x2SFl3vVuDft3jE2tisAS3f330i1/QQP7zgvAuvn3RYFU/hTG8VLsuvvM6vFcfcT4k3jNQhilZ9pA==
+      - SUPABASE_PASSWORD=m94rblspnztiCviL
+      # Database Configuration
+      - DB_HOST=aws-0-us-west-1.pooler.supabase.com
+      - DB_PORT=6543
+      - DB_USERNAME=postgres.bbsgwltocnbqalptlchw
+      - DB_PASSWORD=m94rblspnztiCviL
+      - DB_NAME=postgres
+      - DB_SSL=true
+      # Redis Configuration
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     volumes:
       - .:/app
       - /app/node_modules
     depends_on:
-      - postgres
       - redis
 
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: contently
-      # Allow trust authentication method to avoid SASL errors
-      POSTGRES_HOST_AUTH_METHOD: trust
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
   redis:
-    image: redis:7-alpine
+    image: redis:alpine
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
 
 volumes:
   postgres_data:

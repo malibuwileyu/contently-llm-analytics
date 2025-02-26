@@ -8,31 +8,35 @@ import { ExternalServiceHealthIndicator } from './indicators/external-service.he
 import { MemoryHealthIndicator } from './indicators/memory.health';
 import { DiskHealthIndicator } from './indicators/disk.health';
 import { HealthSchedulerService } from './services/health-scheduler.service';
-import { CacheModule } from '../cache/cache.module';
+import { CacheModule } from '@nestjs/cache-manager';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MetricsModule } from '../metrics/metrics.module';
-import { RouterModule } from '@nestjs/core';
+import { SupabaseHealthIndicator } from './indicators/supabase.health';
+import * as redisStore from 'cache-manager-redis-store';
 
 @Module({
   imports: [
     TerminusModule,
     HttpModule,
     SupabaseModule,
-    CacheModule,
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        store: redisStore,
+        host: configService.get('REDIS_HOST'),
+        port: configService.get('REDIS_PORT'),
+        ttl: 60,
+      }),
+      isGlobal: true,
+    }),
     TypeOrmModule,
     ConfigModule,
     MetricsModule.register({
       isGlobal: false,
       registerController: false,
     }),
-    // Register the health module routes
-    RouterModule.register([
-      {
-        path: 'health',
-        module: HealthModule,
-      },
-    ]),
   ],
   controllers: [HealthController],
   providers: [
@@ -41,6 +45,7 @@ import { RouterModule } from '@nestjs/core';
     MemoryHealthIndicator,
     DiskHealthIndicator,
     HealthSchedulerService,
+    SupabaseHealthIndicator,
   ],
   exports: [
     HealthSchedulerService,

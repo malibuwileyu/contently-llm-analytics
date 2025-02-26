@@ -19,6 +19,7 @@ import { HealthSchedulerService } from './services/health-scheduler.service';
 import { Public } from '../auth/decorators/public.decorator';
 import { PrometheusMetricsService } from '../metrics/services/prometheus-metrics.service';
 import { ConfigService } from '@nestjs/config';
+import { SupabaseHealthIndicator } from './indicators/supabase.health';
 
 @Controller('health')
 export class HealthController {
@@ -36,14 +37,14 @@ export class HealthController {
     private healthScheduler: HealthSchedulerService,
     private metricsService: PrometheusMetricsService,
     private configService: ConfigService,
+    private supabaseHealthIndicator: SupabaseHealthIndicator,
   ) {
     // Use environment-aware self URL
     const port = this.configService.get<number>('app.port', 3000);
-    const apiPrefix = this.configService.get<string>('app.apiPrefix', 'api');
     
-    // When running in Docker, use the service name instead of localhost
-    const host = process.env.NODE_ENV === 'production' ? 'app' : 'localhost';
-    this.selfUrl = `http://${host}:${port}`;
+    // When running in Docker, use localhost for self-checks since we're checking internally
+    const host = 'localhost';
+    this.selfUrl = `http://${host}:${port}/health`;
   }
 
   @Get()
@@ -51,9 +52,6 @@ export class HealthController {
   @HealthCheck()
   check(): Promise<HealthCheckResult> {
     return this.health.check([
-      // Basic health check that ensures the application is running
-      (): Promise<HealthIndicatorResult> =>
-        this.http.pingCheck('self', this.selfUrl),
       // Supabase health check
       async (): Promise<HealthIndicatorResult> => {
         try {

@@ -44,12 +44,12 @@ export class RequestLoggerMiddleware implements NestMiddleware {
     });
     
     // Get the start time
-    const start = Date.now();
+    const startTime = Date.now();
     
-    // Log the response when it's sent
-    res.on('finish', () => {
-      // Calculate request duration
-      const duration = Date.now() - start;
+    // Add response listener using the correct type
+    const resStream = res as unknown as { on: (event: string, callback: () => void) => void };
+    resStream.on('finish', () => {
+      const duration = Date.now() - startTime;
       
       // Get response information
       const { statusCode } = res;

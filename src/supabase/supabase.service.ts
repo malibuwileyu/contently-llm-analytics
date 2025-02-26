@@ -1,36 +1,42 @@
 import { Injectable } from '@nestjs/common';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ConfigService } from '@nestjs/config';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '../types/supabase';
 import { AuthResult, AuthError, User } from '../auth/types/auth.types';
 import { CacheService } from '../cache/cache.service';
 
 @Injectable()
 export class SupabaseService {
-  private supabase: SupabaseClient;
+  private readonly supabase;
   private readonly USER_CACHE_TTL = 300; // 5 minutes
 
   constructor(
     private configService: ConfigService,
     private cacheService: CacheService,
   ) {
-    const url = this.configService.get<string>('SUPABASE_URL');
-    const key = this.configService.get<string>('SUPABASE_ANON_KEY');
+    const supabaseUrl = this.configService.get<string>('SUPABASE_URL');
+    const supabaseKey = this.configService.get<string>('SUPABASE_ANON_KEY');
 
-    if (!url || !key) {
+    if (!supabaseUrl || !supabaseKey) {
       throw new Error('Missing Supabase configuration');
     }
 
-    this.supabase = createClient(url, key);
+    this.supabase = createClient<Database>(supabaseUrl, supabaseKey);
   }
 
-  async checkHealth(): Promise<void> {
+  async checkHealth(): Promise<boolean> {
     try {
-      // Try to fetch system health
-      const { error } = await this.supabase.rpc('get_system_health');
+      const { data, error } = await this.supabase.rpc('health_check');
       if (error) throw error;
+      return true;
     } catch (error) {
-      throw new Error(`Supabase health check failed: ${error.message}`);
+      console.error('Supabase health check failed:', error);
+      return false;
     }
+  }
+
+  getClient() {
+    return this.supabase;
   }
 
   async signUp(email: string, password: string): Promise<AuthResult> {
