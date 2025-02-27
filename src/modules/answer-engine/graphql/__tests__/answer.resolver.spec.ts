@@ -4,6 +4,8 @@ import { JwtService } from '@nestjs/jwt';
 import { AnswerResolver } from '../answer.resolver';
 import { BrandMention, BrandHealth, BrandMentionAddedPayload, BrandHealthInput } from '../answer.types';
 import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
+import { AnswerEngineService } from '../../services/answer-engine.service';
+import { SentimentTrend } from '../../interfaces/sentiment-analysis.interface';
 
 interface AsyncIteratorWithSymbol<T> extends AsyncIterator<T> {
   [Symbol.asyncIterator](): AsyncIterator<T>;
@@ -48,6 +50,7 @@ describe('AnswerResolver', () => {
   let resolver: AnswerResolver;
   let pubSub: MockPubSub;
   let jwtService: JwtService;
+  let answerEngineService: Partial<AnswerEngineService>;
 
   beforeEach(async () => {
     pubSub = new MockPubSub();
@@ -55,6 +58,11 @@ describe('AnswerResolver', () => {
       sign: jest.fn().mockReturnValue('mock.jwt.token'),
       verify: jest.fn().mockResolvedValue({ userId: 'test-user-id' }),
     } as unknown as JwtService;
+
+    answerEngineService = {
+      getBrandHealth: jest.fn(),
+      analyzeMention: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -67,6 +75,10 @@ describe('AnswerResolver', () => {
           provide: JwtService,
           useValue: jwtService,
         },
+        {
+          provide: AnswerEngineService,
+          useValue: answerEngineService,
+        },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -76,14 +88,29 @@ describe('AnswerResolver', () => {
     resolver = module.get<AnswerResolver>(AnswerResolver);
   });
 
-  describe('brandMentions', () => {
-    it('should return brand mentions', async () => {
-      const result = await resolver.brandMentions();
+  describe('getRecentMentions', () => {
+    it('should return recent brand mentions', async () => {
+      // Mock the service response
+      const mockTrend: SentimentTrend[] = [
+        { date: new Date(), averageSentiment: 0.5 },
+        { date: new Date(), averageSentiment: 0.7 },
+      ];
+      
+      (answerEngineService.getBrandHealth as jest.Mock).mockResolvedValue({
+        overallSentiment: 0.6,
+        trend: mockTrend,
+        mentionCount: 2,
+      });
+
+      const result = await resolver.getRecentMentions('test-brand', 10);
       expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(2);
+      expect(result[0]).toHaveProperty('id');
+      expect(result[0]).toHaveProperty('brandId', 'test-brand');
     });
   });
 
-  describe('brandHealth', () => {
+  describe('getBrandHealth', () => {
     it('should return brand health metrics', async () => {
       const input: BrandHealthInput = {
         brandId: 'test-brand',
@@ -91,7 +118,17 @@ describe('AnswerResolver', () => {
         endDate: new Date(),
       };
 
-      const result = await resolver.brandHealth(input);
+      // Mock the service response
+      (answerEngineService.getBrandHealth as jest.Mock).mockResolvedValue({
+        overallSentiment: 0.6,
+        trend: [
+          { date: new Date(), averageSentiment: 0.5 },
+          { date: new Date(), averageSentiment: 0.7 },
+        ],
+        mentionCount: 2,
+      });
+
+      const result = await resolver.getBrandHealth(input);
       expect(result).toHaveProperty('overallSentiment');
       expect(result).toHaveProperty('trend');
       expect(result).toHaveProperty('mentionCount');
@@ -103,14 +140,31 @@ describe('AnswerResolver', () => {
       const input = {
         brandId: 'test-brand',
         content: 'test content',
-        context: 'test context',
+        context: {
+          query: 'test query',
+          response: 'test response',
+          platform: 'test platform',
+        },
       };
+
+      // Mock the service response
+      const mockMention = {
+        id: 'test-id',
+        brandId: input.brandId,
+        content: input.content,
+        sentiment: 0.5,
+        context: input.context,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      
+      (answerEngineService.analyzeMention as jest.Mock).mockResolvedValue(mockMention);
 
       const result = await resolver.analyzeContent(input);
       expect(result).toHaveProperty('id');
       expect(result.brandId).toBe(input.brandId);
       expect(result.content).toBe(input.content);
-      expect(result.context).toBe(input.context);
+      expect(result.context).toBe(JSON.stringify(input.context));
     });
 
     it('should publish brand mention added event', async () => {
@@ -118,6 +172,19 @@ describe('AnswerResolver', () => {
         brandId: 'test-brand',
         content: 'test content',
       };
+
+      // Mock the service response
+      const mockMention = {
+        id: 'test-id',
+        brandId: input.brandId,
+        content: input.content,
+        sentiment: 0.5,
+        context: {},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      
+      (answerEngineService.analyzeMention as jest.Mock).mockResolvedValue(mockMention);
 
       const publishSpy = jest.spyOn(pubSub, 'publish');
       const result = await resolver.analyzeContent(input);

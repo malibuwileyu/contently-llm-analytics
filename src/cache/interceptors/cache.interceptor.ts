@@ -36,7 +36,7 @@ export class CacheInterceptor implements NestInterceptor {
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
-  ): Promise<Observable<CacheValue>> {
+  ): Promise<Observable<any>> {
     const noCache = this.reflector.get(NO_CACHE_METADATA, context.getHandler());
     if (noCache) {
       return next.handle();

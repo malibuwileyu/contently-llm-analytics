@@ -8,7 +8,7 @@ import { LoggerService } from '../services/logger.service';
 import { SentryService } from '../services/sentry.service';
 import { APP_FILTER } from '@nestjs/core';
 import { GlobalExceptionFilter } from '../filters/global-exception.filter';
-import request from 'supertest';
+import * as request from 'supertest';
 
 // Create a test controller that throws different types of errors
 @Controller('test-errors')

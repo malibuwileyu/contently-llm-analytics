@@ -316,16 +316,40 @@ export class CacheService implements OnModuleInit {
 
   async isHealthy(): Promise<boolean> {
     try {
-      const testKey = '_health_check_';
-      const testValue = Date.now().toString();
+      const testKey = 'health:test';
+      const testValue = 'ok';
+      
       await this.set(testKey, testValue);
-      const value = await this.get<string>(testKey);
-      await this.del(testKey);
+      const value = await this.get(testKey);
+      await this.delete(testKey);
+      
       return value === testValue;
     } catch (error) {
-      this.logger.error(
-        `Cache health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      this.logger.error(`Cache health check failed: ${error.message}`, error.stack);
+      return false;
+    }
+  }
+
+  /**
+   * Flush all cache entries
+   * @returns Promise resolving to true if successful
+   */
+  async flushAll(): Promise<boolean> {
+    try {
+      if (this.redisClient && await this.ensureConnection()) {
+        await this.redisClient.flushAll();
+      }
+      
+      // Clear in-memory cache
+      this.inMemoryCache.clear();
+      
+      // Since we can't directly reset the cache manager in a type-safe way,
+      // we'll just log that it might not be fully cleared
+      this.logger.log('In-memory cache cleared. Redis cache flushed if available.');
+      
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to flush cache: ${error.message}`, error.stack);
       return false;
     }
   }

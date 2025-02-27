@@ -4,7 +4,8 @@ import { AnalyticsGateway } from '../analytics.gateway';
 import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { AuthModule } from '../../../../auth/auth.module';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { CacheService } from '../../../../cache/cache.service';
 
 describe('AnalyticsGateway', () => {
   let gateway: AnalyticsGateway;
@@ -28,7 +29,6 @@ describe('AnalyticsGateway', () => {
     } as any;
 
     const module = await Test.createTestingModule({
-      imports: [AuthModule],
       providers: [
         AnalyticsGateway,
         {
@@ -42,6 +42,23 @@ describe('AnalyticsGateway', () => {
           provide: ConfigService,
           useValue: {
             get: jest.fn().mockReturnValue('test-secret'),
+          },
+        },
+        {
+          provide: CACHE_MANAGER,
+          useValue: {
+            get: jest.fn(),
+            set: jest.fn(),
+            del: jest.fn(),
+          },
+        },
+        {
+          provide: CacheService,
+          useValue: {
+            get: jest.fn(),
+            set: jest.fn(),
+            delete: jest.fn(),
+            getOrSet: jest.fn(),
           },
         },
       ],

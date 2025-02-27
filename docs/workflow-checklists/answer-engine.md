@@ -1,6 +1,7 @@
-# Answer Engine Implementation Guide
+# Answer Engine Implementation Checklist
 
 ## 1. Module Structure
+- [x] Create basic module structure
 ```
 src/modules/answer-engine/
 ├── __tests__/
@@ -34,6 +35,7 @@ src/modules/answer-engine/
 ## 2. Core Components
 
 ### 2.1 Entity Definitions
+- [x] Implement BrandMention entity
 ```typescript
 // src/modules/answer-engine/entities/brand-mention.entity.ts
 @Entity()
@@ -60,7 +62,10 @@ export class BrandMention extends BaseEntity {
   @CreateDateColumn()
   mentionedAt: Date;
 }
+```
 
+- [x] Implement Citation entity
+```typescript
 // src/modules/answer-engine/entities/citation.entity.ts
 @Entity()
 export class Citation extends BaseEntity {
@@ -79,6 +84,7 @@ export class Citation extends BaseEntity {
 ```
 
 ### 2.2 Repository Implementation
+- [x] Implement BrandMentionRepository
 ```typescript
 // src/modules/answer-engine/repositories/brand-mention.repository.ts
 @EntityRepository(BrandMention)
@@ -123,6 +129,7 @@ export class BrandMentionRepository extends Repository<BrandMention> {
 ### 2.3 Services Implementation
 
 #### Sentiment Analyzer Service
+- [x] Implement SentimentAnalyzerService
 ```typescript
 // src/modules/answer-engine/services/sentiment-analyzer.service.ts
 @Injectable()
@@ -148,6 +155,7 @@ export class SentimentAnalyzerService {
 ```
 
 #### Citation Tracker Service
+- [x] Implement CitationTrackerService
 ```typescript
 // src/modules/answer-engine/services/citation-tracker.service.ts
 @Injectable()
@@ -174,6 +182,7 @@ export class CitationTrackerService {
 ```
 
 #### Answer Engine Service
+- [x] Implement AnswerEngineService
 ```typescript
 // src/modules/answer-engine/services/answer-engine.service.ts
 @Injectable()
@@ -259,48 +268,22 @@ export class AnswerEngineService {
 ```
 
 ### 2.4 Controller Implementation
+- [x] Implement GraphQL resolver
 ```typescript
-// src/modules/answer-engine/controllers/answer-engine.controller.ts
-@Controller('answer-engine')
-export class AnswerEngineController {
-  constructor(private readonly answerEngineService: AnswerEngineService) {}
+// src/modules/answer-engine/graphql/answer.resolver.ts
+@Resolver()
+export class AnswerResolver {
+  constructor(
+    @Inject('PUB_SUB') private readonly pubSub: PubSub,
+    private readonly answerEngineService: AnswerEngineService
+  ) {}
 
-  @Post('analyze')
-  @UseGuards(JwtAuthGuard)
-  async analyzeContent(
-    @Body() data: AnalyzeContentDto
-  ): Promise<BrandMentionDto> {
-    const mention = await this.answerEngineService.analyzeMention(data);
-    return this.transformToDto(mention);
-  }
-
-  @Get('brand-health/:brandId')
-  @UseGuards(JwtAuthGuard)
-  async getBrandHealth(
-    @Param('brandId') brandId: string
-  ): Promise<BrandHealth> {
-    return this.answerEngineService.getBrandHealth(brandId);
-  }
-
-  private transformToDto(mention: BrandMention): BrandMentionDto {
-    return {
-      id: mention.id,
-      brandId: mention.brandId,
-      content: mention.content,
-      sentiment: mention.sentiment,
-      context: mention.context,
-      citations: mention.citations.map(citation => ({
-        source: citation.source,
-        authority: citation.authority,
-        metadata: citation.metadata,
-      })),
-      mentionedAt: mention.mentionedAt,
-    };
-  }
+  // Implementation details...
 }
 ```
 
 ### 2.5 Runner Implementation
+- [x] Implement AnswerEngineRunner
 ```typescript
 // src/modules/answer-engine/runners/answer-engine.runner.ts
 @Injectable()
@@ -347,25 +330,67 @@ export class AnswerEngineRunner implements FeatureRunner {
 ```
 
 ## 3. Module Configuration
+- [x] Configure AnswerEngineModule
 ```typescript
 // src/modules/answer-engine/answer-engine.module.ts
 @Module({
   imports: [
-    TypeOrmModule.forFeature([BrandMention, Citation]),
-    CacheModule.register(),
+    TypeOrmModule.forFeature([
+      BrandMention,
+      Citation
+    ])
   ],
-  controllers: [AnswerEngineController],
   providers: [
-    AnswerEngineService,
+    // Repositories
+    BrandMentionRepository,
+    
+    // Services
     SentimentAnalyzerService,
     CitationTrackerService,
+    AnswerEngineService,
+    
+    // GraphQL Resolver
+    AnswerResolver,
+    
+    // WebSocket Gateway
+    AnalyticsGateway,
+    
+    // Runner
     AnswerEngineRunner,
+    
+    // NLP Service implementation
+    NLPService,
     {
-      provide: NLPService,
-      useClass: process.env.NODE_ENV === 'test' ? MockNLPService : NLPService,
+      provide: 'NLPService',
+      useExisting: NLPService
     },
+    
+    // Authority Calculator implementation
+    AuthorityCalculatorService,
+    {
+      provide: 'AuthorityCalculatorService',
+      useExisting: AuthorityCalculatorService
+    },
+    
+    // Metrics Service implementation
+    {
+      provide: 'MetricsService',
+      useExisting: PrometheusMetricsService
+    },
+    
+    // PubSub for GraphQL subscriptions
+    {
+      provide: 'PUB_SUB',
+      useFactory: () => {
+        const { PubSub } = require('graphql-subscriptions');
+        return new PubSub();
+      }
+    }
   ],
-  exports: [AnswerEngineRunner],
+  exports: [
+    AnswerEngineService,
+    AnswerEngineRunner
+  ]
 })
 export class AnswerEngineModule {}
 ```
@@ -373,252 +398,54 @@ export class AnswerEngineModule {}
 ## 4. Testing Implementation
 
 ### 4.1 Service Tests
-```typescript
-// src/modules/answer-engine/__tests__/unit/answer-engine.service.spec.ts
-describe('AnswerEngineService', () => {
-  let service: AnswerEngineService;
-  let brandMentionRepo: MockType<BrandMentionRepository>;
-  let sentimentAnalyzer: MockType<SentimentAnalyzerService>;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        AnswerEngineService,
-        {
-          provide: BrandMentionRepository,
-          useFactory: createMock,
-        },
-        {
-          provide: SentimentAnalyzerService,
-          useFactory: createMock,
-        },
-        {
-          provide: CitationTrackerService,
-          useFactory: createMock,
-        },
-        {
-          provide: MetricsService,
-          useFactory: createMock,
-        },
-      ],
-    }).compile();
-
-    service = module.get<AnswerEngineService>(AnswerEngineService);
-    brandMentionRepo = module.get(getRepositoryToken(BrandMention));
-    sentimentAnalyzer = module.get(SentimentAnalyzerService);
-  });
-
-  describe('analyzeMention', () => {
-    it('should analyze content and save brand mention', async () => {
-      // Test implementation
-    });
-
-    it('should handle citations correctly', async () => {
-      // Test implementation
-    });
-
-    it('should record metrics', async () => {
-      // Test implementation
-    });
-  });
-});
-```
+- [x] Implement AnswerEngineService tests
+- [x] Implement SentimentAnalyzerService tests
+- [x] Implement CitationTrackerService tests
+- [x] Implement NLPService tests
+- [x] Implement AuthorityCalculatorService tests
 
 ### 4.2 Integration Tests
-```typescript
-// src/modules/answer-engine/__tests__/integration/answer-engine.controller.spec.ts
-describe('AnswerEngine Integration', () => {
-  let app: INestApplication;
-  let brandMentionRepo: BrandMentionRepository;
-
-  beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AnswerEngineModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
-
-    brandMentionRepo = moduleFixture.get<BrandMentionRepository>(
-      getRepositoryToken(BrandMention)
-    );
-  });
-
-  describe('POST /answer-engine/analyze', () => {
-    it('should analyze content successfully', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/answer-engine/analyze')
-        .send({
-          brandId: 'test-brand',
-          content: 'Test content for analysis',
-          context: {
-            query: 'test query',
-            response: 'test response',
-            platform: 'test-platform',
-          },
-        })
-        .expect(201);
-
-      expect(response.body).toMatchObject({
-        brandId: 'test-brand',
-        content: 'Test content for analysis',
-        sentiment: expect.any(Number),
-      });
-    });
-  });
-});
-```
+- [x] Implement AnswerEngine integration tests
+- [x] Implement AnswerResolver integration tests
 
 ## 5. Migration Script
-```typescript
-// src/modules/answer-engine/migrations/1234567890-CreateAnswerEngineTables.ts
-export class CreateAnswerEngineTables1234567890 implements MigrationInterface {
-  public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.createTable(
-      new Table({
-        name: 'brand_mention',
-        columns: [
-          {
-            name: 'id',
-            type: 'uuid',
-            isPrimary: true,
-            generationStrategy: 'uuid',
-            default: 'uuid_generate_v4()',
-          },
-          {
-            name: 'brand_id',
-            type: 'varchar',
-          },
-          {
-            name: 'content',
-            type: 'text',
-          },
-          {
-            name: 'sentiment',
-            type: 'float',
-          },
-          {
-            name: 'context',
-            type: 'jsonb',
-          },
-          {
-            name: 'mentioned_at',
-            type: 'timestamp',
-            default: 'now()',
-          },
-          {
-            name: 'created_at',
-            type: 'timestamp',
-            default: 'now()',
-          },
-          {
-            name: 'updated_at',
-            type: 'timestamp',
-            default: 'now()',
-          },
-        ],
-      }),
-      true
-    );
+- [x] Implement migration script for database tables
 
-    await queryRunner.createTable(
-      new Table({
-        name: 'citation',
-        columns: [
-          {
-            name: 'id',
-            type: 'uuid',
-            isPrimary: true,
-            generationStrategy: 'uuid',
-            default: 'uuid_generate_v4()',
-          },
-          {
-            name: 'brand_mention_id',
-            type: 'uuid',
-          },
-          {
-            name: 'source',
-            type: 'text',
-          },
-          {
-            name: 'authority',
-            type: 'float',
-          },
-          {
-            name: 'metadata',
-            type: 'jsonb',
-          },
-          {
-            name: 'created_at',
-            type: 'timestamp',
-            default: 'now()',
-          },
-          {
-            name: 'updated_at',
-            type: 'timestamp',
-            default: 'now()',
-          },
-        ],
-        foreignKeys: [
-          {
-            columnNames: ['brand_mention_id'],
-            referencedColumnNames: ['id'],
-            referencedTableName: 'brand_mention',
-            onDelete: 'CASCADE',
-          },
-        ],
-      }),
-      true
-    );
+## 6. Additional Features
 
-    await queryRunner.createIndices('brand_mention', [
-      new TableIndex({
-        name: 'IDX_brand_mention_brand_id',
-        columnNames: ['brand_id'],
-      }),
-      new TableIndex({
-        name: 'IDX_brand_mention_mentioned_at',
-        columnNames: ['mentioned_at'],
-      }),
-    ]);
-
-    await queryRunner.createIndices('citation', [
-      new TableIndex({
-        name: 'IDX_citation_brand_mention_id',
-        columnNames: ['brand_mention_id'],
-      }),
-      new TableIndex({
-        name: 'IDX_citation_authority',
-        columnNames: ['authority'],
-      }),
-    ]);
-  }
-
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('citation');
-    await queryRunner.dropTable('brand_mention');
-  }
-}
-```
-
-### 3.1 Answer Engine Insights
-- [ ] Create brand mention tracking system
-  - [ ] Implement brand mention detection
-  - [ ] Set up mention caching (TTL: 30 minutes)
+### 6.1 Answer Engine Insights
+- [x] Create brand mention tracking system
+  - [x] Implement brand mention detection
+  - [x] Set up mention caching (TTL: 30 minutes)
   - [ ] Add cache invalidation on new mentions
-- [ ] Implement sentiment analysis integration
-  - [ ] Set up sentiment analysis service
-  - [ ] Configure analysis result caching (TTL: 1 hour)
+- [x] Implement sentiment analysis integration
+  - [x] Set up sentiment analysis service
+  - [x] Configure analysis result caching (TTL: 1 hour)
   - [ ] Add cache invalidation on sentiment updates
-- [ ] Build citation tracking system
-  - [ ] Implement citation detection
-  - [ ] Set up citation caching (TTL: 1 hour)
+- [x] Build citation tracking system
+  - [x] Implement citation detection
+  - [x] Set up citation caching (TTL: 1 hour)
   - [ ] Configure cache invalidation patterns
-- [ ] Create brand health score calculator
-  - [ ] Implement health score computation
+- [x] Create brand health score calculator
+  - [x] Implement health score computation
   - [ ] Set up score caching (TTL: 2 hours)
   - [ ] Add metric-based cache invalidation
-- [ ] Implement real-time monitoring system
-  - [ ] Set up monitoring service
+- [x] Implement real-time monitoring system
+  - [x] Set up monitoring service
   - [ ] Configure short-lived cache for real-time data
-  - [ ] Implement cache update streaming 
+  - [x] Implement cache update streaming
+
+### 6.2 GraphQL Integration
+- [x] Implement GraphQL resolver for Answer Engine
+- [x] Add GraphQL subscriptions for real-time updates
+- [x] Create GraphQL types for Answer Engine entities
+
+### 6.3 NLP Service Implementation
+- [x] Implement NLPService for sentiment analysis
+- [x] Add aspect-based sentiment analysis
+- [x] Implement caching for NLP results
+
+### 6.4 Authority Calculator
+- [x] Implement AuthorityCalculatorService
+- [x] Add domain-based authority scoring
+- [x] Implement caching for authority scores 

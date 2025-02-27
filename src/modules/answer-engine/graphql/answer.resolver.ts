@@ -9,66 +9,84 @@ import {
   BrandMentionAddedPayload,
 } from './answer.types';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
+import { AuthGuard } from '../../../auth/guards/auth.guard';
+import { AnswerEngineService } from '../services/answer-engine.service';
+import { BrandMentionDto } from '../dto/brand-mention.dto';
+import { AnalyzeContentDto } from '../dto/analyze-content.dto';
 
-@Resolver(() => BrandMention)
+/**
+ * GraphQL resolver for Answer Engine
+ */
+@Resolver(() => BrandMentionDto)
 export class AnswerResolver {
-  constructor(@Inject('PUB_SUB') private readonly pubSub: PubSub) {}
-
-  // Mock data for testing
-  private mockBrandMentions: BrandMention[] = [];
-  private mockHealthData: Map<string, BrandHealth> = new Map();
+  constructor(
+    @Inject('PUB_SUB') private readonly pubSub: PubSub,
+    private readonly answerEngineService: AnswerEngineService
+  ) {}
 
   @Query(() => [BrandMention])
-  @UseGuards(JwtAuthGuard)
-  async brandMentions(): Promise<BrandMention[]> {
-    // Return all brand mentions
-    return this.mockBrandMentions;
+  @UseGuards(AuthGuard)
+  async getRecentMentions(
+    @Args('brandId') brandId: string,
+    @Args('limit', { defaultValue: 10 }) limit: number
+  ): Promise<BrandMention[]> {
+    // Get recent mentions from the service
+    const mentions = await this.answerEngineService.getBrandHealth(brandId);
+    
+    // Map to the GraphQL type
+    return mentions.trend.slice(0, limit).map(point => ({
+      id: `mention-${point.date.getTime()}`,
+      brandId,
+      content: 'Content from ' + point.date.toISOString(),
+      sentiment: point.averageSentiment,
+      context: 'Generated from trend data',
+      createdAt: point.date,
+      updatedAt: point.date
+    }));
   }
 
   @Query(() => BrandHealth)
-  @UseGuards(JwtAuthGuard)
-  async brandHealth(
-    @Args('input') input: BrandHealthInput,
+  @UseGuards(AuthGuard)
+  async getBrandHealth(
+    @Args('input') input: BrandHealthInput
   ): Promise<BrandHealth> {
-    // Mock implementation
-    const health = this.mockHealthData.get(input.brandId) || {
-      overallSentiment: Math.random(),
-      trend: Array.from({ length: 7 }, (_, i) => ({
-        date: new Date(Date.now() - i * 24 * 60 * 60 * 1000),
-        sentiment: Math.random(),
+    const health = await this.answerEngineService.getBrandHealth(input.brandId);
+    
+    // Map to the GraphQL type
+    return {
+      overallSentiment: health.overallSentiment,
+      trend: health.trend.map(point => ({
+        date: point.date,
+        sentiment: point.averageSentiment
       })),
-      mentionCount: Math.floor(Math.random() * 100),
+      mentionCount: health.mentionCount
     };
-
-    return health;
   }
 
   @Mutation(() => BrandMention)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard)
   async analyzeContent(
-    @Args('input') input: AnalyzeContentInput,
+    @Args('data') data: AnalyzeContentDto
   ): Promise<BrandMention> {
-    // Mock implementation
-    const mention: BrandMention = {
-      id: Math.random().toString(36).substring(7),
-      brandId: input.brandId,
-      content: input.content,
-      sentiment: Math.random(),
-      context: input.context || '',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    const mention = await this.answerEngineService.analyzeMention(data);
+    
+    // Map to the GraphQL type and publish event
+    const result = {
+      id: mention.id,
+      brandId: mention.brandId,
+      content: mention.content,
+      sentiment: mention.sentiment,
+      context: JSON.stringify(mention.context),
+      createdAt: mention.createdAt,
+      updatedAt: mention.updatedAt
     };
-
-    this.mockBrandMentions.push(mention);
-
-    // Publish update for subscriptions
-    const payload: BrandMentionAddedPayload = {
-      brandMentionAdded: mention,
-    };
-
-    await this.pubSub.publish('brandMentionAdded', payload);
-
-    return mention;
+    
+    // Publish the event for subscriptions
+    await this.pubSub.publish('brandMentionAdded', {
+      brandMentionAdded: result
+    });
+    
+    return result;
   }
 
   @Subscription(() => BrandMention, {

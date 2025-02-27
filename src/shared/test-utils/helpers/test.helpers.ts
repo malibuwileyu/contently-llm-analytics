@@ -3,13 +3,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Repository, ObjectLiteral } from 'typeorm';
 import { createTestDatabaseModule } from '../database/test-database';
 import { Type } from '@nestjs/common';
+import { Provider } from '@nestjs/common';
 
 /**
  * Creates a test application with common configuration
  */
 export async function createTestApp(
   imports: Array<Type<unknown>>,
-  providers: Array<Type<unknown> | Record<string, unknown>> = [],
+  providers: Provider[] = [],
 ): Promise<INestApplication> {
   const testDb = await createTestDatabaseModule();
 

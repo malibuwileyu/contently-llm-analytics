@@ -16,6 +16,8 @@ import { GlobalExceptionFilter } from './shared/filters/global-exception.filter'
 import { LoggerService } from './shared/services/logger.service';
 import { SentryService } from './shared/services/sentry.service';
 import { MetricsModule } from './metrics/metrics.module';
+import { RunnersModule } from './shared/runners/runners.module';
+import { AnswerEngineModule } from './modules/answer-engine/answer-engine.module';
 import appConfig from './config/app.config';
 import authConfig from './config/auth.config';
 import sentryConfig from './config/sentry.config';
@@ -60,6 +62,9 @@ import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
             rejectUnauthorized: false // Required for Supabase pooler connection
           },
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          migrations: [__dirname + '/migrations/*{.ts,.js}'],
+          migrationsRun: true, // Automatically run migrations on startup
+          migrationsTableName: 'migrations',
           synchronize: false, // Disable synchronize as we'll use migrations
           logging: process.env.NODE_ENV === 'development',
           retryAttempts: 3,
@@ -92,6 +97,12 @@ import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
         endpoint: process.env.METRICS_ENDPOINT || '/metrics',
       },
     }),
+    
+    // Runners Module
+    RunnersModule,
+    
+    // Feature Modules
+    AnswerEngineModule,
   ],
   controllers: [AppController],
   providers: [

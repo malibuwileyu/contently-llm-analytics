@@ -108,7 +108,7 @@ export function createMockService<
   const proto = Object.getPrototypeOf({}) as T;
   for (const key of Object.getOwnPropertyNames(proto)) {
     if (typeof proto[key as keyof T] === 'function') {
-      mockService[key as keyof T] = jest.fn() as MockFunction<unknown>;
+      mockService[key as keyof T] = jest.fn() as any;
     }
   }
 
@@ -123,7 +123,7 @@ export function createPartialMock<T extends Record<string, unknown>>(
 
   for (const method of mockedMethods) {
     if (typeof real[method] === 'function') {
-      mock[method] = jest.fn() as MockFunction<unknown>;
+      mock[method] = jest.fn() as any;
     }
   }
 

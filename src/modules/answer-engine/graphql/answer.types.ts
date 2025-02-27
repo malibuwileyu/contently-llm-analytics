@@ -1,4 +1,38 @@
-import { ObjectType, Field, ID, Float, InputType } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Float, InputType, GraphQLISODateTime, Scalar } from '@nestjs/graphql';
+import { GraphQLScalarType, Kind } from 'graphql';
+
+// Define a JSON scalar type for metadata fields
+export const JSONScalar = new GraphQLScalarType({
+  name: 'JSON',
+  description: 'JSON custom scalar type',
+  serialize(value: any) {
+    return value; // Convert outgoing JSON value to proper format
+  },
+  parseValue(value: any) {
+    return value; // Convert incoming JSON value to proper format
+  },
+  parseLiteral(ast) {
+    if (ast.kind === Kind.STRING) {
+      try {
+        return JSON.parse(ast.value);
+      } catch {
+        return ast.value;
+      }
+    }
+    if (ast.kind === Kind.OBJECT) {
+      const value = Object.create(null);
+      ast.fields.forEach(field => {
+        value[field.name.value] = this.parseLiteral(field.value);
+      });
+      return value;
+    }
+    return null;
+  },
+});
+
+// Register the JSON scalar
+@Scalar('JSON', () => JSONScalar)
+export class JSONScalarType {}
 
 @ObjectType()
 export class BrandMention {
@@ -17,16 +51,16 @@ export class BrandMention {
   @Field({ nullable: true })
   context?: string;
 
-  @Field()
+  @Field(() => GraphQLISODateTime)
   createdAt: Date;
 
-  @Field()
+  @Field(() => GraphQLISODateTime)
   updatedAt: Date;
 }
 
 @ObjectType()
 export class TrendPoint {
-  @Field()
+  @Field(() => GraphQLISODateTime)
   date: Date;
 
   @Field(() => Float)
@@ -62,10 +96,10 @@ export class BrandHealthInput {
   @Field()
   brandId: string;
 
-  @Field()
+  @Field(() => GraphQLISODateTime)
   startDate: Date;
 
-  @Field()
+  @Field(() => GraphQLISODateTime)
   endDate: Date;
 }
 

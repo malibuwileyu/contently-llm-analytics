@@ -35,6 +35,17 @@ This document tracks features, improvements, and tasks that have been deferred f
   - Add monitoring for cache memory usage
   - Implement tests for eviction policies
 
+### Answer Engine Caching Optimizations
+- Implement advanced cache invalidation patterns
+  - Add cache invalidation on new brand mentions
+  - Add cache invalidation on sentiment updates
+  - Configure citation cache invalidation patterns
+  - Set up score caching with TTL (2 hours)
+  - Add metric-based cache invalidation
+  - Configure short-lived cache for real-time data
+  - Implement cache update streaming optimizations
+  - Add cache warming for frequently accessed data
+
 ## Security
 
 ### Advanced Security Features
