@@ -4,36 +4,6 @@ import { MessageType } from './message.type';
 import { MetadataType } from './metadata.type';
 
 /**
- * Type for a message in a conversation
- */
-@ObjectType()
-export class MessageType {
-  @Field()
-  role: string;
-
-  @Field()
-  content: string;
-
-  @Field()
-  timestamp: Date;
-}
-
-/**
- * Type for conversation metadata
- */
-@ObjectType()
-export class ConversationMetadataType {
-  @Field({ nullable: true })
-  platform?: string;
-
-  @Field({ nullable: true })
-  context?: string;
-
-  @Field(() => [String], { nullable: true })
-  tags?: string[];
-}
-
-/**
  * GraphQL type for a conversation
  */
 @ObjectType('Conversation')

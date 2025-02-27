@@ -29,12 +29,22 @@ export class ConversationExplorerResolver {
   @UseGuards(GqlAuthGuard)
   async analyzeConversation(
     @Args('input') input: AnalyzeConversationInput
-  ): Promise<Conversation> {
-    return this.conversationExplorerService.analyzeConversation({
+  ): Promise<ConversationType> {
+    const result = await this.conversationExplorerService.analyzeConversation({
       brandId: input.brandId,
-      messages: input.messages,
-      metadata: input.metadata
+      messages: input.messages.map(msg => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+        timestamp: new Date(msg.timestamp)
+      })),
+      metadata: {
+        platform: input.metadata?.platform || '',
+        context: input.metadata?.context || '',
+        tags: input.metadata?.tags || []
+      }
     });
+    
+    return this.mapConversationToType(result as any);
   }
 
   /**
@@ -67,8 +77,9 @@ export class ConversationExplorerResolver {
   @UseGuards(GqlAuthGuard)
   async conversation(
     @Args('id') id: string
-  ): Promise<Conversation> {
-    return this.conversationExplorerService['conversationRepo'].findWithInsights(id);
+  ): Promise<ConversationType> {
+    const result = await this.conversationExplorerService['conversationRepo'].findWithInsights(id);
+    return this.mapConversationToType(result as any);
   }
 
   /**
@@ -80,8 +91,9 @@ export class ConversationExplorerResolver {
   @UseGuards(GqlAuthGuard)
   async conversationsByBrand(
     @Args('brandId') brandId: string
-  ): Promise<Conversation[]> {
-    return this.conversationExplorerService['conversationRepo'].findByBrandId(brandId);
+  ): Promise<ConversationType[]> {
+    const results = await this.conversationExplorerService['conversationRepo'].findByBrandId(brandId);
+    return results.map((conv: any) => this.mapConversationToType(conv));
   }
 
   /**
@@ -92,17 +104,55 @@ export class ConversationExplorerResolver {
   @ResolveField('insights', () => [ConversationInsightType])
   async getInsights(
     @Parent() conversation: Conversation
-  ): Promise<ConversationInsight[]> {
+  ): Promise<ConversationInsightType[]> {
     const { id } = conversation;
     const fullConversation = await this.conversationExplorerService['conversationRepo'].findWithInsights(id);
     return fullConversation.insights;
   }
 
+  /**
+   * Get conversation insights by brand ID
+   * @param brandId ID of the brand
+   * @param options Options for filtering insights
+   * @returns Array of conversation insights
+   */
   @Query(() => [ConversationInsightType], { name: 'conversationInsights' })
   async getConversationInsights(
     @Args('brandId') brandId: string,
     @Args('options', { nullable: true }) options?: ConversationInsightOptionsInput
   ): Promise<ConversationInsightType[]> {
-    return this.conversationExplorerService.getConversationInsights(brandId, options);
+    // This method needs to be implemented in the service
+    const insights = await this.conversationExplorerService['conversationRepo'].findInsightsByBrandId(
+      brandId, 
+      {
+        type: options?.type,
+        category: options?.category,
+        startDate: options?.startDate,
+        endDate: options?.endDate,
+        tags: options?.tags,
+        limit: options?.limit
+      }
+    );
+    
+    return insights;
+  }
+  
+  /**
+   * Helper method to map Conversation entity to ConversationType
+   */
+  private mapConversationToType(conversation: any): ConversationType {
+    return {
+      ...conversation,
+      messages: conversation.messages.map((msg: any) => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      })),
+      metadata: {
+        platform: conversation.metadata.platform,
+        context: conversation.metadata.context,
+        tags: conversation.metadata.tags
+      },
+      insights: conversation.insights || []
+    } as ConversationType;
   }
 } 
