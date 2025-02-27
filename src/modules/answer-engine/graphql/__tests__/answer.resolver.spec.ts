@@ -1,8 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { PubSub } from 'graphql-subscriptions';
 import { JwtService } from '@nestjs/jwt';
 import { AnswerResolver } from '../answer.resolver';
-import { BrandMention, BrandHealth, BrandMentionAddedPayload, BrandHealthInput } from '../answer.types';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import {
+  BrandMention,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  BrandHealth,
+  BrandMentionAddedPayload,
+  BrandHealthInput,
+} from '../answer.types';
 import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
 import { AnswerEngineService } from '../../services/answer-engine.service';
 import { SentimentTrend } from '../../interfaces/sentiment-analysis.interface';
@@ -21,14 +29,14 @@ class MockPubSub {
 
   asyncIterator<T>(triggers: string | string[]): AsyncIteratorWithSymbol<T> {
     const triggerName = Array.isArray(triggers) ? triggers[0] : triggers;
-    
+
     const iterator: AsyncIteratorWithSymbol<T> = {
       next: () => {
         return new Promise(resolve => {
           if (!this.handlers.has(triggerName)) {
             this.handlers.set(triggerName, []);
           }
-          
+
           const handlers = this.handlers.get(triggerName)!;
           handlers.push((payload: T) => {
             resolve({ value: payload, done: false });
@@ -39,7 +47,7 @@ class MockPubSub {
       throw: () => Promise.resolve({ value: undefined, done: true }),
       [Symbol.asyncIterator]() {
         return this;
-      }
+      },
     };
 
     return iterator;
@@ -95,7 +103,7 @@ describe('AnswerResolver', () => {
         { date: new Date(), averageSentiment: 0.5 },
         { date: new Date(), averageSentiment: 0.7 },
       ];
-      
+
       (answerEngineService.getBrandHealth as jest.Mock).mockResolvedValue({
         overallSentiment: 0.6,
         trend: mockTrend,
@@ -157,8 +165,10 @@ describe('AnswerResolver', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      
-      (answerEngineService.analyzeMention as jest.Mock).mockResolvedValue(mockMention);
+
+      (answerEngineService.analyzeMention as jest.Mock).mockResolvedValue(
+        mockMention,
+      );
 
       const result = await resolver.analyzeContent(input);
       expect(result).toHaveProperty('id');
@@ -183,8 +193,10 @@ describe('AnswerResolver', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      
-      (answerEngineService.analyzeMention as jest.Mock).mockResolvedValue(mockMention);
+
+      (answerEngineService.analyzeMention as jest.Mock).mockResolvedValue(
+        mockMention,
+      );
 
       const publishSpy = jest.spyOn(pubSub, 'publish');
       const result = await resolver.analyzeContent(input);
@@ -198,7 +210,7 @@ describe('AnswerResolver', () => {
   describe('brandMentionAdded subscription', () => {
     it('should receive brand mention events for matching brandId', async () => {
       jest.setTimeout(10000); // Increase timeout for subscription test
-      
+
       const brandId = 'test-brand';
       const iterator = resolver.brandMentionAdded(brandId);
 

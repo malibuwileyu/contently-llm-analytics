@@ -1,9 +1,12 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Test, TestingModule } from '@nestjs/testing';
 import { SentimentAnalyzerService } from '../../services/sentiment-analyzer.service';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { CacheService } from '../../../../cache/cache.service';
 import { SentimentAnalysis } from '../../interfaces/sentiment-analysis.interface';
 
 // Define the NLPService interface
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface NLPService {
   analyzeSentiment(content: string): Promise<SentimentAnalysis>;
 }
@@ -16,11 +19,11 @@ describe('SentimentAnalyzerService', () => {
   beforeEach(async () => {
     // Create mocks
     nlpService = {
-      analyzeSentiment: jest.fn()
+      analyzeSentiment: jest.fn(),
     };
 
     cacheService = {
-      getOrSet: jest.fn()
+      getOrSet: jest.fn(),
     };
 
     // Create the service directly without using NestJS DI
@@ -38,12 +41,21 @@ describe('SentimentAnalyzerService', () => {
       const expectedResult: SentimentAnalysis = {
         score: 0.8,
         magnitude: 0.5,
-        aspects: []
+        aspects: [],
       };
 
-      cacheService.getOrSet.mockImplementation(async (key: string, factory: () => Promise<any>, ttl?: number) => {
-        return expectedResult;
-      });
+      cacheService.getOrSet.mockImplementation(
+        async (
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _key: string,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _factory: () => Promise<any>,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _ttl?: number,
+        ) => {
+          return expectedResult;
+        },
+      );
 
       // Act
       const result = await service.analyzeSentiment(content);
@@ -53,7 +65,7 @@ describe('SentimentAnalyzerService', () => {
       expect(cacheService.getOrSet).toHaveBeenCalledWith(
         expect.stringContaining('sentiment:'),
         expect.any(Function),
-        expect.any(Number)
+        expect.any(Number),
       );
       expect(nlpService.analyzeSentiment).not.toHaveBeenCalled();
     });
@@ -64,12 +76,20 @@ describe('SentimentAnalyzerService', () => {
       const expectedResult: SentimentAnalysis = {
         score: 0.8,
         magnitude: 0.5,
-        aspects: []
+        aspects: [],
       };
 
-      cacheService.getOrSet.mockImplementation(async (key: string, factory: () => Promise<any>, ttl?: number) => {
-        return factory();
-      });
+      cacheService.getOrSet.mockImplementation(
+        async (
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _key: string,
+          factory: () => Promise<any>,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _ttl?: number,
+        ) => {
+          return factory();
+        },
+      );
 
       nlpService.analyzeSentiment.mockResolvedValue(expectedResult);
 
@@ -81,7 +101,7 @@ describe('SentimentAnalyzerService', () => {
       expect(cacheService.getOrSet).toHaveBeenCalledWith(
         expect.stringContaining('sentiment:'),
         expect.any(Function),
-        expect.any(Number)
+        expect.any(Number),
       );
       expect(nlpService.analyzeSentiment).toHaveBeenCalledWith(content);
     });
@@ -92,13 +112,21 @@ describe('SentimentAnalyzerService', () => {
       const expectedResult: SentimentAnalysis = {
         score: 0,
         magnitude: 0,
-        aspects: []
+        aspects: [],
       };
 
       nlpService.analyzeSentiment.mockResolvedValue(expectedResult);
-      cacheService.getOrSet.mockImplementation(async (key: string, factory: () => Promise<any>, ttl?: number) => {
-        return factory();
-      });
+      cacheService.getOrSet.mockImplementation(
+        async (
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _key: string,
+          factory: () => Promise<any>,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _ttl?: number,
+        ) => {
+          return factory();
+        },
+      );
 
       // Act
       const result = await service.analyzeSentiment(content);
@@ -112,9 +140,17 @@ describe('SentimentAnalyzerService', () => {
       const content = 'This is a test content';
       const error = new Error('NLP service error');
 
-      cacheService.getOrSet.mockImplementation(async (key: string, factory: () => Promise<any>, ttl?: number) => {
-        return factory();
-      });
+      cacheService.getOrSet.mockImplementation(
+        async (
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _key: string,
+          factory: () => Promise<any>,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _ttl?: number,
+        ) => {
+          return factory();
+        },
+      );
 
       nlpService.analyzeSentiment.mockRejectedValue(error);
 
@@ -128,12 +164,20 @@ describe('SentimentAnalyzerService', () => {
       const expectedResult: SentimentAnalysis = {
         score: 0.5,
         magnitude: 0.3,
-        aspects: []
+        aspects: [],
       };
 
-      cacheService.getOrSet.mockImplementation(async (key: string, factory: () => Promise<any>, ttl?: number) => {
-        return factory();
-      });
+      cacheService.getOrSet.mockImplementation(
+        async (
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _key: string,
+          factory: () => Promise<any>,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _ttl?: number,
+        ) => {
+          return factory();
+        },
+      );
 
       nlpService.analyzeSentiment.mockResolvedValue(expectedResult);
 
@@ -151,12 +195,20 @@ describe('SentimentAnalyzerService', () => {
       const expectedResult: SentimentAnalysis = {
         score: 0,
         magnitude: 0.1,
-        aspects: []
+        aspects: [],
       };
 
-      cacheService.getOrSet.mockImplementation(async (key: string, factory: () => Promise<any>, ttl?: number) => {
-        return factory();
-      });
+      cacheService.getOrSet.mockImplementation(
+        async (
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _key: string,
+          factory: () => Promise<any>,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _ttl?: number,
+        ) => {
+          return factory();
+        },
+      );
 
       nlpService.analyzeSentiment.mockResolvedValue(expectedResult);
 
@@ -168,4 +220,4 @@ describe('SentimentAnalyzerService', () => {
       expect(nlpService.analyzeSentiment).toHaveBeenCalledWith(content);
     });
   });
-}); 
+});

@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Test, TestingModule } from '@nestjs/testing';
 import { AnswerEngineService } from '../../services/answer-engine.service';
 import { BrandMentionRepository } from '../../repositories/brand-mention.repository';
@@ -5,8 +6,12 @@ import { SentimentAnalyzerService } from '../../services/sentiment-analyzer.serv
 import { CitationTrackerService } from '../../services/citation-tracker.service';
 import { BrandMention } from '../../entities/brand-mention.entity';
 import { Citation } from '../../entities/citation.entity';
-import { AnalyzeContentDto, CitationDto } from '../../dto/analyze-content.dto';
-import { BrandHealth, SentimentTrend } from '../../interfaces/sentiment-analysis.interface';
+import {
+  AnalyzeContentDto,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  CitationDto,
+} from '../../dto/analyze-content.dto';
+import { SentimentTrend } from '../../interfaces/sentiment-analysis.interface';
 
 // Define the MetricsService interface
 interface MetricsService {
@@ -52,7 +57,7 @@ describe('AnswerEngineService', () => {
       brandMentionRepository,
       sentimentAnalyzer,
       citationTracker,
-      metricsService
+      metricsService,
     );
 
     service = answerEngineService;
@@ -71,14 +76,14 @@ describe('AnswerEngineService', () => {
         context: {
           query: 'test query',
           response: 'test response',
-          platform: 'test platform'
-        }
+          platform: 'test platform',
+        },
       };
 
       const sentiment = {
         score: 0.8,
         magnitude: 0.5,
-        aspects: []
+        aspects: [],
       };
 
       const savedMention = {
@@ -92,7 +97,7 @@ describe('AnswerEngineService', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         deletedAt: null,
-        citations: []
+        citations: [],
       } as unknown as BrandMention;
 
       sentimentAnalyzer.analyzeSentiment.mockResolvedValue(sentiment);
@@ -104,14 +109,20 @@ describe('AnswerEngineService', () => {
 
       // Assert
       expect(result).toEqual(savedMention);
-      expect(sentimentAnalyzer.analyzeSentiment).toHaveBeenCalledWith(dto.content);
-      expect(brandMentionRepository.save).toHaveBeenCalledWith(expect.objectContaining({
-        brandId: dto.brandId,
-        content: dto.content,
-        sentiment: sentiment.score,
-        context: dto.context
-      }));
-      expect(brandMentionRepository.findWithCitations).toHaveBeenCalledWith(savedMention.id);
+      expect(sentimentAnalyzer.analyzeSentiment).toHaveBeenCalledWith(
+        dto.content,
+      );
+      expect(brandMentionRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          brandId: dto.brandId,
+          content: dto.content,
+          sentiment: sentiment.score,
+          context: dto.context,
+        }),
+      );
+      expect(brandMentionRepository.findWithCitations).toHaveBeenCalledWith(
+        savedMention.id,
+      );
       expect(metricsService.recordAnalysisDuration).toHaveBeenCalled();
     });
 
@@ -122,14 +133,14 @@ describe('AnswerEngineService', () => {
         content: 'This is a test content',
         citations: [
           { source: 'https://example.com', metadata: { page: 1 } },
-          { source: 'https://another.com', metadata: { page: 2 } }
-        ]
+          { source: 'https://another.com', metadata: { page: 2 } },
+        ],
       };
 
       const sentiment = {
         score: 0.8,
         magnitude: 0.5,
-        aspects: []
+        aspects: [],
       };
 
       const savedMention = {
@@ -143,20 +154,22 @@ describe('AnswerEngineService', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         deletedAt: null,
-        citations: []
+        citations: [],
       } as unknown as BrandMention;
 
       const mentionWithCitations = {
         ...savedMention,
         citations: [
           { id: 'citation-1', source: 'https://example.com', authority: 0.8 },
-          { id: 'citation-2', source: 'https://another.com', authority: 0.6 }
-        ]
+          { id: 'citation-2', source: 'https://another.com', authority: 0.6 },
+        ],
       } as unknown as BrandMention;
 
       sentimentAnalyzer.analyzeSentiment.mockResolvedValue(sentiment);
       brandMentionRepository.save.mockResolvedValue(savedMention);
-      brandMentionRepository.findWithCitations.mockResolvedValue(mentionWithCitations);
+      brandMentionRepository.findWithCitations.mockResolvedValue(
+        mentionWithCitations,
+      );
       citationTracker.trackCitation.mockResolvedValue({} as Citation);
 
       // Act
@@ -165,17 +178,19 @@ describe('AnswerEngineService', () => {
       // Assert
       expect(result).toEqual(mentionWithCitations);
       expect(citationTracker.trackCitation).toHaveBeenCalledTimes(2);
-      expect(citationTracker.trackCitation).toHaveBeenCalledWith(expect.objectContaining({
-        source: dto.citations?.[0].source,
-        brandMention: savedMention
-      }));
+      expect(citationTracker.trackCitation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: dto.citations?.[0].source,
+          brandMention: savedMention,
+        }),
+      );
     });
 
     it('should handle errors during analysis', async () => {
       // Arrange
       const dto: AnalyzeContentDto = {
         brandId: 'brand-123',
-        content: 'This is a test content'
+        content: 'This is a test content',
       };
 
       const error = new Error('Analysis error');
@@ -183,20 +198,22 @@ describe('AnswerEngineService', () => {
 
       // Act & Assert
       await expect(service.analyzeMention(dto)).rejects.toThrow(error);
-      expect(metricsService.incrementErrorCount).toHaveBeenCalledWith('analysis_failure');
+      expect(metricsService.incrementErrorCount).toHaveBeenCalledWith(
+        'analysis_failure',
+      );
     });
 
     it('should handle empty content', async () => {
       // Arrange
       const dto: AnalyzeContentDto = {
         brandId: 'brand-123',
-        content: ''
+        content: '',
       };
 
       const sentiment = {
         score: 0,
         magnitude: 0,
-        aspects: []
+        aspects: [],
       };
 
       const savedMention = {
@@ -210,7 +227,7 @@ describe('AnswerEngineService', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         deletedAt: null,
-        citations: []
+        citations: [],
       } as unknown as BrandMention;
 
       sentimentAnalyzer.analyzeSentiment.mockResolvedValue(sentiment);
@@ -232,24 +249,26 @@ describe('AnswerEngineService', () => {
       const brandId = 'brand-123';
       const mentions = [
         { id: 'mention-1', sentiment: 0.8 },
-        { id: 'mention-2', sentiment: 0.6 }
+        { id: 'mention-2', sentiment: 0.6 },
       ] as BrandMention[];
 
       const sentimentTrend: SentimentTrend[] = [
         { date: new Date('2023-01-01'), averageSentiment: 0.7 },
-        { date: new Date('2023-01-02'), averageSentiment: 0.8 }
+        { date: new Date('2023-01-02'), averageSentiment: 0.8 },
       ];
 
       const topCitations = [
         { source: 'source-1', authority: 0.9 },
-        { source: 'source-2', authority: 0.8 }
+        { source: 'source-2', authority: 0.8 },
       ];
 
       brandMentionRepository.findByBrandId.mockResolvedValue(mentions);
-      brandMentionRepository.getSentimentTrend.mockResolvedValue(sentimentTrend);
+      brandMentionRepository.getSentimentTrend.mockResolvedValue(
+        sentimentTrend,
+      );
       citationTracker.getCitationsByBrandMention.mockResolvedValue([
         { source: 'source-1', authority: 0.9 },
-        { source: 'source-2', authority: 0.8 }
+        { source: 'source-2', authority: 0.8 },
       ] as Citation[]);
 
       // Act
@@ -260,13 +279,16 @@ describe('AnswerEngineService', () => {
         overallSentiment: 0.7, // (0.8 + 0.6) / 2
         trend: sentimentTrend,
         mentionCount: 2,
-        topCitations
+        topCitations,
       });
-      expect(brandMentionRepository.findByBrandId).toHaveBeenCalledWith(brandId, expect.any(Object));
+      expect(brandMentionRepository.findByBrandId).toHaveBeenCalledWith(
+        brandId,
+        expect.any(Object),
+      );
       expect(brandMentionRepository.getSentimentTrend).toHaveBeenCalledWith(
         brandId,
         expect.any(Date),
-        expect.any(Date)
+        expect.any(Date),
       );
     });
 
@@ -285,7 +307,7 @@ describe('AnswerEngineService', () => {
         overallSentiment: 0,
         trend: [],
         mentionCount: 0,
-        topCitations: []
+        topCitations: [],
       });
     });
 
@@ -306,7 +328,7 @@ describe('AnswerEngineService', () => {
       const mentions = [
         { sentiment: 0.8 },
         { sentiment: 0.6 },
-        { sentiment: 0.7 }
+        { sentiment: 0.7 },
       ] as BrandMention[];
 
       // Act
@@ -330,14 +352,12 @@ describe('AnswerEngineService', () => {
   describe('getTopCitations', () => {
     it('should return top citations sorted by authority', async () => {
       // Arrange
-      const mentions = [
-        { id: 'mention-1' }
-      ] as BrandMention[];
+      const mentions = [{ id: 'mention-1' }] as BrandMention[];
 
       const citations = [
         { source: 'source-1', authority: 0.7 },
         { source: 'source-2', authority: 0.9 },
-        { source: 'source-3', authority: 0.8 }
+        { source: 'source-3', authority: 0.8 },
       ] as Citation[];
 
       citationTracker.getCitationsByBrandMention.mockResolvedValue(citations);
@@ -350,19 +370,17 @@ describe('AnswerEngineService', () => {
       expect(result).toEqual([
         { source: 'source-2', authority: 0.9 },
         { source: 'source-3', authority: 0.8 },
-        { source: 'source-1', authority: 0.7 }
+        { source: 'source-1', authority: 0.7 },
       ]);
     });
 
     it('should limit to top 10 citations', async () => {
       // Arrange
-      const mentions = [
-        { id: 'mention-1' }
-      ] as BrandMention[];
+      const mentions = [{ id: 'mention-1' }] as BrandMention[];
 
       const citations = Array.from({ length: 15 }, (_, i) => ({
         source: `source-${i}`,
-        authority: 0.9 - (i * 0.05)
+        authority: 0.9 - i * 0.05,
       })) as Citation[];
 
       citationTracker.getCitationsByBrandMention.mockResolvedValue(citations);
@@ -388,4 +406,4 @@ describe('AnswerEngineService', () => {
       expect(result).toEqual([]);
     });
   });
-}); 
+});

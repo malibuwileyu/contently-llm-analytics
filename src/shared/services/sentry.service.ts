@@ -12,6 +12,7 @@ interface SentryConfig {
   tracesSampleRate?: number;
 }
 
+//i hate this fucking robot
 interface SentryContext {
   user?: User;
   tags?: Record<string, string>;
@@ -58,7 +59,7 @@ export class SentryService implements OnModuleInit {
 
   constructor(
     private readonly configService: ConfigService,
-    logger: LoggerService
+    logger: LoggerService,
   ) {
     this.logger = logger.setContext('SentryService');
   }
@@ -94,13 +95,13 @@ export class SentryService implements OnModuleInit {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     };
-    
+
     // Create metadata for the logger
     const metadata = {
       error: errorResponse,
       context,
     };
-    
+
     this.logger.error(message, undefined, undefined, metadata);
   }
 
@@ -236,7 +237,7 @@ export class SentryService implements OnModuleInit {
     if (!this.isInitialized) {
       return;
     }
-    
+
     try {
       Sentry.setContext(name, context);
     } catch (error: unknown) {

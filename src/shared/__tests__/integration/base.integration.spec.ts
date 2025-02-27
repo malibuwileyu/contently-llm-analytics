@@ -1,4 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Test, TestingModule } from '@nestjs/testing';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository, FindManyOptions } from 'typeorm';
 import { BaseService } from '../../classes/base.service';
@@ -19,7 +21,9 @@ class TestService extends BaseService<TestEntity> {
 }
 
 // Create test entity factory
-const createTestEntity = (overrides: Partial<TestEntity> = {}): Partial<TestEntity> => ({
+const createTestEntity = (
+  overrides: Partial<TestEntity> = {},
+): Partial<TestEntity> => ({
   id: 'test-id',
   name: 'Test Name',
   description: 'Test Description',
@@ -29,7 +33,10 @@ const createTestEntity = (overrides: Partial<TestEntity> = {}): Partial<TestEnti
   ...overrides,
 });
 
-const createTestEntityList = (count: number, overrides: Partial<TestEntity> = {}): Partial<TestEntity>[] => {
+const createTestEntityList = (
+  count: number,
+  overrides: Partial<TestEntity> = {},
+): Partial<TestEntity>[] => {
   return Array.from({ length: count }, (_, index) => ({
     ...createTestEntity(),
     id: `test-id-${index + 1}`,
@@ -63,7 +70,7 @@ describe('Base Service Tests', () => {
       // Arrange
       const testData = createTestEntity();
       const createdEntity = { ...testData, id: 'new-id' } as TestEntity;
-      
+
       repository.create!.mockReturnValue(testData as TestEntity);
       repository.save!.mockResolvedValue(createdEntity);
       repository.findOne!.mockResolvedValue(createdEntity);
@@ -88,9 +95,17 @@ describe('Base Service Tests', () => {
         name: 'Updated Name',
         description: 'Updated Description',
       });
-      const updatedEntity = { ...entity, ...updateData, updatedAt: new Date() } as TestEntity;
-      
-      repository.update!.mockResolvedValue({ affected: 1, raw: [], generatedMaps: [] });
+      const updatedEntity = {
+        ...entity,
+        ...updateData,
+        updatedAt: new Date(),
+      } as TestEntity;
+
+      repository.update!.mockResolvedValue({
+        affected: 1,
+        raw: [],
+        generatedMaps: [],
+      });
       repository.findOne!.mockResolvedValue(updatedEntity);
 
       // Act
@@ -104,7 +119,7 @@ describe('Base Service Tests', () => {
     it('should delete an entity', async () => {
       // Arrange
       const entity = createTestEntity() as TestEntity;
-      
+
       repository.delete!.mockResolvedValue({ affected: 1, raw: [] });
       repository.findOne!.mockImplementation(() => {
         throw new NotFoundException(`Entity with id ${entity.id} not found`);
@@ -120,7 +135,7 @@ describe('Base Service Tests', () => {
     it('should find all entities', async () => {
       // Arrange
       const testEntities = createTestEntityList(3) as TestEntity[];
-      
+
       repository.find!.mockResolvedValue(testEntities);
 
       // Act
@@ -133,8 +148,10 @@ describe('Base Service Tests', () => {
 
     it('should find entities by condition', async () => {
       // Arrange
-      const targetEntity = createTestEntity({ name: 'Search Target' }) as TestEntity;
-      
+      const targetEntity = createTestEntity({
+        name: 'Search Target',
+      }) as TestEntity;
+
       repository.find!.mockResolvedValue([targetEntity]);
 
       // Act

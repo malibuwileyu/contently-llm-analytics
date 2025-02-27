@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { DistributedLockService } from '../distributed-lock.service';
 import { createClient } from 'redis';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 // Define a generic Redis interface for testing
@@ -32,8 +33,11 @@ jest.mock('redis', () => ({
 
 describe('DistributedLockService', () => {
   let service: DistributedLockService;
-  let cacheManager: any;
-  let redisClient: RedisClient;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let _cacheManager: any;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let _redisClient: RedisClient;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let _configService: ConfigService;
   let mockRedisClient: ReturnType<typeof createMockRedisClient>;
 
@@ -89,7 +93,7 @@ describe('DistributedLockService', () => {
     it('should acquire and release lock', async () => {
       // Mock successful lock acquisition
       mockRedisClient.set.mockResolvedValueOnce('OK');
-      
+
       // Mock successful lock release
       mockRedisClient.eval.mockResolvedValueOnce(1);
 
@@ -104,11 +108,11 @@ describe('DistributedLockService', () => {
       expect(mockRedisClient.set).toHaveBeenCalledWith(
         `lock:${key}`,
         expect.any(String),
-        expect.any(Object)
+        expect.any(Object),
       );
       expect(mockRedisClient.eval).toHaveBeenCalledWith(
         expect.any(String),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -151,7 +155,7 @@ describe('DistributedLockService', () => {
   describe('Lock checking', () => {
     it('should check if lock exists', async () => {
       const key = 'test-lock';
-      
+
       // Mock lock acquisition
       mockRedisClient.set.mockResolvedValueOnce('OK');
       const token = await service.acquireLock(key);
@@ -165,7 +169,7 @@ describe('DistributedLockService', () => {
       // Mock lock release
       mockRedisClient.eval.mockResolvedValueOnce(1);
       await service.releaseLock(key, token!);
-      
+
       // Mock lock check - lock doesn't exist
       mockRedisClient.get.mockResolvedValueOnce(null);
       const isUnlocked = await service.isLocked(key);

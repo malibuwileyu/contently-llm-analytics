@@ -39,7 +39,8 @@ jest.mock('winston', () => {
 
 describe('LoggerService', () => {
   let service: LoggerService;
-  let configService: ConfigService;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let _configService: ConfigService;
   let mockWinstonLogger: any;
 
   beforeEach(async () => {
@@ -70,9 +71,10 @@ describe('LoggerService', () => {
 
     // Use resolve instead of get for scoped providers
     service = await module.resolve<LoggerService>(LoggerService);
-    configService = module.get<ConfigService>(ConfigService);
-    mockWinstonLogger = (winston.createLogger as jest.Mock).mock.results[0].value;
-    
+    _configService = module.get<ConfigService>(ConfigService);
+    mockWinstonLogger = (winston.createLogger as jest.Mock).mock.results[0]
+      .value;
+
     // Reset mocks before each test
     jest.clearAllMocks();
   });
@@ -158,7 +160,7 @@ describe('LoggerService', () => {
           userId: '123',
           action: 'login',
           status: 'success',
-        }
+        },
       };
 
       service.log(structuredMessage);
@@ -257,11 +259,11 @@ describe('LoggerService', () => {
         ErrorCode.VALIDATION_ERROR,
         400,
         ErrorCategory.VALIDATION,
-        { field: 'test' }
+        { field: 'test' },
       );
-      
+
       service.error(baseError);
-      
+
       expect(mockWinstonLogger.error).toHaveBeenCalledWith(
         'Test base error',
         expect.objectContaining({
@@ -330,4 +332,4 @@ describe('LoggerService', () => {
       );
     });
   });
-}); 
+});

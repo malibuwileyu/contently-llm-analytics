@@ -108,6 +108,7 @@ export function createMockService<
   const proto = Object.getPrototypeOf({}) as T;
   for (const key of Object.getOwnPropertyNames(proto)) {
     if (typeof proto[key as keyof T] === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockService[key as keyof T] = jest.fn() as any;
     }
   }
@@ -123,6 +124,7 @@ export function createPartialMock<T extends Record<string, unknown>>(
 
   for (const method of mockedMethods) {
     if (typeof real[method] === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mock[method] = jest.fn() as any;
     }
   }

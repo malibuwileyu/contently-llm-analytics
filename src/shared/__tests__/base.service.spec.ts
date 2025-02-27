@@ -1,7 +1,9 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Test, TestingModule } from '@nestjs/testing';
 import { Repository } from 'typeorm';
 import { BaseService } from '../classes/base.service';
 import { BaseEntity } from '../entities/base.entity';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { getRepositoryToken } from '@nestjs/typeorm';
 
 // Create a test entity class
@@ -28,8 +30,13 @@ const testEntityFactory = {
     deletedAt: null,
     ...overrides,
   }),
-  buildList: (count: number, overrides: Partial<TestEntity> = {}): Partial<TestEntity>[] => {
-    return Array.from({ length: count }, () => testEntityFactory.build(overrides));
+  buildList: (
+    count: number,
+    overrides: Partial<TestEntity> = {},
+  ): Partial<TestEntity>[] => {
+    return Array.from({ length: count }, () =>
+      testEntityFactory.build(overrides),
+    );
   },
 };
 
@@ -67,7 +74,9 @@ describe('BaseService', () => {
     it('should throw NotFoundException when entity not found', async () => {
       jest.spyOn(repository, 'findOne').mockResolvedValue(null);
 
-      await expect(service.findById('1')).rejects.toThrow('Entity with id 1 not found');
+      await expect(service.findById('1')).rejects.toThrow(
+        'Entity with id 1 not found',
+      );
     });
   });
 
@@ -90,28 +99,36 @@ describe('BaseService', () => {
       jest.spyOn(repository, 'update').mockResolvedValue({
         affected: 1,
         raw: [],
-        generatedMaps: []
+        generatedMaps: [],
       });
       jest.spyOn(repository, 'findOne').mockResolvedValue(entity);
 
       const result = await service.update('1', { name: 'Updated' });
       expect(result).toBe(entity);
-      expect(repository.update).toHaveBeenCalledWith('1', { name: 'Updated' } as any);
+      expect(repository.update).toHaveBeenCalledWith('1', {
+        name: 'Updated',
+      } as any);
     });
   });
 
   describe('delete', () => {
     it('should delete an entity', async () => {
-      jest.spyOn(repository, 'delete').mockResolvedValue({ affected: 1, raw: [] });
+      jest
+        .spyOn(repository, 'delete')
+        .mockResolvedValue({ affected: 1, raw: [] });
 
       await service.delete('1');
       expect(repository.delete).toHaveBeenCalledWith('1');
     });
 
     it('should throw NotFoundException when entity not found', async () => {
-      jest.spyOn(repository, 'delete').mockResolvedValue({ affected: 0, raw: [] });
+      jest
+        .spyOn(repository, 'delete')
+        .mockResolvedValue({ affected: 0, raw: [] });
 
-      await expect(service.delete('1')).rejects.toThrow('Entity with id 1 not found');
+      await expect(service.delete('1')).rejects.toThrow(
+        'Entity with id 1 not found',
+      );
     });
   });
 
@@ -136,7 +153,7 @@ describe('BaseService', () => {
       jest.spyOn(repository, 'softDelete').mockResolvedValue({
         affected: 1,
         raw: [],
-        generatedMaps: []
+        generatedMaps: [],
       });
 
       await service.softDelete('1');
@@ -147,10 +164,12 @@ describe('BaseService', () => {
       jest.spyOn(repository, 'softDelete').mockResolvedValue({
         affected: 0,
         raw: [],
-        generatedMaps: []
+        generatedMaps: [],
       });
 
-      await expect(service.softDelete('1')).rejects.toThrow('Entity with id 1 not found');
+      await expect(service.softDelete('1')).rejects.toThrow(
+        'Entity with id 1 not found',
+      );
     });
   });
 
@@ -159,7 +178,7 @@ describe('BaseService', () => {
       jest.spyOn(repository, 'restore').mockResolvedValue({
         affected: 1,
         raw: [],
-        generatedMaps: []
+        generatedMaps: [],
       });
 
       await service.restore('1');
@@ -170,10 +189,12 @@ describe('BaseService', () => {
       jest.spyOn(repository, 'restore').mockResolvedValue({
         affected: 0,
         raw: [],
-        generatedMaps: []
+        generatedMaps: [],
       });
 
-      await expect(service.restore('1')).rejects.toThrow('Entity with id 1 not found');
+      await expect(service.restore('1')).rejects.toThrow(
+        'Entity with id 1 not found',
+      );
     });
   });
-}); 
+});

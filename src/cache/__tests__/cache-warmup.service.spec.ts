@@ -10,7 +10,8 @@ describe('CacheWarmupService', () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let _cacheService: CacheService;
   let lockService: DistributedLockService;
-  let logger: LoggerService;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let _logger: LoggerService;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let _configService: ConfigService;
 
@@ -71,7 +72,7 @@ describe('CacheWarmupService', () => {
     service = module.get<CacheWarmupService>(CacheWarmupService);
     _cacheService = module.get<CacheService>(CacheService);
     lockService = module.get<DistributedLockService>(DistributedLockService);
-    logger = module.get<LoggerService>(LoggerService);
+    _logger = module.get<LoggerService>(LoggerService);
     _configService = module.get<ConfigService>(ConfigService);
   });
 
@@ -112,8 +113,9 @@ describe('CacheWarmupService', () => {
       // Verify execution order
       expect(provider2.warmup).toHaveBeenCalled();
       expect(provider1.warmup).toHaveBeenCalled();
-      expect(provider2.warmup.mock.invocationCallOrder[0])
-        .toBeLessThan(provider1.warmup.mock.invocationCallOrder[0]);
+      expect(provider2.warmup.mock.invocationCallOrder[0]).toBeLessThan(
+        provider1.warmup.mock.invocationCallOrder[0],
+      );
     });
 
     it('should handle warmup errors', async () => {

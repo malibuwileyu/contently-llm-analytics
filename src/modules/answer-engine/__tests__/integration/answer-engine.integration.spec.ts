@@ -1,9 +1,13 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Test } from '@nestjs/testing';
 import { AnswerEngineService } from '../../services/answer-engine.service';
 import { SentimentAnalyzerService } from '../../services/sentiment-analyzer.service';
 import { CitationTrackerService } from '../../services/citation-tracker.service';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { BrandMentionRepository } from '../../repositories/brand-mention.repository';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { BrandMention } from '../../entities/brand-mention.entity';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Citation } from '../../entities/citation.entity';
 import { AnalyzeContentDto } from '../../dto/analyze-content.dto';
 
@@ -25,7 +29,7 @@ describe('AnswerEngine Integration', () => {
       analyzeSentiment: jest.fn().mockResolvedValue({
         score: 0.8,
         magnitude: 0.5,
-        aspects: []
+        aspects: [],
       }),
     };
 
@@ -67,7 +71,7 @@ describe('AnswerEngine Integration', () => {
 
     // Create a mock repository that simulates database operations
     brandMentionRepository = {
-      save: jest.fn((entity) => {
+      save: jest.fn(entity => {
         const savedEntity = {
           ...entity,
           id: 'mention-123',
@@ -75,11 +79,11 @@ describe('AnswerEngine Integration', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           deletedAt: null,
-          citations: []
+          citations: [],
         };
         return Promise.resolve(savedEntity);
       }),
-      findWithCitations: jest.fn((id) => {
+      findWithCitations: jest.fn(id => {
         return Promise.resolve({
           id,
           brandId: 'brand-123',
@@ -89,13 +93,13 @@ describe('AnswerEngine Integration', () => {
           context: {
             query: 'What do people think about this brand?',
             response: 'People generally like this brand.',
-            platform: 'twitter'
+            platform: 'twitter',
           },
           mentionedAt: new Date(),
           createdAt: new Date(),
           updatedAt: new Date(),
           deletedAt: null,
-          citations: []
+          citations: [],
         });
       }),
       findByBrandId: jest.fn().mockResolvedValue([
@@ -120,17 +124,17 @@ describe('AnswerEngine Integration', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           deletedAt: null,
-        }
+        },
       ]),
       getSentimentTrend: jest.fn().mockResolvedValue([
         { date: new Date('2023-01-01'), averageSentiment: 0.7 },
-        { date: new Date('2023-01-02'), averageSentiment: 0.8 }
+        { date: new Date('2023-01-02'), averageSentiment: 0.8 },
       ]),
     };
 
     // Create a mock citation repository
     citationRepository = {
-      create: jest.fn((entity) => {
+      create: jest.fn(entity => {
         return {
           ...entity,
           id: undefined,
@@ -138,7 +142,7 @@ describe('AnswerEngine Integration', () => {
           updatedAt: undefined,
         };
       }),
-      save: jest.fn((entity) => {
+      save: jest.fn(entity => {
         return Promise.resolve({
           ...entity,
           id: `citation-${Math.floor(Math.random() * 1000)}`,
@@ -148,20 +152,20 @@ describe('AnswerEngine Integration', () => {
       }),
       find: jest.fn().mockResolvedValue([
         { id: 'citation-1', source: 'https://example.com', authority: 0.85 },
-        { id: 'citation-2', source: 'https://another.com', authority: 0.75 }
+        { id: 'citation-2', source: 'https://another.com', authority: 0.75 },
       ]),
     };
 
     // Create the SentimentAnalyzerService with mocked dependencies
     sentimentAnalyzerService = new SentimentAnalyzerService(
       nlpService,
-      cacheService
+      cacheService,
     );
 
     // Create the CitationTrackerService with mocked dependencies
     citationTrackerService = new CitationTrackerService(
       citationRepository,
-      authorityCalculator
+      authorityCalculator,
     );
 
     // Create the AnswerEngineService with all dependencies
@@ -169,7 +173,7 @@ describe('AnswerEngine Integration', () => {
       brandMentionRepository,
       sentimentAnalyzerService,
       citationTrackerService,
-      metricsService
+      metricsService,
     );
   });
 
@@ -182,8 +186,8 @@ describe('AnswerEngine Integration', () => {
         context: {
           query: 'What do people think about this brand?',
           response: 'People generally like this brand.',
-          platform: 'twitter'
-        }
+          platform: 'twitter',
+        },
       };
 
       // Act
@@ -196,7 +200,7 @@ describe('AnswerEngine Integration', () => {
       expect(result.sentiment).toBe(0.8);
       expect(result.magnitude).toBe(0.5);
       expect(result.context).toEqual(dto.context);
-      
+
       // Verify interactions
       expect(nlpService.analyzeSentiment).toHaveBeenCalledWith(dto.content);
       expect(brandMentionRepository.save).toHaveBeenCalled();
@@ -211,8 +215,8 @@ describe('AnswerEngine Integration', () => {
         content: 'This is a positive review with citations.',
         citations: [
           { source: 'https://example.com', metadata: { page: 1 } },
-          { source: 'https://another.com', metadata: { page: 2 } }
-        ]
+          { source: 'https://another.com', metadata: { page: 2 } },
+        ],
       };
 
       // Mock the findWithCitations to return a mention with citations
@@ -229,12 +233,14 @@ describe('AnswerEngine Integration', () => {
         deletedAt: null,
         citations: [
           { id: 'citation-1', source: 'https://example.com', authority: 0.85 },
-          { id: 'citation-2', source: 'https://another.com', authority: 0.75 }
-        ]
+          { id: 'citation-2', source: 'https://another.com', authority: 0.75 },
+        ],
       };
-      
+
       // Override the default mock for this test
-      brandMentionRepository.findWithCitations = jest.fn().mockResolvedValue(mentionWithCitations);
+      brandMentionRepository.findWithCitations = jest
+        .fn()
+        .mockResolvedValue(mentionWithCitations);
 
       // Act
       const result = await answerEngineService.analyzeMention(dto);
@@ -259,28 +265,33 @@ describe('AnswerEngine Integration', () => {
       expect(result.trend).toHaveLength(2);
       expect(result.trend[0].date).toEqual(new Date('2023-01-01'));
       expect(result.trend[0].averageSentiment).toBe(0.7);
-      
+
       // Verify interactions
-      expect(brandMentionRepository.findByBrandId).toHaveBeenCalledWith('brand-123', expect.any(Object));
+      expect(brandMentionRepository.findByBrandId).toHaveBeenCalledWith(
+        'brand-123',
+        expect.any(Object),
+      );
       expect(brandMentionRepository.getSentimentTrend).toHaveBeenCalled();
     });
 
     it('should handle caching in sentiment analysis', async () => {
       // Arrange
       const content = 'This is a test for caching';
-      
+
       // First call - cache miss
       await sentimentAnalyzerService.analyzeSentiment(content);
-      
+
       // Mock cache hit for second call
       const cachedResult = { score: 0.9, magnitude: 0.6, aspects: [] };
-      cacheService.getOrSet.mockImplementationOnce(async (key: string, factory: () => Promise<any>) => {
-        return cachedResult;
-      });
-      
+      cacheService.getOrSet.mockImplementationOnce(
+        async (_key: string, _factory: () => Promise<any>) => {
+          return cachedResult;
+        },
+      );
+
       // Act - second call should use cache
       const result = await sentimentAnalyzerService.analyzeSentiment(content);
-      
+
       // Assert
       expect(result).toEqual(cachedResult);
       expect(nlpService.analyzeSentiment).toHaveBeenCalledTimes(1); // Only called once
@@ -290,13 +301,15 @@ describe('AnswerEngine Integration', () => {
     it('should calculate authority for citations', () => {
       // Arrange
       const source = 'https://trusted-source.com';
-      
+
       // Act
       const authority = authorityCalculator.calculateAuthority(source);
-      
+
       // Assert
       expect(authority).toBe(0.85);
-      expect(authorityCalculator.calculateAuthority).toHaveBeenCalledWith(source);
+      expect(authorityCalculator.calculateAuthority).toHaveBeenCalledWith(
+        source,
+      );
     });
   });
 
@@ -305,22 +318,28 @@ describe('AnswerEngine Integration', () => {
       // Arrange
       const dto: AnalyzeContentDto = {
         brandId: 'brand-123',
-        content: 'This will cause an error'
+        content: 'This will cause an error',
       };
-      
+
       const error = new Error('NLP service unavailable');
       nlpService.analyzeSentiment.mockRejectedValueOnce(error);
-      cacheService.getOrSet.mockImplementationOnce(async (key: string, factory: () => Promise<any>) => {
-        return factory(); // This will now throw the error from nlpService
-      });
-      
+      cacheService.getOrSet.mockImplementationOnce(
+        async (key: string, factory: () => Promise<any>) => {
+          return factory(); // This will now throw the error from nlpService
+        },
+      );
+
       // Mock the logger to ensure it's called
       loggerService.error.mockImplementation(() => {});
-      
+
       // Act & Assert
-      await expect(answerEngineService.analyzeMention(dto)).rejects.toThrow(error);
-      expect(metricsService.incrementErrorCount).toHaveBeenCalledWith('analysis_failure');
-      
+      await expect(answerEngineService.analyzeMention(dto)).rejects.toThrow(
+        error,
+      );
+      expect(metricsService.incrementErrorCount).toHaveBeenCalledWith(
+        'analysis_failure',
+      );
+
       // We can't verify the logger is called since it's not injected into the service
       // In a real test, we would need to properly mock the logger service
     });
@@ -329,15 +348,19 @@ describe('AnswerEngine Integration', () => {
       // Arrange
       const dto: AnalyzeContentDto = {
         brandId: 'brand-123',
-        content: 'This will cause a database error'
+        content: 'This will cause a database error',
       };
-      
+
       const error = new Error('Database connection error');
       brandMentionRepository.save.mockRejectedValueOnce(error);
-      
+
       // Act & Assert
-      await expect(answerEngineService.analyzeMention(dto)).rejects.toThrow(error);
-      expect(metricsService.incrementErrorCount).toHaveBeenCalledWith('analysis_failure');
+      await expect(answerEngineService.analyzeMention(dto)).rejects.toThrow(
+        error,
+      );
+      expect(metricsService.incrementErrorCount).toHaveBeenCalledWith(
+        'analysis_failure',
+      );
     });
 
     it('should handle errors when getting brand health', async () => {
@@ -345,9 +368,11 @@ describe('AnswerEngine Integration', () => {
       const brandId = 'error-brand';
       const error = new Error('Failed to retrieve brand mentions');
       brandMentionRepository.findByBrandId.mockRejectedValueOnce(error);
-      
+
       // Act & Assert
-      await expect(answerEngineService.getBrandHealth(brandId)).rejects.toThrow(error);
+      await expect(answerEngineService.getBrandHealth(brandId)).rejects.toThrow(
+        error,
+      );
     });
   });
 
@@ -356,14 +381,14 @@ describe('AnswerEngine Integration', () => {
       // Arrange
       const dto: AnalyzeContentDto = {
         brandId: 'brand-123',
-        content: 'Performance test content'
+        content: 'Performance test content',
       };
-      
+
       // Act
       await answerEngineService.analyzeMention(dto);
-      
+
       // Assert
       expect(metricsService.recordAnalysisDuration).toHaveBeenCalled();
     });
   });
-}); 
+});

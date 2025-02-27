@@ -20,14 +20,19 @@ import { RolesGuard } from '../../guards/roles.guard';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '../../guards/auth.guard';
 import { JwtService } from '../../services/jwt.service';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 
 // Add a type for the request object
 type SuperTestRequest = request.SuperTest<request.Test>;
 
 // Create a mock TestController that doesn't use the real guards
+@Controller('test')
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 class _MockTestController {
-  async getProtected(): Promise<{ message: string }> {
-    return { message: 'Protected route accessed successfully' };
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  getProtected(): string {
+    return 'protected';
   }
 
   async getAdminDashboard(): Promise<{ message: string }> {
@@ -41,9 +46,11 @@ class _MockTestController {
 
 describe('Auth Integration', () => {
   let app: INestApplication;
-  let _authService: AuthService;
-  let _jwtService: any; // Change to any type to allow for mock methods
   let httpServer: any;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let _authService: AuthService;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let _jwtService: JwtService;
   let testRequest: SuperTestRequest;
   let mockJwtAuthGuard: any;
   let mockRolesGuard: any;
@@ -52,20 +59,32 @@ describe('Auth Integration', () => {
     id: 'test-user-id',
     email: 'test@example.com',
     roles: [Role.USER],
-    permissions: [Permission.READ_CONTENT]
+    permissions: [Permission.READ_CONTENT],
   };
 
   beforeAll(async () => {
     // Create a mock JWT service with jest.fn() methods
     const mockNestJwtService = {
       sign: jest.fn().mockReturnValue('test-token'),
-      verify: jest.fn().mockImplementation((token) => {
+      verify: jest.fn().mockImplementation(token => {
         if (token === 'test-token') {
-          return { sub: testUser.id, roles: testUser.roles, permissions: testUser.permissions };
+          return {
+            sub: testUser.id,
+            roles: testUser.roles,
+            permissions: testUser.permissions,
+          };
         } else if (token.includes('admin')) {
-          return { sub: testUser.id, roles: [Role.ADMIN], permissions: testUser.permissions };
+          return {
+            sub: testUser.id,
+            roles: [Role.ADMIN],
+            permissions: testUser.permissions,
+          };
         } else if (token.includes('permission')) {
-          return { sub: testUser.id, roles: testUser.roles, permissions: [Permission.MANAGE_SYSTEM] };
+          return {
+            sub: testUser.id,
+            roles: testUser.roles,
+            permissions: [Permission.MANAGE_SYSTEM],
+          };
         } else {
           throw new Error('Invalid token');
         }
@@ -76,13 +95,25 @@ describe('Auth Integration', () => {
     // Create a mock custom JwtService
     const mockCustomJwtService = {
       generateToken: jest.fn().mockResolvedValue('test-token'),
-      verifyToken: jest.fn().mockImplementation((token) => {
+      verifyToken: jest.fn().mockImplementation(token => {
         if (token === 'test-token') {
-          return { sub: testUser.id, roles: testUser.roles, permissions: testUser.permissions };
+          return {
+            sub: testUser.id,
+            roles: testUser.roles,
+            permissions: testUser.permissions,
+          };
         } else if (token.includes('admin')) {
-          return { sub: testUser.id, roles: [Role.ADMIN], permissions: testUser.permissions };
+          return {
+            sub: testUser.id,
+            roles: [Role.ADMIN],
+            permissions: testUser.permissions,
+          };
         } else if (token.includes('permission')) {
-          return { sub: testUser.id, roles: testUser.roles, permissions: [Permission.MANAGE_SYSTEM] };
+          return {
+            sub: testUser.id,
+            roles: testUser.roles,
+            permissions: [Permission.MANAGE_SYSTEM],
+          };
         } else {
           throw new Error('Invalid token');
         }
@@ -100,7 +131,7 @@ describe('Auth Integration', () => {
           }
         }
         return true;
-      })
+      }),
     };
 
     mockRolesGuard = {
@@ -109,16 +140,22 @@ describe('Auth Integration', () => {
         if (context.switchToHttp) {
           const req = context.switchToHttp().getRequest();
           if (req && req.url) {
-            if (req.url.includes('admin') && !req.headers.authorization.includes('admin')) {
+            if (
+              req.url.includes('admin') &&
+              !req.headers.authorization.includes('admin')
+            ) {
               return false;
             }
-            if (req.url.includes('settings') && !req.headers.authorization.includes('permission')) {
+            if (
+              req.url.includes('settings') &&
+              !req.headers.authorization.includes('permission')
+            ) {
               return false;
             }
           }
         }
         return true;
-      })
+      }),
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -129,29 +166,31 @@ describe('Auth Integration', () => {
         }),
         ConfigModule.forRoot({
           isGlobal: true,
-          load: [() => ({
-            auth: {
-              supabase: {
-                jwtSecret: 'test-secret'
+          load: [
+            () => ({
+              auth: {
+                supabase: {
+                  jwtSecret: 'test-secret',
+                },
+                session: {
+                  maxAge: 3600,
+                },
+                google: {
+                  clientId: 'test-client-id',
+                  clientSecret: 'test-client-secret',
+                  callbackUrl: 'http://localhost:3000/api/auth/google/callback',
+                },
               },
-              session: {
-                maxAge: 3600
+              // Add mock Redis configuration
+              redis: {
+                host: 'localhost',
+                port: 6379,
+                ttl: 60,
+                max: 100,
+                isGlobal: true,
               },
-              google: {
-                clientId: 'test-client-id',
-                clientSecret: 'test-client-secret',
-                callbackUrl: 'http://localhost:3000/api/auth/google/callback'
-              }
-            },
-            // Add mock Redis configuration
-            redis: {
-              host: 'localhost',
-              port: 6379,
-              ttl: 60,
-              max: 100,
-              isGlobal: true
-            }
-          })]
+            }),
+          ],
         }),
         JwtModule.register({
           secret: 'test-secret',
@@ -160,34 +199,34 @@ describe('Auth Integration', () => {
         GraphQLModule.forRoot<ApolloDriverConfig>({
           driver: ApolloDriver,
           autoSchemaFile: true,
-          playground: false
-        })
+          playground: false,
+        }),
       ],
       controllers: [TestController],
       providers: [
         TestResolver,
         {
           provide: NestJwtService,
-          useValue: mockNestJwtService
+          useValue: mockNestJwtService,
         },
         {
           provide: JwtService,
-          useValue: mockCustomJwtService
+          useValue: mockCustomJwtService,
         },
         AuthService,
         {
           provide: JwtAuthGuard,
-          useValue: mockJwtAuthGuard
+          useValue: mockJwtAuthGuard,
         },
         {
           provide: RolesGuard,
-          useValue: mockRolesGuard
+          useValue: mockRolesGuard,
         },
         {
           provide: AuthGuard,
           useValue: {
-            canActivate: jest.fn().mockReturnValue(true)
-          }
+            canActivate: jest.fn().mockReturnValue(true),
+          },
         },
         {
           provide: Reflector,
@@ -206,11 +245,11 @@ describe('Auth Integration', () => {
             }),
           },
         },
-      ]
+      ],
     })
       .overrideProvider(GoogleStrategy)
       .useValue({
-        validate: jest.fn().mockResolvedValue(testUser)
+        validate: jest.fn().mockResolvedValue(testUser),
       })
       // Override the CacheModule to use in-memory cache
       .overrideProvider(CACHE_MANAGER)
@@ -245,7 +284,7 @@ describe('Auth Integration', () => {
     beforeEach(() => {
       // Use the mock JWT service to generate a token
       validToken = 'test-token';
-      
+
       // Reset the mock guards for each test
       mockJwtAuthGuard.canActivate.mockClear();
       mockRolesGuard.canActivate.mockClear();
@@ -341,7 +380,7 @@ describe('Auth Integration', () => {
                   message
                 }
               }
-            `
+            `,
           })
           .expect(400); // GraphQL returns 400 in the test environment
       });
@@ -358,10 +397,10 @@ describe('Auth Integration', () => {
                   message
                 }
               }
-            `
+            `,
           })
           .expect(400); // GraphQL returns 400 in the test environment
       });
     });
   });
-}); 
+});
