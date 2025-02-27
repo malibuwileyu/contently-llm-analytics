@@ -88,19 +88,4 @@ export interface SentimentAnalysisResult {
    * Higher values indicate stronger sentiment
    */
   magnitude: number;
-}
-
-/**
- * Interface for sentiment trend data points
- */
-export interface SentimentTrend {
-  /**
-   * The date of the sentiment data point
-   */
-  date: Date;
-  
-  /**
-   * The average sentiment score for the date
-   */
-  averageSentiment: number;
 } 

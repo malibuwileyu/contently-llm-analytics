@@ -28,17 +28,21 @@ const dataSource = new DataSource({
 async function runMigrations(): Promise<void> {
   try {
     await dataSource.initialize();
+    // eslint-disable-next-line no-console
     console.log('Data Source has been initialized');
     
     await dataSource.runMigrations();
-    console.log('Migrations have been run successfully');
+    // eslint-disable-next-line no-console
+    console.log('Migrations have been run');
     
     await dataSource.destroy();
+    // eslint-disable-next-line no-console
     console.log('Data Source has been closed');
     
     process.exit(0);
   } catch (error) {
-    console.error('Error during migration:', error);
+    // eslint-disable-next-line no-console
+    console.error('Error running migrations:', error);
     process.exit(1);
   }
 }

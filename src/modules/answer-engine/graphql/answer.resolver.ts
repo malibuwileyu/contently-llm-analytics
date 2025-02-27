@@ -4,11 +4,9 @@ import { PubSub } from 'graphql-subscriptions';
 import {
   BrandMention,
   BrandHealth,
-  AnalyzeContentInput,
   BrandHealthInput,
   BrandMentionAddedPayload,
 } from './answer.types';
-import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { AuthGuard } from '../../../auth/guards/auth.guard';
 import { AnswerEngineService } from '../services/answer-engine.service';
 import { BrandMentionDto } from '../dto/brand-mention.dto';
@@ -97,7 +95,7 @@ export class AnswerResolver {
     resolve: (payload: BrandMentionAddedPayload) => payload.brandMentionAdded,
   })
   brandMentionAdded(
-    @Args('brandId') brandId: string,
+    @Args('brandId') _brandId: string,
   ): AsyncIterator<BrandMentionAddedPayload> {
     return this.pubSub.asyncIterator<BrandMentionAddedPayload>('brandMentionAdded');
   }

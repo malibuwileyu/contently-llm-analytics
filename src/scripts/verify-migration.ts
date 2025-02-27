@@ -22,24 +22,29 @@ const dataSource = new DataSource({
 });
 
 // Verify the migration
-async function verifyMigration() {
+async function verifyMigration(): Promise<void> {
   try {
     await dataSource.initialize();
+    // eslint-disable-next-line no-console
     console.log('Data Source has been initialized');
     
     // Check if the migrations table exists and has our migration
+    // eslint-disable-next-line no-console
     console.log('\nChecking migrations table:');
     const migrations = await dataSource.query(`
       SELECT * FROM migrations
       ORDER BY id DESC
     `);
     
+    // eslint-disable-next-line no-console
     console.log('Migrations in the database:');
     migrations.forEach((migration: { id: number, timestamp: number, name: string }) => {
+      // eslint-disable-next-line no-console
       console.log(`- ${migration.id}: ${migration.name} (${migration.timestamp})`);
     });
     
     // Check if the brand_mention table exists and has the correct structure
+    // eslint-disable-next-line no-console
     console.log('\nChecking brand_mention table:');
     const brandMentionExists = await dataSource.query(`
       SELECT EXISTS (
@@ -50,6 +55,7 @@ async function verifyMigration() {
     `);
     
     if (brandMentionExists[0].exists) {
+      // eslint-disable-next-line no-console
       console.log('brand_mention table exists');
       
       // Check the columns
@@ -60,15 +66,19 @@ async function verifyMigration() {
         ORDER BY ordinal_position
       `);
       
+      // eslint-disable-next-line no-console
       console.log('brand_mention columns:');
       brandMentionColumns.forEach((column: { column_name: string, data_type: string, is_nullable: string }) => {
+        // eslint-disable-next-line no-console
         console.log(`- ${column.column_name}: ${column.data_type} (${column.is_nullable === 'YES' ? 'nullable' : 'not nullable'})`);
       });
     } else {
+      // eslint-disable-next-line no-console
       console.error('brand_mention table does not exist!');
     }
     
     // Check if the citation table exists and has the correct structure
+    // eslint-disable-next-line no-console
     console.log('\nChecking citation table:');
     const citationExists = await dataSource.query(`
       SELECT EXISTS (
@@ -79,6 +89,7 @@ async function verifyMigration() {
     `);
     
     if (citationExists[0].exists) {
+      // eslint-disable-next-line no-console
       console.log('citation table exists');
       
       // Check the columns
@@ -89,15 +100,19 @@ async function verifyMigration() {
         ORDER BY ordinal_position
       `);
       
+      // eslint-disable-next-line no-console
       console.log('citation columns:');
       citationColumns.forEach((column: { column_name: string, data_type: string, is_nullable: string }) => {
+        // eslint-disable-next-line no-console
         console.log(`- ${column.column_name}: ${column.data_type} (${column.is_nullable === 'YES' ? 'nullable' : 'not nullable'})`);
       });
     } else {
+      // eslint-disable-next-line no-console
       console.error('citation table does not exist!');
     }
     
     // Check if the foreign key exists
+    // eslint-disable-next-line no-console
     console.log('\nChecking foreign key:');
     const foreignKey = await dataSource.query(`
       SELECT
@@ -120,15 +135,19 @@ async function verifyMigration() {
     `);
     
     if (foreignKey.length > 0) {
+      // eslint-disable-next-line no-console
       console.log('Foreign key exists:');
       foreignKey.forEach((fk: { constraint_name: string, table_name: string, column_name: string, foreign_table_name: string, foreign_column_name: string }) => {
+        // eslint-disable-next-line no-console
         console.log(`- ${fk.constraint_name}: ${fk.table_name}.${fk.column_name} -> ${fk.foreign_table_name}.${fk.foreign_column_name}`);
       });
     } else {
+      // eslint-disable-next-line no-console
       console.error('Foreign key does not exist!');
     }
     
     // Check if the indexes exist
+    // eslint-disable-next-line no-console
     console.log('\nChecking indexes:');
     const indexes = await dataSource.query(`
       SELECT
@@ -143,16 +162,20 @@ async function verifyMigration() {
         tablename, indexname
     `);
     
+    // eslint-disable-next-line no-console
     console.log('Indexes:');
     indexes.forEach((index: { tablename: string, indexname: string, indexdef: string }) => {
+      // eslint-disable-next-line no-console
       console.log(`- ${index.tablename}.${index.indexname}: ${index.indexdef}`);
     });
     
     await dataSource.destroy();
+    // eslint-disable-next-line no-console
     console.log('\nData Source has been closed');
     
     process.exit(0);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error verifying migration:', error);
     process.exit(1);
   }

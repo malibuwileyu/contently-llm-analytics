@@ -34,10 +34,11 @@ type SentryErrorResponse = {
   details?: Record<string, unknown>;
 };
 
-type SentryLogContext = {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface SentryLogContext {
   error: SentryErrorResponse;
   context?: SentryContext;
-};
+}
 
 interface SentryUserData {
   id: string;

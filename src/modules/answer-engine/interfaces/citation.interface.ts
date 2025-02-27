@@ -30,7 +30,7 @@ export interface CreateCitationDto {
   /**
    * Brand mention the citation is associated with
    */
-  brandMention: any; // This will be the actual BrandMention entity
+  brandMention: unknown; // This will be the actual BrandMention entity
   
   /**
    * Additional metadata about the citation

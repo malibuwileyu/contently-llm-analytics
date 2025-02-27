@@ -12,6 +12,7 @@ import { AnswerEngineRunner } from './runners/answer-engine.runner';
 import { PrometheusMetricsService } from '../../metrics/services/prometheus-metrics.service';
 import { NLPService } from './services/nlp.service';
 import { AuthorityCalculatorService } from './services/authority-calculator.service';
+import { PubSub } from 'graphql-subscriptions';
 
 /**
  * Module for the Answer Engine feature
@@ -65,8 +66,7 @@ import { AuthorityCalculatorService } from './services/authority-calculator.serv
     // PubSub for GraphQL subscriptions
     {
       provide: 'PUB_SUB',
-      useFactory: () => {
-        const { PubSub } = require('graphql-subscriptions');
+      useFactory: (): PubSub => {
         return new PubSub();
       }
     }

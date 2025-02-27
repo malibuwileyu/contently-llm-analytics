@@ -40,7 +40,7 @@ export class BrandMention {
    * Context information about the mention
    */
   @Column({ type: 'jsonb', nullable: true })
-  context: Record<string, any>;
+  context: Record<string, unknown>;
 
   /**
    * When the brand was mentioned

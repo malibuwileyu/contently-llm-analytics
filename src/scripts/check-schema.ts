@@ -25,6 +25,7 @@ const dataSource = new DataSource({
 async function checkSchema(): Promise<void> {
   try {
     await dataSource.initialize();
+    // eslint-disable-next-line no-console
     console.log('Data Source has been initialized');
     
     // Check if the tables exist
@@ -35,12 +36,15 @@ async function checkSchema(): Promise<void> {
       ORDER BY table_name
     `);
     
+    // eslint-disable-next-line no-console
     console.log('Tables in the database:');
     tables.forEach((table: { table_name: string }) => {
+      // eslint-disable-next-line no-console
       console.log(`- ${table.table_name}`);
     });
     
     // Check the structure of the brand_mention table
+    // eslint-disable-next-line no-console
     console.log('\nStructure of brand_mention table:');
     const brandMentionColumns = await dataSource.query(`
       SELECT column_name, data_type, is_nullable
@@ -50,10 +54,12 @@ async function checkSchema(): Promise<void> {
     `);
     
     brandMentionColumns.forEach((column: { column_name: string, data_type: string, is_nullable: string }) => {
+      // eslint-disable-next-line no-console
       console.log(`- ${column.column_name}: ${column.data_type} (${column.is_nullable === 'YES' ? 'nullable' : 'not nullable'})`);
     });
     
     // Check the structure of the citation table
+    // eslint-disable-next-line no-console
     console.log('\nStructure of citation table:');
     const citationColumns = await dataSource.query(`
       SELECT column_name, data_type, is_nullable
@@ -63,10 +69,12 @@ async function checkSchema(): Promise<void> {
     `);
     
     citationColumns.forEach((column: { column_name: string, data_type: string, is_nullable: string }) => {
+      // eslint-disable-next-line no-console
       console.log(`- ${column.column_name}: ${column.data_type} (${column.is_nullable === 'YES' ? 'nullable' : 'not nullable'})`);
     });
     
     // Check the indexes
+    // eslint-disable-next-line no-console
     console.log('\nIndexes on brand_mention table:');
     const brandMentionIndexes = await dataSource.query(`
       SELECT indexname, indexdef
@@ -76,9 +84,11 @@ async function checkSchema(): Promise<void> {
     `);
     
     brandMentionIndexes.forEach((index: { indexname: string, indexdef: string }) => {
+      // eslint-disable-next-line no-console
       console.log(`- ${index.indexname}: ${index.indexdef}`);
     });
     
+    // eslint-disable-next-line no-console
     console.log('\nIndexes on citation table:');
     const citationIndexes = await dataSource.query(`
       SELECT indexname, indexdef
@@ -88,14 +98,17 @@ async function checkSchema(): Promise<void> {
     `);
     
     citationIndexes.forEach((index: { indexname: string, indexdef: string }) => {
+      // eslint-disable-next-line no-console
       console.log(`- ${index.indexname}: ${index.indexdef}`);
     });
     
     await dataSource.destroy();
+    // eslint-disable-next-line no-console
     console.log('\nData Source has been closed');
     
     process.exit(0);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error checking schema:', error);
     process.exit(1);
   }

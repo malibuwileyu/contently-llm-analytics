@@ -2,6 +2,18 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { DistributedLockService } from '../distributed-lock.service';
 import { createClient } from 'redis';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+
+// Define a generic Redis interface for testing
+interface RedisClient {
+  connect: () => Promise<void>;
+  isOpen: boolean;
+  on: (event: string, callback: (...args: any[]) => void) => void;
+  set: (key: string, value: string, options?: any) => Promise<any>;
+  get: (key: string) => Promise<any>;
+  eval: (script: string, options: any) => Promise<any>;
+  quit: () => Promise<void>;
+}
 
 // Create a mock Redis client factory
 const createMockRedisClient = () => ({
@@ -20,7 +32,9 @@ jest.mock('redis', () => ({
 
 describe('DistributedLockService', () => {
   let service: DistributedLockService;
-  let configService: ConfigService;
+  let cacheManager: any;
+  let redisClient: RedisClient;
+  let _configService: ConfigService;
   let mockRedisClient: ReturnType<typeof createMockRedisClient>;
 
   beforeEach(async () => {
@@ -50,7 +64,7 @@ describe('DistributedLockService', () => {
     }).compile();
 
     service = module.get<DistributedLockService>(DistributedLockService);
-    configService = module.get<ConfigService>(ConfigService);
+    _configService = module.get<ConfigService>(ConfigService);
 
     // Get the mock Redis client
     mockRedisClient = (createClient as jest.Mock).mock.results[0].value;

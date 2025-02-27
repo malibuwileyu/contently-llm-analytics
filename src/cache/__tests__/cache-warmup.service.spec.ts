@@ -3,12 +3,16 @@ import { ConfigService } from '@nestjs/config';
 import { CacheWarmupService } from '../cache-warmup.service';
 import { CacheService } from '../cache.service';
 import { DistributedLockService } from '../distributed-lock.service';
+import { LoggerService } from '../../shared/services/logger.service';
 
 describe('CacheWarmupService', () => {
   let service: CacheWarmupService;
-  let cacheService: CacheService;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let _cacheService: CacheService;
   let lockService: DistributedLockService;
-  let configService: ConfigService;
+  let logger: LoggerService;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let _configService: ConfigService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -54,9 +58,10 @@ describe('CacheWarmupService', () => {
     }).compile();
 
     service = module.get<CacheWarmupService>(CacheWarmupService);
-    cacheService = module.get<CacheService>(CacheService);
+    _cacheService = module.get<CacheService>(CacheService);
     lockService = module.get<DistributedLockService>(DistributedLockService);
-    configService = module.get<ConfigService>(ConfigService);
+    logger = module.get<LoggerService>(LoggerService);
+    _configService = module.get<ConfigService>(ConfigService);
   });
 
   it('should be defined', () => {

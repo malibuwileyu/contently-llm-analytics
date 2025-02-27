@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AnswerEngineService } from '../services/answer-engine.service';
+import { ContextDto } from '../dto/analyze-content.dto';
 
 /**
  * Interface for feature runners
@@ -95,8 +96,11 @@ export class AnswerEngineRunner implements FeatureRunner {
       const mention = await this.answerEngineService.analyzeMention({
         brandId: context.brandId,
         content: context.metadata?.content as string,
-        context: context.metadata?.context as any,
-        citations: context.metadata?.citations as any[],
+        context: context.metadata?.context as unknown as ContextDto,
+        citations: context.metadata?.citations as Array<{
+          source: string;
+          metadata?: Record<string, unknown>;
+        }>,
       });
 
       const health = await this.answerEngineService.getBrandHealth(context.brandId);

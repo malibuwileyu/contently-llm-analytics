@@ -11,7 +11,8 @@ describe('AnalyticsGateway', () => {
   let gateway: AnalyticsGateway;
   let mockServer: jest.Mocked<Server>;
   let mockClient: jest.Mocked<Socket>;
-  let jwtService: JwtService;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let _jwtService: JwtService;
 
   beforeEach(async () => {
     mockServer = {
@@ -70,7 +71,7 @@ describe('AnalyticsGateway', () => {
     .compile();
 
     gateway = module.get<AnalyticsGateway>(AnalyticsGateway);
-    jwtService = module.get<JwtService>(JwtService);
+    _jwtService = module.get<JwtService>(JwtService);
     gateway.server = mockServer;
   });
 

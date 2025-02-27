@@ -23,16 +23,19 @@ const dataSource = new DataSource({
 });
 
 // Test data insertion
-async function testDataInsertion() {
+async function testDataInsertion(): Promise<void> {
   try {
     await dataSource.initialize();
+    // eslint-disable-next-line no-console
     console.log('Data Source has been initialized');
     
     // Generate a test brand ID
     const brandId = uuidv4();
+    // eslint-disable-next-line no-console
     console.log(`Generated brand ID: ${brandId}`);
     
     // Insert a brand mention
+    // eslint-disable-next-line no-console
     console.log('\nInserting brand mention:');
     const brandMentionResult = await dataSource.query(`
       INSERT INTO brand_mention (
@@ -64,9 +67,11 @@ async function testDataInsertion() {
     ]);
     
     const brandMentionId = brandMentionResult[0].id;
+    // eslint-disable-next-line no-console
     console.log(`Inserted brand mention with ID: ${brandMentionId}`);
     
     // Insert a citation
+    // eslint-disable-next-line no-console
     console.log('\nInserting citation:');
     const citationResult = await dataSource.query(`
       INSERT INTO citation (
@@ -95,26 +100,34 @@ async function testDataInsertion() {
     ]);
     
     const citationId = citationResult[0].id;
+    // eslint-disable-next-line no-console
     console.log(`Inserted citation with ID: ${citationId}`);
     
     // Query the data to verify it was inserted correctly
+    // eslint-disable-next-line no-console
     console.log('\nQuerying brand mention:');
     const brandMention = await dataSource.query(`
       SELECT * FROM brand_mention WHERE id = $1
     `, [brandMentionId]);
     
+    // eslint-disable-next-line no-console
     console.log('Brand mention data:');
+    // eslint-disable-next-line no-console
     console.log(brandMention[0]);
     
+    // eslint-disable-next-line no-console
     console.log('\nQuerying citation:');
     const citation = await dataSource.query(`
       SELECT * FROM citation WHERE id = $1
     `, [citationId]);
     
+    // eslint-disable-next-line no-console
     console.log('Citation data:');
+    // eslint-disable-next-line no-console
     console.log(citation[0]);
     
     // Query with a join to verify the relationship
+    // eslint-disable-next-line no-console
     console.log('\nQuerying with join:');
     const joinResult = await dataSource.query(`
       SELECT 
@@ -129,27 +142,35 @@ async function testDataInsertion() {
       WHERE bm.id = $1
     `, [brandMentionId]);
     
+    // eslint-disable-next-line no-console
     console.log('Join result:');
+    // eslint-disable-next-line no-console
     console.log(joinResult[0]);
     
     // Clean up the test data
+    // eslint-disable-next-line no-console
     console.log('\nCleaning up test data:');
     await dataSource.query(`
       DELETE FROM citation WHERE id = $1
     `, [citationId]);
+    // eslint-disable-next-line no-console
     console.log(`Deleted citation with ID: ${citationId}`);
     
     await dataSource.query(`
       DELETE FROM brand_mention WHERE id = $1
     `, [brandMentionId]);
+    // eslint-disable-next-line no-console
     console.log(`Deleted brand mention with ID: ${brandMentionId}`);
     
     await dataSource.destroy();
+    // eslint-disable-next-line no-console
     console.log('\nData Source has been closed');
     
+    // eslint-disable-next-line no-console
     console.log('\nTest completed successfully!');
     process.exit(0);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error testing data insertion:', error);
     process.exit(1);
   }

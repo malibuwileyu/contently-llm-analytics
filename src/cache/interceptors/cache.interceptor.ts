@@ -16,7 +16,6 @@ import {
   CACHE_TTL_METADATA,
   NO_CACHE_METADATA,
 } from '../decorators/cache.decorators';
-import { CacheValue } from '../../types/common';
 
 export interface CacheOptions {
   ttl?: number;
@@ -36,7 +35,7 @@ export class CacheInterceptor implements NestInterceptor {
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
-  ): Promise<Observable<any>> {
+  ): Promise<Observable<unknown>> {
     const noCache = this.reflector.get(NO_CACHE_METADATA, context.getHandler());
     if (noCache) {
       return next.handle();

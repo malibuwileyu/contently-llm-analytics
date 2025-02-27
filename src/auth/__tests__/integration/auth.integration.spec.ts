@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
-import { Response } from 'supertest';
-import { AuthModule } from '../../auth.module';
+import { ExecutionContext } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Role } from '../../enums/role.enum';
 import { Permission } from '../../enums/permission.enum';
@@ -18,7 +17,6 @@ import { AuthService } from '../../auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { RolesGuard } from '../../guards/roles.guard';
-import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '../../guards/auth.guard';
 import { JwtService } from '../../services/jwt.service';
@@ -27,7 +25,7 @@ import { JwtService } from '../../services/jwt.service';
 type SuperTestRequest = request.SuperTest<request.Test>;
 
 // Create a mock TestController that doesn't use the real guards
-class MockTestController {
+class _MockTestController {
   async getProtected(): Promise<{ message: string }> {
     return { message: 'Protected route accessed successfully' };
   }
@@ -43,8 +41,8 @@ class MockTestController {
 
 describe('Auth Integration', () => {
   let app: INestApplication;
-  let authService: AuthService;
-  let jwtService: any; // Change to any type to allow for mock methods
+  let _authService: AuthService;
+  let _jwtService: any; // Change to any type to allow for mock methods
   let httpServer: any;
   let testRequest: SuperTestRequest;
   let mockJwtAuthGuard: any;
@@ -229,8 +227,8 @@ describe('Auth Integration', () => {
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
 
-    authService = moduleFixture.get<AuthService>(AuthService);
-    jwtService = moduleFixture.get<JwtService>(JwtService);
+    _authService = moduleFixture.get<AuthService>(AuthService);
+    _jwtService = moduleFixture.get<JwtService>(JwtService);
     httpServer = app.getHttpServer();
     testRequest = request(httpServer);
   });
