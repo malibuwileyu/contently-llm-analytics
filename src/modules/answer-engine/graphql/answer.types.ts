@@ -14,8 +14,8 @@ export class BrandMention {
   @Field(() => Float)
   sentiment: number;
 
-  @Field()
-  context: string;
+  @Field({ nullable: true })
+  context?: string;
 
   @Field()
   createdAt: Date;
@@ -25,24 +25,24 @@ export class BrandMention {
 }
 
 @ObjectType()
-export class BrandHealth {
-  @Field(() => Float)
-  overallSentiment: number;
-
-  @Field(() => [SentimentTrend])
-  trend: SentimentTrend[];
-
-  @Field()
-  mentionCount: number;
-}
-
-@ObjectType()
-export class SentimentTrend {
+export class TrendPoint {
   @Field()
   date: Date;
 
   @Field(() => Float)
   sentiment: number;
+}
+
+@ObjectType()
+export class BrandHealth {
+  @Field(() => Float)
+  overallSentiment: number;
+
+  @Field(() => [TrendPoint])
+  trend: TrendPoint[];
+
+  @Field()
+  mentionCount: number;
 }
 
 @InputType()
@@ -67,4 +67,12 @@ export class BrandHealthInput {
 
   @Field()
   endDate: Date;
+}
+
+@ObjectType()
+export class BrandMentionAddedPayload implements Record<string, unknown> {
+  @Field(() => BrandMention)
+  brandMentionAdded: BrandMention;
+
+  [key: string]: unknown;
 } 

@@ -6,13 +6,9 @@ import {
   BrandHealth,
   AnalyzeContentInput,
   BrandHealthInput,
+  BrandMentionAddedPayload,
 } from './answer.types';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
-
-// Define event types
-interface BrandMentionAddedPayload {
-  brandMentionAdded: BrandMention;
-}
 
 @Resolver(() => BrandMention)
 export class AnswerResolver {
@@ -66,9 +62,11 @@ export class AnswerResolver {
     this.mockBrandMentions.push(mention);
 
     // Publish update for subscriptions
-    await this.pubSub.publish('brandMentionAdded', {
+    const payload: BrandMentionAddedPayload = {
       brandMentionAdded: mention,
-    } as BrandMentionAddedPayload);
+    };
+
+    await this.pubSub.publish('brandMentionAdded', payload);
 
     return mention;
   }
@@ -76,15 +74,13 @@ export class AnswerResolver {
   @Subscription(() => BrandMention, {
     filter: (
       payload: BrandMentionAddedPayload,
-      variables: { _brandId: string },
-    ) => payload.brandMentionAdded.brandId === variables._brandId,
+      variables: { brandId: string },
+    ) => payload.brandMentionAdded.brandId === variables.brandId,
     resolve: (payload: BrandMentionAddedPayload) => payload.brandMentionAdded,
   })
   brandMentionAdded(
-    @Args('_brandId') _brandId: string,
+    @Args('brandId') brandId: string,
   ): AsyncIterator<BrandMentionAddedPayload> {
-    return this.pubSub.asyncIterator<BrandMentionAddedPayload>(
-      'brandMentionAdded',
-    );
+    return this.pubSub.asyncIterator<BrandMentionAddedPayload>('brandMentionAdded');
   }
 }

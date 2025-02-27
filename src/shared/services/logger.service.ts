@@ -110,9 +110,10 @@ export class LoggerService implements NestLoggerService {
    * Log a message at the 'log' level (alias for 'info')
    * @param message The message to log
    * @param context Optional context override
+   * @param meta Optional metadata to include with the log
    */
-  log(message: LogMessage | string, context?: string): void {
-    this.writeLog('info', message, context);
+  log(message: string | LogMessage, context?: string, meta?: Record<string, unknown>): void {
+    this.writeLog('info', message, context, undefined, meta);
   }
 
   /**
@@ -120,67 +121,94 @@ export class LoggerService implements NestLoggerService {
    * @param message The message to log
    * @param trace Optional stack trace
    * @param context Optional context override
+   * @param meta Optional metadata to include with the log
    */
-  error(message: LogMessage | string, trace?: string, context?: string): void {
-    this.writeLog('error', message, context, trace);
+  error(message: string | Error | LogMessage, trace?: string, context?: string, meta?: Record<string, unknown>): void {
+    this.writeLog('error', message, context, trace, meta);
   }
 
   /**
    * Log a message at the 'warn' level
    * @param message The message to log
    * @param context Optional context override
+   * @param meta Optional metadata to include with the log
    */
-  warn(message: LogMessage | string, context?: string): void {
-    this.writeLog('warn', message, context);
+  warn(message: string | Error | LogMessage, context?: string, meta?: Record<string, unknown>): void {
+    this.writeLog('warn', message, context, undefined, meta);
   }
 
   /**
    * Log a message at the 'debug' level
    * @param message The message to log
    * @param context Optional context override
+   * @param meta Optional metadata to include with the log
    */
-  debug(message: LogMessage | string, context?: string): void {
-    this.writeLog('debug', message, context);
+  debug(message: string | Error | LogMessage, context?: string, meta?: Record<string, unknown>): void {
+    this.writeLog('debug', message, context, undefined, meta);
   }
 
   /**
    * Log a message at the 'verbose' level
    * @param message The message to log
    * @param context Optional context override
+   * @param meta Optional metadata to include with the log
    */
-  verbose(message: LogMessage | string, context?: string): void {
-    this.writeLog('verbose', message, context);
+  verbose(message: string | Error | LogMessage, context?: string, meta?: Record<string, unknown>): void {
+    this.writeLog('verbose', message, context, undefined, meta);
   }
 
   private writeLog(
     level: LogLevel,
-    message: LogMessage | string,
+    message: string | Error | LogMessage,
     context?: string,
     trace?: string,
+    meta?: Record<string, unknown>,
   ): void {
     const contextValue = context || this.context;
     const logFn = this.getLogFunction(level);
 
     if (typeof message === 'string') {
-      logFn(`[${contextValue || 'Application'}] ${message}`);
+      logFn(message, {
+        context: contextValue,
+        ...(meta || {}),
+      });
       if (trace) {
         logFn(trace);
       }
       return;
     }
 
-    const { message: msg, error, context: msgContext, meta } = message;
-    let formattedMessage = `[${contextValue || 'Application'}] ${msg}`;
+    if (message instanceof Error) {
+      logFn(message.message, {
+        context: contextValue,
+        stack: trace || message.stack,
+        ...(meta || {}),
+      });
+      return;
+    }
+
+    const { message: msg, error, context: msgContext, meta: messageMeta } = message as LogMessage;
+    const combinedMeta = {
+      ...(meta || {}),
+      ...(messageMeta || {}),
+    };
+
+    let formattedMessage = msg;
+    const logMeta: Record<string, unknown> = {
+      context: contextValue,
+      ...combinedMeta,
+    };
 
     if (error) {
-      formattedMessage += `\nError: ${error.message}\nStack: ${error.stack}`;
+      logMeta.error = error.message;
+      logMeta.stack = error.stack;
     }
 
     if (msgContext) {
-      formattedMessage += `\nContext: ${JSON.stringify(msgContext)}`;
+      logMeta.messageContext = msgContext;
     }
 
-    logFn(formattedMessage, meta);
+    logFn(formattedMessage, logMeta);
     if (trace) {
       logFn(trace);
     }

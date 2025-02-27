@@ -21,7 +21,7 @@ export class CacheService implements OnModuleInit {
   > = new Map();
 
   constructor(
-    @Inject(CACHE_MANAGER) private readonly cache: Cache,
+    @Inject(CACHE_MANAGER) protected readonly cacheManager: Cache,
     private readonly configService: ConfigService,
   ) {
     const redisConfig = this.configService.get<RedisConfig>('redis');
@@ -172,7 +172,7 @@ export class CacheService implements OnModuleInit {
 
   async get<T>(key: string): Promise<T | null> {
     try {
-      return await this.cache.get<T>(key);
+      return await this.cacheManager.get<T>(key);
     } catch (error) {
       this.logger.error(
         `Error getting cache key ${key}: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -183,7 +183,7 @@ export class CacheService implements OnModuleInit {
 
   async set(key: string, value: unknown, ttl?: number): Promise<void> {
     try {
-      await this.cache.set(key, value, ttl);
+      await this.cacheManager.set(key, value, ttl);
     } catch (error) {
       this.logger.error(
         `Error setting cache key ${key}: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -193,7 +193,7 @@ export class CacheService implements OnModuleInit {
 
   async delete(key: string): Promise<void> {
     try {
-      await this.cache.del(key);
+      await this.cacheManager.del(key);
     } catch (error) {
       this.logger.error(
         `Error deleting cache key ${key}: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -238,5 +238,95 @@ export class CacheService implements OnModuleInit {
   async releaseLock(key: string): Promise<void> {
     const lockKey = `lock:${key}`;
     await this.delete(lockKey);
+  }
+
+  async del(key: string): Promise<void> {
+    try {
+      await this.cacheManager.del(key);
+    } catch (error) {
+      this.logger.error(
+        `Error deleting cache key ${key}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
+
+  async getOrSet<T>(
+    key: string,
+    factory: () => Promise<T>,
+    ttl?: number,
+  ): Promise<T> {
+    const cached = await this.get<T>(key);
+    if (cached !== null) {
+      return cached;
+    }
+
+    const value = await factory();
+    await this.set(key, value, ttl);
+    return value;
+  }
+
+  async delByPattern(pattern: string): Promise<number> {
+    if (!this.useRedis || !this.redisClient) {
+      return 0;
+    }
+
+    try {
+      const keys = await this.redisClient.keys(pattern);
+      if (keys.length === 0) {
+        return 0;
+      }
+
+      await this.redisClient.del(keys);
+      return keys.length;
+    } catch (error) {
+      this.logger.error(
+        `Error deleting keys by pattern ${pattern}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return 0;
+    }
+  }
+
+  async getStats(): Promise<Record<string, number> | null> {
+    if (!this.useRedis || !this.redisClient) {
+      return null;
+    }
+
+    try {
+      const info = await this.redisClient.info();
+      const stats = {} as Record<string, number>;
+      
+      info.split('\n').forEach(line => {
+        const [key, value] = line.split(':');
+        if (key && value) {
+          const numValue = parseFloat(value);
+          if (!isNaN(numValue)) {
+            stats[key] = numValue;
+          }
+        }
+      });
+
+      return stats;
+    } catch (error) {
+      this.logger.error(
+        `Error getting cache stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return null;
+    }
+  }
+
+  async isHealthy(): Promise<boolean> {
+    try {
+      const testKey = '_health_check_';
+      const testValue = Date.now().toString();
+      await this.set(testKey, testValue);
+      const value = await this.get<string>(testKey);
+      await this.del(testKey);
+      return value === testValue;
+    } catch (error) {
+      this.logger.error(
+        `Cache health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return false;
+    }
   }
 }

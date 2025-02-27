@@ -4,11 +4,11 @@ import {
   SubscribeMessage,
   OnGatewayConnection,
   OnGatewayDisconnect,
-  OnGatewayInit,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
+import { UnknownRecord } from '../../../types/common';
 
 interface AnalyticsSubscription {
   brandId: string;
@@ -24,14 +24,12 @@ interface AnalyticsUpdate {
 @WebSocketGateway({
   namespace: 'analytics',
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: process.env.CLIENT_URL || 'http://localhost:3000',
     credentials: true,
   },
 })
 @UseGuards(JwtAuthGuard)
-export class AnalyticsGateway
-  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
-{
+export class AnalyticsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 

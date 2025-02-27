@@ -118,8 +118,14 @@ describe('CacheService with Redis', () => {
   describe('Health check', () => {
     it('should return true when cache is healthy', async () => {
       // Mock the cache operations for health check
-      jest.spyOn(service, 'set').mockResolvedValue(undefined);
-      jest.spyOn(service, 'get').mockResolvedValue('OK' as any);
+      jest.spyOn(service, 'set').mockImplementation(async (key, value) => {
+        // Store the value to return it in get
+        (service as any).testValue = value;
+      });
+      jest.spyOn(service, 'get').mockImplementation(async () => {
+        // Return the stored value
+        return (service as any).testValue;
+      });
       jest.spyOn(service, 'del').mockResolvedValue(undefined);
       
       const result = await service.isHealthy();

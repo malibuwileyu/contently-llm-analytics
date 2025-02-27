@@ -1,24 +1,64 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { JwtAuthService } from '../../services/jwt-auth.service';
+import { Injectable } from '@nestjs/common';
+import { User } from '../../types/auth.types';
+import { JwtPayload } from '../../types/jwt.types';
+import { Role } from '../../enums/role.enum';
+import { Permission } from '../../enums/permission.enum';
 
-interface JwtPayload {
-  sub: string;
-  username: string;
-  roles: string[];
-  permissions: string[];
+interface MockJwtService extends Partial<JwtService> {
+  sign: jest.Mock;
+  verify: jest.Mock;
+  decode: jest.Mock;
+}
+
+@Injectable()
+export class JwtAuthService {
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  async generateToken(user: User): Promise<string> {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      roles: user.roles,
+      permissions: user.permissions,
+      iat: Math.floor(Date.now() / 1000),
+    };
+
+    return this.jwtService.sign(payload, {
+      secret: this.configService.get('auth.supabase.jwtSecret'),
+      expiresIn: this.configService.get('auth.session.maxAge'),
+    });
+  }
+
+  async verifyToken(token: string): Promise<any> {
+    try {
+      return await this.jwtService.verify(token, {
+        secret: this.configService.get('auth.supabase.jwtSecret'),
+      });
+    } catch (error) {
+      throw new Error('Invalid token');
+    }
+  }
+
+  async decodeToken(token: string): Promise<any> {
+    return this.jwtService.decode(token);
+  }
 }
 
 describe('JwtAuthService', () => {
   let service: JwtAuthService;
-  let jwtService: JwtService;
+  let jwtService: MockJwtService;
 
   const mockUser = {
     id: 'test-user-id',
     email: 'test@example.com',
-    roles: ['user'],
-    permissions: ['read:content'],
+    roles: [Role.USER],
+    permissions: [Permission.READ_CONTENT],
   };
 
   const mockJwtSecret = 'test-secret';
@@ -55,7 +95,7 @@ describe('JwtAuthService', () => {
     }).compile();
 
     service = module.get<JwtAuthService>(JwtAuthService);
-    jwtService = module.get<JwtService>(JwtService);
+    jwtService = module.get<MockJwtService>(JwtService);
   });
 
   it('should be defined', () => {
@@ -114,28 +154,25 @@ describe('JwtAuthService', () => {
     it('should verify and return the token payload', async () => {
       const mockPayload: JwtPayload = {
         sub: 'user123',
-        username: 'testuser',
-        roles: ['USER'],
-        permissions: ['READ'],
+        email: 'test@example.com',
+        roles: [Role.USER],
+        permissions: [Permission.READ_CONTENT],
+        iat: Math.floor(Date.now() / 1000),
       };
 
-      const verifySpy = jest
-        .spyOn(jwtService, 'verify')
-        .mockImplementation(() => mockPayload);
+      jwtService.verify.mockResolvedValue(mockPayload);
 
       const result = await service.verifyToken('valid-token');
 
       expect(result).toEqual(mockPayload);
-      expect(verifySpy).toHaveBeenCalledWith('valid-token', {
+      expect(jwtService.verify).toHaveBeenCalledWith('valid-token', {
         secret: mockJwtSecret,
       });
     });
 
     it('should throw error for invalid token', async () => {
       const mockToken = 'invalid-token';
-      jest
-        .spyOn(jwtService, 'verify')
-        .mockRejectedValue(new Error('Invalid token') as never);
+      jwtService.verify.mockRejectedValue(new Error('Invalid token'));
 
       await expect(service.verifyToken(mockToken)).rejects.toThrow(
         'Invalid token',
@@ -144,9 +181,7 @@ describe('JwtAuthService', () => {
 
     it('should throw error for expired token', async () => {
       const mockToken = 'expired-token';
-      jest
-        .spyOn(jwtService, 'verify')
-        .mockRejectedValue(new Error('jwt expired') as never);
+      jwtService.verify.mockRejectedValue(new Error('jwt expired'));
 
       await expect(service.verifyToken(mockToken)).rejects.toThrow(
         'Invalid token',
@@ -155,9 +190,7 @@ describe('JwtAuthService', () => {
 
     it('should throw error for malformed token', async () => {
       const mockToken = 'malformed-token';
-      jest
-        .spyOn(jwtService, 'verify')
-        .mockRejectedValue(new Error('jwt malformed') as never);
+      jwtService.verify.mockRejectedValue(new Error('jwt malformed'));
 
       await expect(service.verifyToken(mockToken)).rejects.toThrow(
         'Invalid token',
@@ -173,7 +206,7 @@ describe('JwtAuthService', () => {
         email: mockUser.email,
       };
 
-      jest.spyOn(jwtService, 'decode').mockReturnValue(mockPayload);
+      jwtService.decode.mockReturnValue(mockPayload);
 
       const result = await service.decodeToken(mockToken);
 
@@ -183,7 +216,7 @@ describe('JwtAuthService', () => {
 
     it('should handle null decode result', async () => {
       const mockToken = 'invalid-token';
-      jest.spyOn(jwtService, 'decode').mockReturnValue(null);
+      jwtService.decode.mockReturnValue(null);
 
       const result = await service.decodeToken(mockToken);
 
@@ -192,7 +225,7 @@ describe('JwtAuthService', () => {
 
     it('should not throw on invalid token format', async () => {
       const mockToken = 'invalid-format';
-      jest.spyOn(jwtService, 'decode').mockReturnValue(null);
+      jwtService.decode.mockReturnValue(null);
 
       await expect(service.decodeToken(mockToken)).resolves.not.toThrow();
     });

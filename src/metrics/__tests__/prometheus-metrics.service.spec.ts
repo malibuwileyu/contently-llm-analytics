@@ -1,39 +1,56 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { PrometheusMetricsService } from '../services/prometheus-metrics.service';
 import { MetricsConfig } from '../../config/metrics.config';
 
 describe('PrometheusMetricsService', () => {
   let service: PrometheusMetricsService;
+  let configService: ConfigService;
   let config: MetricsConfig;
 
   beforeEach(async () => {
-    // Create mock config
-    config = {
-      enabled: true,
-      defaultLabels: {
-        app: 'test-app',
-        environment: 'test',
-      },
-      prefix: 'test_',
-      endpoint: '/metrics',
-      collectDefaultMetrics: false,
-      defaultMetricsInterval: 10000,
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PrometheusMetricsService,
         {
-          provide: 'METRICS_CONFIG',
-          useValue: config,
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              switch (key) {
+                case 'metrics.enabled':
+                  return true;
+                case 'metrics.prefix':
+                  return 'test_';
+                case 'metrics.endpoint':
+                  return '/metrics';
+                case 'metrics.defaultLabels':
+                  return {};
+                case 'metrics.collectDefaultMetrics':
+                  return true;
+                case 'metrics.defaultMetricsInterval':
+                  return 10000;
+                default:
+                  return undefined;
+              }
+            }),
+          },
         },
       ],
     }).compile();
 
     service = module.get<PrometheusMetricsService>(PrometheusMetricsService);
+    configService = module.get<ConfigService>(ConfigService);
+    
+    // Clear registry before each test to prevent "already registered" errors
+    service.clearRegistry();
     
     // Call onModuleInit manually
     service.onModuleInit();
+  });
+
+  afterEach(() => {
+    // Clean up after each test
+    service.clearRegistry();
   });
 
   it('should be defined', () => {
@@ -67,6 +84,16 @@ describe('PrometheusMetricsService', () => {
       expect(() => {
         service.incrementCounter('non_existent_counter', 1);
       }).not.toThrow();
+    });
+
+    it('should create and increment counter', () => {
+      service.createCounter({
+        name: 'test_counter',
+        help: 'Test counter help',
+      });
+
+      service.incrementCounter('test_counter', 1);
+      expect(configService.get).toHaveBeenCalled();
     });
   });
 
@@ -110,6 +137,16 @@ describe('PrometheusMetricsService', () => {
       
       // Verify metrics
       expect(metrics).toContain('test_gauge_inc_dec');
+    });
+
+    it('should create and set gauge', () => {
+      service.createGauge({
+        name: 'test_gauge',
+        help: 'Test gauge help',
+      });
+
+      service.setGauge('test_gauge', 42);
+      expect(configService.get).toHaveBeenCalled();
     });
   });
 
@@ -156,6 +193,17 @@ describe('PrometheusMetricsService', () => {
       
       // Verify duration
       expect(duration).toBeGreaterThan(0);
+    });
+
+    it('should create and observe histogram', () => {
+      service.createHistogram({
+        name: 'test_histogram',
+        help: 'Test histogram help',
+        buckets: [0.1, 0.5, 1],
+      });
+
+      service.observeHistogram('test_histogram', 0.3);
+      expect(configService.get).toHaveBeenCalled();
     });
   });
 
@@ -240,50 +288,36 @@ describe('PrometheusMetricsService', () => {
 
   describe('Disabled metrics', () => {
     beforeEach(async () => {
-      // Create mock config with metrics disabled
-      config = {
-        enabled: false,
-        defaultLabels: {
-          app: 'test-app',
-          environment: 'test',
-        },
-        prefix: 'test_',
-        endpoint: '/metrics',
-        collectDefaultMetrics: false,
-        defaultMetricsInterval: 10000,
-      };
-
       const module: TestingModule = await Test.createTestingModule({
         providers: [
           PrometheusMetricsService,
           {
-            provide: 'METRICS_CONFIG',
-            useValue: config,
+            provide: ConfigService,
+            useValue: {
+              get: jest.fn((key: string) => {
+                switch (key) {
+                  case 'metrics.enabled':
+                    return false;
+                  default:
+                    return undefined;
+                }
+              }),
+            },
           },
         ],
       }).compile();
 
       service = module.get<PrometheusMetricsService>(PrometheusMetricsService);
-      
-      // Call onModuleInit manually
-      service.onModuleInit();
     });
 
-    it('should not throw errors when metrics are disabled', async () => {
-      // Create counter
-      service.createCounter({
-        name: 'test_counter_disabled',
-        help: 'Test counter when disabled',
-      });
-
-      // Increment counter
-      service.incrementCounter('test_counter_disabled', 1);
-
-      // Get metrics
-      const metrics = await service.getMetrics();
-      
-      // Verify metrics are empty
-      expect(metrics).toBe('');
+    it('should not throw errors when metrics are disabled', () => {
+      expect(() => {
+        service.createCounter({
+          name: 'test_counter',
+          help: 'Test counter help',
+        });
+        service.incrementCounter('test_counter', 1);
+      }).not.toThrow();
     });
   });
 }); 

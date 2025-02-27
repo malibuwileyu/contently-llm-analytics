@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus, INestApplication, Controller, Get } from '@nestjs/common';
-import * as request from 'supertest';
 import { ConfigModule } from '@nestjs/config';
 import { BaseError } from '../errors/base.error';
 import { ErrorCategory } from '../errors/error-category.enum';
@@ -9,6 +8,7 @@ import { LoggerService } from '../services/logger.service';
 import { SentryService } from '../services/sentry.service';
 import { APP_FILTER } from '@nestjs/core';
 import { GlobalExceptionFilter } from '../filters/global-exception.filter';
+import request from 'supertest';
 
 // Create a test controller that throws different types of errors
 @Controller('test-errors')

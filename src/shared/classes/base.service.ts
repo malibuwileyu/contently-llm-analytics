@@ -50,7 +50,9 @@ export abstract class BaseService<T extends BaseEntity> {
    * @throws {NotFoundException} When entity is not found
    */
   async update(id: string, data: DeepPartial<T>): Promise<T> {
-    await this.repository.update(id, data);
+    // Using type assertion to bypass TypeORM's complex type requirements
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await this.repository.update(id, data as any);
     return this.findById(id);
   }
 

@@ -1,14 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../types/supabase';
-import { AuthResult, AuthError, User } from '../auth/types/auth.types';
+import { AuthResult, AuthError, User, Session } from '../auth/types/auth.types';
 import { CacheService } from '../cache/cache.service';
 import { Logger } from '@nestjs/common';
 
+interface SupabaseSession {
+  access_token: string;
+  refresh_token: string;
+  expires_in?: number;
+  token_type?: string;
+}
+
 @Injectable()
 export class SupabaseService {
-  private readonly supabase;
+  private readonly supabase: SupabaseClient<Database>;
   private readonly USER_CACHE_TTL = 300; // 5 minutes
   private readonly logger = new Logger(SupabaseService.name);
 
@@ -48,8 +55,8 @@ export class SupabaseService {
     });
     return {
       data: {
-        user: result.data.user,
-        session: result.data.session,
+        user: result.data?.user || null,
+        session: result.data?.session ? this.mapSession(result.data.session) : null,
       },
       error: result.error as AuthError | null,
     };
@@ -62,8 +69,8 @@ export class SupabaseService {
     });
     return {
       data: {
-        user: result.data.user,
-        session: result.data.session,
+        user: result.data?.user || null,
+        session: result.data?.session ? this.mapSession(result.data.session) : null,
       },
       error: result.error as AuthError | null,
     };
@@ -83,17 +90,29 @@ export class SupabaseService {
       cacheKey,
       async () => {
         const {
-          data: { user },
+          data,
           error,
         } = await this.supabase.auth.getUser(token);
 
-        if (error || !user) {
+        if (error || !data?.user) {
           throw error || new Error('User not found');
         }
 
-        return user;
+        return data.user as User;
       },
       this.USER_CACHE_TTL,
     );
+  }
+
+  /**
+   * Maps Supabase Session to our custom Session type
+   */
+  private mapSession(supabaseSession: SupabaseSession): Session {
+    return {
+      access_token: supabaseSession.access_token,
+      refresh_token: supabaseSession.refresh_token,
+      expires_in: supabaseSession.expires_in || 3600, // Default to 1 hour if not provided
+      token_type: supabaseSession.token_type || 'bearer',
+    };
   }
 }

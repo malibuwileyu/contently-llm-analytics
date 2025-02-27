@@ -10,6 +10,10 @@ import {
 } from '../interfaces/metrics.interface';
 import { ConfigService } from '@nestjs/config';
 
+// Create a static registry to be shared across all instances
+// This helps prevent "already registered" errors in tests
+const globalRegistry = new Registry();
+
 /**
  * Prometheus metrics service implementation
  */
@@ -22,12 +26,21 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
   private readonly histograms: Map<string, Histogram<string>> = new Map();
   private readonly summaries: Map<string, Summary<string>> = new Map();
   private readonly config: MetricsConfig;
+  private initialized = false;
+  private static instanceCount = 0;
 
   constructor(private readonly configService: ConfigService) {
-    this.registry = new Registry();
+    // Use the global registry
+    this.registry = globalRegistry;
+    PrometheusMetricsService.instanceCount++;
+    
     this.config = {
+      enabled: this.configService.get('metrics.enabled', true),
       prefix: this.configService.get('metrics.prefix', 'app_'),
+      endpoint: this.configService.get('metrics.endpoint', '/metrics'),
       defaultLabels: this.configService.get('metrics.defaultLabels', {}),
+      collectDefaultMetrics: this.configService.get('metrics.collectDefaultMetrics', true),
+      defaultMetricsInterval: this.configService.get('metrics.defaultMetricsInterval', 10000),
     };
 
     // Set default labels
@@ -38,7 +51,7 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
    * Initialize the metrics service
    */
   onModuleInit(): void {
-    if (this.config.enabled) {
+    if (this.config.enabled && !this.initialized) {
       this.logger.log('Initializing Prometheus metrics service');
 
       if (this.config.collectDefaultMetrics) {
@@ -52,8 +65,28 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
 
       // Register application-specific metrics
       this.registerApplicationMetrics();
-    } else {
+      this.initialized = true;
+    } else if (!this.config.enabled) {
       this.logger.log('Prometheus metrics service is disabled');
+    }
+  }
+
+  /**
+   * Clear the registry and all metric collections
+   * Useful for testing to prevent "already registered" errors
+   */
+  clearRegistry(): void {
+    // Only clear if this is the last instance
+    PrometheusMetricsService.instanceCount--;
+    if (PrometheusMetricsService.instanceCount <= 0) {
+      PrometheusMetricsService.instanceCount = 0;
+      this.registry.clear();
+      this.counters.clear();
+      this.gauges.clear();
+      this.histograms.clear();
+      this.summaries.clear();
+      this.initialized = false;
+      this.logger.debug('Cleared metrics registry');
     }
   }
 
@@ -61,61 +94,65 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
    * Register application-specific metrics
    */
   private registerApplicationMetrics(): void {
-    // HTTP metrics
-    this.createCounter({
-      name: `${this.config.prefix}http_requests_total`,
-      help: 'Total number of HTTP requests',
-      labelNames: ['method', 'path', 'status'],
-    });
+    try {
+      // HTTP metrics
+      this.createCounter({
+        name: `${this.config.prefix}http_requests_total`,
+        help: 'Total number of HTTP requests',
+        labelNames: ['method', 'path', 'status'],
+      });
 
-    this.createHistogram({
-      name: `${this.config.prefix}http_request_duration_seconds`,
-      help: 'HTTP request duration in seconds',
-      labelNames: ['method', 'path', 'status'],
-      buckets: [0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10],
-    });
+      this.createHistogram({
+        name: `${this.config.prefix}http_request_duration_seconds`,
+        help: 'HTTP request duration in seconds',
+        labelNames: ['method', 'path', 'status'],
+        buckets: [0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10],
+      });
 
-    // Cache metrics
-    this.createCounter({
-      name: `${this.config.prefix}cache_hits_total`,
-      help: 'Total number of cache hits',
-      labelNames: ['cache'],
-    });
+      // Cache metrics
+      this.createCounter({
+        name: `${this.config.prefix}cache_hits_total`,
+        help: 'Total number of cache hits',
+        labelNames: ['cache'],
+      });
 
-    this.createCounter({
-      name: `${this.config.prefix}cache_misses_total`,
-      help: 'Total number of cache misses',
-      labelNames: ['cache'],
-    });
+      this.createCounter({
+        name: `${this.config.prefix}cache_misses_total`,
+        help: 'Total number of cache misses',
+        labelNames: ['cache'],
+      });
 
-    // Database metrics
-    this.createHistogram({
-      name: `${this.config.prefix}db_query_duration_seconds`,
-      help: 'Database query duration in seconds',
-      labelNames: ['query', 'table'],
-      buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1],
-    });
+      // Database metrics
+      this.createHistogram({
+        name: `${this.config.prefix}db_query_duration_seconds`,
+        help: 'Database query duration in seconds',
+        labelNames: ['query', 'table'],
+        buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1],
+      });
 
-    // API metrics
-    this.createHistogram({
-      name: `${this.config.prefix}api_request_duration_seconds`,
-      help: 'External API request duration in seconds',
-      labelNames: ['api', 'endpoint', 'status'],
-      buckets: [0.05, 0.1, 0.5, 1, 2, 5, 10],
-    });
+      // API metrics
+      this.createHistogram({
+        name: `${this.config.prefix}api_request_duration_seconds`,
+        help: 'External API request duration in seconds',
+        labelNames: ['api', 'endpoint', 'status'],
+        buckets: [0.05, 0.1, 0.5, 1, 2, 5, 10],
+      });
 
-    // Business metrics
-    this.createCounter({
-      name: `${this.config.prefix}content_recommendations_total`,
-      help: 'Total number of content recommendations generated',
-      labelNames: ['type', 'status'],
-    });
+      // Business metrics
+      this.createCounter({
+        name: `${this.config.prefix}content_recommendations_total`,
+        help: 'Total number of content recommendations generated',
+        labelNames: ['type', 'status'],
+      });
 
-    this.createGauge({
-      name: `${this.config.prefix}active_users`,
-      help: 'Number of active users',
-      labelNames: ['role'],
-    });
+      this.createGauge({
+        name: `${this.config.prefix}active_users`,
+        help: 'Number of active users',
+        labelNames: ['role'],
+      });
+    } catch (error) {
+      this.logger.error('Failed to register application metrics', error.stack);
+    }
   }
 
   /**
@@ -126,18 +163,41 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
     if (!this.config.enabled) return;
 
     try {
+      // Check if counter already exists
+      if (this.counters.has(options.name)) {
+        this.logger.debug(`Counter metric already exists: ${options.name}`);
+        return;
+      }
+
+      // Check if metric already exists in registry
+      const existingMetric = this.registry.getSingleMetric(options.name);
+      if (existingMetric) {
+        this.logger.debug(`Counter metric already registered: ${options.name}`);
+        this.counters.set(options.name, existingMetric as Counter<string>);
+        return;
+      }
+
       const counter = new Counter({
         name: options.name,
         help: options.help,
         labelNames: options.labelNames || [],
+        registers: [this.registry],
       });
 
-      this.registry.registerMetric(counter);
       this.counters.set(options.name, counter);
       this.logger.debug(`Created counter metric: ${options.name}`);
     } catch (error) {
-      if (error.message.includes('already registered')) {
+      if (error.message && error.message.includes('already registered')) {
         this.logger.debug(`Counter metric already registered: ${options.name}`);
+        // Try to get the existing metric from the registry
+        try {
+          const existingMetric = this.registry.getSingleMetric(options.name) as Counter<string>;
+          if (existingMetric) {
+            this.counters.set(options.name, existingMetric);
+          }
+        } catch (innerError) {
+          this.logger.debug(`Failed to get existing metric: ${options.name}`);
+        }
       } else {
         this.logger.error(
           `Failed to create counter metric: ${options.name}`,
@@ -184,18 +244,41 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
     if (!this.config.enabled) return;
 
     try {
+      // Check if gauge already exists
+      if (this.gauges.has(options.name)) {
+        this.logger.debug(`Gauge metric already exists: ${options.name}`);
+        return;
+      }
+
+      // Check if metric already exists in registry
+      const existingMetric = this.registry.getSingleMetric(options.name);
+      if (existingMetric) {
+        this.logger.debug(`Gauge metric already registered: ${options.name}`);
+        this.gauges.set(options.name, existingMetric as Gauge<string>);
+        return;
+      }
+
       const gauge = new Gauge({
         name: options.name,
         help: options.help,
         labelNames: options.labelNames || [],
+        registers: [this.registry],
       });
 
-      this.registry.registerMetric(gauge);
       this.gauges.set(options.name, gauge);
       this.logger.debug(`Created gauge metric: ${options.name}`);
     } catch (error) {
-      if (error.message.includes('already registered')) {
+      if (error.message && error.message.includes('already registered')) {
         this.logger.debug(`Gauge metric already registered: ${options.name}`);
+        // Try to get the existing metric from the registry
+        try {
+          const existingMetric = this.registry.getSingleMetric(options.name) as Gauge<string>;
+          if (existingMetric) {
+            this.gauges.set(options.name, existingMetric);
+          }
+        } catch (innerError) {
+          this.logger.debug(`Failed to get existing metric: ${options.name}`);
+        }
       } else {
         this.logger.error(
           `Failed to create gauge metric: ${options.name}`,
@@ -297,21 +380,42 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
     if (!this.config.enabled) return;
 
     try {
+      // Check if histogram already exists
+      if (this.histograms.has(options.name)) {
+        this.logger.debug(`Histogram metric already exists: ${options.name}`);
+        return;
+      }
+
+      // Check if metric already exists in registry
+      const existingMetric = this.registry.getSingleMetric(options.name);
+      if (existingMetric) {
+        this.logger.debug(`Histogram metric already registered: ${options.name}`);
+        this.histograms.set(options.name, existingMetric as Histogram<string>);
+        return;
+      }
+
       const histogram = new Histogram({
         name: options.name,
         help: options.help,
         labelNames: options.labelNames || [],
-        buckets: options.buckets,
+        buckets: options.buckets || [0.1, 0.5, 1, 2, 5],
+        registers: [this.registry],
       });
 
-      this.registry.registerMetric(histogram);
       this.histograms.set(options.name, histogram);
       this.logger.debug(`Created histogram metric: ${options.name}`);
     } catch (error) {
-      if (error.message.includes('already registered')) {
-        this.logger.debug(
-          `Histogram metric already registered: ${options.name}`,
-        );
+      if (error.message && error.message.includes('already registered')) {
+        this.logger.debug(`Histogram metric already registered: ${options.name}`);
+        // Try to get the existing metric from the registry
+        try {
+          const existingMetric = this.registry.getSingleMetric(options.name) as Histogram<string>;
+          if (existingMetric) {
+            this.histograms.set(options.name, existingMetric);
+          }
+        } catch (innerError) {
+          this.logger.debug(`Failed to get existing metric: ${options.name}`);
+        }
       } else {
         this.logger.error(
           `Failed to create histogram metric: ${options.name}`,
@@ -358,21 +462,42 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
     if (!this.config.enabled) return;
 
     try {
+      // Check if summary already exists
+      if (this.summaries.has(options.name)) {
+        this.logger.debug(`Summary metric already exists: ${options.name}`);
+        return;
+      }
+
+      // Check if metric already exists in registry
+      const existingMetric = this.registry.getSingleMetric(options.name);
+      if (existingMetric) {
+        this.logger.debug(`Summary metric already registered: ${options.name}`);
+        this.summaries.set(options.name, existingMetric as Summary<string>);
+        return;
+      }
+
       const summary = new Summary({
         name: options.name,
         help: options.help,
         labelNames: options.labelNames || [],
-        percentiles: options.percentiles,
-        maxAgeSeconds: options.maxAgeSeconds,
-        ageBuckets: options.ageBuckets,
+        percentiles: options.percentiles || [0.01, 0.05, 0.5, 0.9, 0.95, 0.99, 0.999],
+        registers: [this.registry],
       });
 
-      this.registry.registerMetric(summary);
       this.summaries.set(options.name, summary);
       this.logger.debug(`Created summary metric: ${options.name}`);
     } catch (error) {
-      if (error.message.includes('already registered')) {
+      if (error.message && error.message.includes('already registered')) {
         this.logger.debug(`Summary metric already registered: ${options.name}`);
+        // Try to get the existing metric from the registry
+        try {
+          const existingMetric = this.registry.getSingleMetric(options.name) as Summary<string>;
+          if (existingMetric) {
+            this.summaries.set(options.name, existingMetric);
+          }
+        } catch (innerError) {
+          this.logger.debug(`Failed to get existing metric: ${options.name}`);
+        }
       } else {
         this.logger.error(
           `Failed to create summary metric: ${options.name}`,

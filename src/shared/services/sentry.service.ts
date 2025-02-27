@@ -1,7 +1,8 @@
-import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../../auth/entities/user.entity';
+import { LoggerService } from './logger.service';
 
 interface SentryConfig {
   dsn: string;
@@ -38,11 +39,6 @@ type SentryLogContext = {
   context?: SentryContext;
 };
 
-type SentryLogMessage = {
-  message: string;
-  context: SentryLogContext;
-};
-
 interface SentryUserData {
   id: string;
   email?: string;
@@ -56,11 +52,14 @@ interface SentryUserData {
  */
 @Injectable()
 export class SentryService implements OnModuleInit {
-  private readonly logger = new Logger(SentryService.name);
+  private readonly logger: LoggerService;
   private isInitialized = false;
 
-  constructor(private readonly configService: ConfigService) {
-    this.logger.setContext('SentryService');
+  constructor(
+    private readonly configService: ConfigService,
+    logger: LoggerService
+  ) {
+    this.logger = logger.setContext('SentryService');
   }
 
   /**
@@ -94,9 +93,14 @@ export class SentryService implements OnModuleInit {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     };
-    const logContext: SentryLogContext = { error: errorResponse, context };
-    const logMessage: SentryLogMessage = { message, context: logContext };
-    this.logger.error(logMessage.message, logMessage.context);
+    
+    // Create metadata for the logger
+    const metadata = {
+      error: errorResponse,
+      context,
+    };
+    
+    this.logger.error(message, undefined, undefined, metadata);
   }
 
   /**
@@ -222,7 +226,16 @@ export class SentryService implements OnModuleInit {
     }
   }
 
+  /**
+   * Set context information for the current scope
+   * @param name Context name
+   * @param context Context data
+   */
   setContext(name: string, context: Record<string, unknown>): void {
+    if (!this.isInitialized) {
+      return;
+    }
+    
     try {
       Sentry.setContext(name, context);
     } catch (error: unknown) {

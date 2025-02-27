@@ -1,36 +1,49 @@
-import { Test } from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository, FindManyOptions } from 'typeorm';
 import { BaseService } from '../../classes/base.service';
-import { TestEntity } from '../test.entity';
-import { Repository } from 'typeorm';
+import { BaseEntity } from '../../entities/base.entity';
 import { NotFoundException } from '@nestjs/common';
 import {
   createTestDatabaseModule,
   withTestTransaction,
 } from '../../test-utils';
 
-// Create test entity factory inline since we're having import issues
-const testEntityFactory = {
-  build: (overrides: Partial<TestEntity> = {}): Partial<TestEntity> => ({
-    name: overrides.name ?? 'Test Entity',
-    description: overrides.description ?? 'Test Description',
-  }),
-  buildList: (
-    count: number,
-    overrides: Partial<TestEntity> = {},
-  ): Partial<TestEntity>[] =>
-    Array.from({ length: count }, () => testEntityFactory.build(overrides)),
-};
+// Create a test entity class
+class TestEntity extends BaseEntity {
+  name: string;
+  description: string;
+}
 
-class TestEntityService extends BaseService<TestEntity> {
+// Create a test service class
+class TestService extends BaseService<TestEntity> {
   constructor(repository: Repository<TestEntity>) {
     super(repository);
   }
 }
 
+// Create test entity factory
+const createTestEntity = (overrides: Partial<TestEntity> = {}): Partial<TestEntity> => ({
+  id: 'test-id',
+  name: 'Test Name',
+  description: 'Test Description',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  deletedAt: null,
+  ...overrides,
+});
+
+const createTestEntityList = (count: number, overrides: Partial<TestEntity> = {}): Partial<TestEntity>[] => {
+  return Array.from({ length: count }, (_, index) => ({
+    ...createTestEntity(),
+    id: `test-id-${index + 1}`,
+    ...overrides,
+  }));
+};
+
 describe('Base Integration Tests', () => {
   let module: TestingModule;
-  let service: TestEntityService;
+  let service: TestService;
   let repository: Repository<TestEntity>;
 
   beforeAll(async () => {
@@ -38,19 +51,16 @@ describe('Base Integration Tests', () => {
     module = await Test.createTestingModule({
       imports: [testDb],
       providers: [
+        TestService,
         {
-          provide: TestEntityService,
-          useFactory: (repo: Repository<TestEntity>) =>
-            new TestEntityService(repo),
-          inject: [getRepositoryToken(TestEntity)],
+          provide: getRepositoryToken(TestEntity),
+          useClass: Repository,
         },
       ],
     }).compile();
 
-    service = module.get<TestEntityService>(TestEntityService);
-    repository = module.get<Repository<TestEntity>>(
-      getRepositoryToken(TestEntity),
-    );
+    service = module.get<TestService>(TestService);
+    repository = module.get<Repository<TestEntity>>(getRepositoryToken(TestEntity));
   });
 
   afterAll(async () => {
@@ -67,7 +77,7 @@ describe('Base Integration Tests', () => {
     it('should create and retrieve an entity', async () => {
       await withTestTransaction(repository, async () => {
         // Arrange
-        const testData = testEntityFactory.build();
+        const testData = createTestEntity();
 
         // Act
         const entity = await service.create(testData);
@@ -89,8 +99,11 @@ describe('Base Integration Tests', () => {
     it('should update an entity', async () => {
       await withTestTransaction(repository, async () => {
         // Arrange
-        const entity = await service.create(testEntityFactory.build());
-        const updateData = testEntityFactory.build();
+        const entity = await service.create(createTestEntity());
+        const updateData = createTestEntity({
+          name: 'Updated Name',
+          description: 'Updated Description',
+        });
 
         // Act
         const updated = await service.update(entity.id, updateData);
@@ -105,7 +118,7 @@ describe('Base Integration Tests', () => {
     it('should delete an entity', async () => {
       await withTestTransaction(repository, async () => {
         // Arrange
-        const entity = await service.create(testEntityFactory.build());
+        const entity = await service.create(createTestEntity());
 
         // Act
         await service.delete(entity.id);
@@ -120,9 +133,9 @@ describe('Base Integration Tests', () => {
     it('should find all entities', async () => {
       await withTestTransaction(repository, async () => {
         // Arrange
-        const testEntities = testEntityFactory.buildList(3);
+        const testEntities = createTestEntityList(3);
         const createdEntities = await Promise.all(
-          testEntities.map(entity => service.create(entity)),
+          testEntities.map((entity) => service.create(entity)),
         );
 
         // Act
@@ -130,8 +143,8 @@ describe('Base Integration Tests', () => {
 
         // Assert
         expect(entities).toHaveLength(3);
-        expect(entities.map(e => e.name)).toEqual(
-          expect.arrayContaining(createdEntities.map(e => e.name)),
+        expect(entities.map((e) => e.name)).toEqual(
+          expect.arrayContaining(createdEntities.map((e) => e.name)),
         );
       });
     });
@@ -139,16 +152,17 @@ describe('Base Integration Tests', () => {
     it('should find entities by condition', async () => {
       await withTestTransaction(repository, async () => {
         // Arrange
-        const targetEntity = testEntityFactory.build({ name: 'Search Target' });
-        const otherEntity = testEntityFactory.build({ name: 'Other Entity' });
-
-        await Promise.all([
-          service.create(targetEntity),
-          service.create(otherEntity),
-        ]);
+        const targetEntity = await service.create(
+          createTestEntity({ name: 'Search Target' }),
+        );
+        await service.create(
+          createTestEntity({ name: 'Other Entity' }),
+        );
 
         // Act
-        const entities = await service.findAll({ name: 'Search Target' });
+        const entities = await service.findAll({
+          where: { name: 'Search Target' },
+        } as FindManyOptions<TestEntity>);
 
         // Assert
         expect(entities).toHaveLength(1);
