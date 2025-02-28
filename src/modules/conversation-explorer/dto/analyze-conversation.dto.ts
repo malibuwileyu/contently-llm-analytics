@@ -1,4 +1,11 @@
-import { IsString, IsUUID, IsArray, ValidateNested, IsObject, IsOptional, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsArray,
+  ValidateNested,
+  IsObject,
+  IsOptional,
+  IsEnum,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { Message } from '../interfaces/conversation-analysis.interface';
 import { Field, InputType } from '@nestjs/graphql';
@@ -12,13 +19,13 @@ export class MessageDto implements Message {
    */
   @IsEnum(['user', 'assistant'])
   role: 'user' | 'assistant';
-  
+
   /**
    * The content of the message
    */
   @IsString()
   content: string;
-  
+
   /**
    * When the message was sent
    */
@@ -35,13 +42,13 @@ export class ConversationMetadataDto {
    */
   @IsString()
   platform: string;
-  
+
   /**
    * The context of the conversation
    */
   @IsString()
   context: string;
-  
+
   /**
    * Tags associated with the conversation
    */
@@ -90,7 +97,7 @@ export class TrendOptionsDto {
   @IsOptional()
   @Type(() => Date)
   startDate?: Date;
-  
+
   /**
    * End date for the trend
    */

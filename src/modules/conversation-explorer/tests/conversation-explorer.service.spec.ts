@@ -3,9 +3,7 @@ import { ConversationExplorerService } from '../services/conversation-explorer.s
 import { AnalyzeConversationDto } from '../dto/analyze-conversation.dto';
 import { ConversationAnalyzerService } from '../services/conversation-analyzer.service';
 import { ConversationIndexerService } from '../services/conversation-indexer.service';
-import { Conversation } from '../entities/conversation.entity';
 import { v4 as uuidv4 } from 'uuid';
-import { ConversationRepository } from '../repositories/conversation.repository';
 import { ConversationInsightRepository } from '../repositories/conversation-insight.repository';
 import { MetricsService } from '../../../modules/metrics/metrics.service';
 
@@ -18,13 +16,22 @@ describe('ConversationExplorerService', () => {
   let metricsService: any;
 
   const mockBrandId = uuidv4();
-  
+
   const mockConversation = {
     id: uuidv4(),
     brandId: mockBrandId,
     messages: [
-      { role: 'user', content: 'Hello, I need help with my account', timestamp: new Date() },
-      { role: 'assistant', content: 'I\'d be happy to help with your account. What seems to be the issue?', timestamp: new Date() },
+      {
+        role: 'user',
+        content: 'Hello, I need help with my account',
+        timestamp: new Date(),
+      },
+      {
+        role: 'assistant',
+        content:
+          "I'd be happy to help with your account. What seems to be the issue?",
+        timestamp: new Date(),
+      },
     ],
     metadata: {
       platform: 'web',
@@ -38,7 +45,7 @@ describe('ConversationExplorerService', () => {
         category: 'account_inquiry',
         confidence: 0.85,
         details: { relevance: 0.9 },
-      }
+      },
     ],
     engagementScore: 0.75,
     analyzedAt: new Date(),
@@ -49,38 +56,36 @@ describe('ConversationExplorerService', () => {
 
   const mockAnalysis = {
     intents: [
-      { category: 'account_inquiry', confidence: 0.85, details: { relevance: 0.9 } }
+      {
+        category: 'account_inquiry',
+        confidence: 0.85,
+        details: { relevance: 0.9 },
+      },
     ],
     sentiment: {
       overall: 0.6,
       progression: 0.2,
-      aspects: [
-        { aspect: 'service', score: 0.7 }
-      ]
+      aspects: [{ aspect: 'service', score: 0.7 }],
     },
-    topics: [
-      { name: 'account', relevance: 0.9, mentions: 2 }
-    ],
+    topics: [{ name: 'account', relevance: 0.9, mentions: 2 }],
     actions: [
-      { type: 'request_info', confidence: 0.75, context: { target: 'account' } }
-    ]
+      {
+        type: 'request_info',
+        confidence: 0.75,
+        context: { target: 'account' },
+      },
+    ],
   };
 
-  const mockEngagementTrend = [
-    { date: new Date(), averageEngagement: 0.75 },
-  ];
+  const mockEngagementTrend = [{ date: new Date(), averageEngagement: 0.75 }];
 
   const mockTrends = {
     topIntents: [
       { category: 'account_inquiry', count: 10, averageConfidence: 0.85 },
     ],
-    topTopics: [
-      { name: 'account', count: 8, averageRelevance: 0.8 },
-    ],
-    commonActions: [
-      { type: 'request_info', count: 5, averageConfidence: 0.7 },
-    ],
-    engagementTrend: mockEngagementTrend
+    topTopics: [{ name: 'account', count: 8, averageRelevance: 0.8 }],
+    commonActions: [{ type: 'request_info', count: 5, averageConfidence: 0.7 }],
+    engagementTrend: mockEngagementTrend,
   };
 
   beforeEach(async () => {
@@ -94,7 +99,9 @@ describe('ConversationExplorerService', () => {
     };
 
     conversationInsightRepo = {
-      create: jest.fn().mockReturnValue({ save: jest.fn().mockResolvedValue({}) }),
+      create: jest
+        .fn()
+        .mockReturnValue({ save: jest.fn().mockResolvedValue({}) }),
       findByConversationId: jest.fn().mockResolvedValue([]),
       save: jest.fn().mockResolvedValue({}),
     };
@@ -138,7 +145,9 @@ describe('ConversationExplorerService', () => {
       ],
     }).compile();
 
-    service = module.get<ConversationExplorerService>(ConversationExplorerService);
+    service = module.get<ConversationExplorerService>(
+      ConversationExplorerService,
+    );
   });
 
   it('should be defined', () => {
@@ -152,8 +161,17 @@ describe('ConversationExplorerService', () => {
         conversationId: uuidv4(),
         brandId: mockBrandId,
         messages: [
-          { role: 'user', content: 'Hello, I need help with my account', timestamp: new Date() },
-          { role: 'assistant', content: 'I\'d be happy to help with your account. What seems to be the issue?', timestamp: new Date() },
+          {
+            role: 'user',
+            content: 'Hello, I need help with my account',
+            timestamp: new Date(),
+          },
+          {
+            role: 'assistant',
+            content:
+              "I'd be happy to help with your account. What seems to be the issue?",
+            timestamp: new Date(),
+          },
         ],
         metadata: {
           platform: 'web',
@@ -166,7 +184,9 @@ describe('ConversationExplorerService', () => {
       const result = await service.analyzeConversation(input);
 
       // Assert
-      expect(analyzerService.analyzeConversation).toHaveBeenCalledWith(input.messages);
+      expect(analyzerService.analyzeConversation).toHaveBeenCalledWith(
+        input.messages,
+      );
       expect(conversationRepo.save).toHaveBeenCalled();
       expect(indexerService.indexConversation).toHaveBeenCalled();
       expect(metricsService.recordAnalysisDuration).toHaveBeenCalled();
@@ -178,9 +198,7 @@ describe('ConversationExplorerService', () => {
       const input: AnalyzeConversationDto = {
         conversationId: uuidv4(),
         brandId: mockBrandId,
-        messages: [
-          { role: 'user', content: 'Hello', timestamp: new Date() },
-        ],
+        messages: [{ role: 'user', content: 'Hello', timestamp: new Date() }],
         metadata: {
           platform: 'web',
           context: 'support',
@@ -193,7 +211,9 @@ describe('ConversationExplorerService', () => {
 
       // Act & Assert
       await expect(service.analyzeConversation(input)).rejects.toThrow(error);
-      expect(metricsService.incrementErrorCount).toHaveBeenCalledWith('analysis_failure');
+      expect(metricsService.incrementErrorCount).toHaveBeenCalledWith(
+        'analysis_failure',
+      );
     });
   });
 
@@ -209,7 +229,10 @@ describe('ConversationExplorerService', () => {
       const result = await service.getConversationTrends(mockBrandId, options);
 
       // Assert
-      expect(conversationRepo.getTrends).toHaveBeenCalledWith(mockBrandId, options);
+      expect(conversationRepo.getTrends).toHaveBeenCalledWith(
+        mockBrandId,
+        options,
+      );
       expect(result).toHaveProperty('topIntents');
       expect(result).toHaveProperty('topTopics');
       expect(result).toHaveProperty('engagementTrend');
@@ -223,8 +246,11 @@ describe('ConversationExplorerService', () => {
       const result = await service.findByBrandId(mockBrandId);
 
       // Assert
-      expect(conversationRepo.findByBrandId).toHaveBeenCalledWith(mockBrandId, {});
+      expect(conversationRepo.findByBrandId).toHaveBeenCalledWith(
+        mockBrandId,
+        {},
+      );
       expect(result).toEqual([mockConversation]);
     });
   });
-}); 
+});

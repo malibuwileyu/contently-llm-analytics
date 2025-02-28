@@ -1,20 +1,27 @@
-import { 
-  Controller, 
-  Post, 
-  Get, 
-  Body, 
-  Param, 
-  Query, 
-  UseGuards, 
-  HttpStatus, 
-  HttpCode 
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  HttpStatus,
+  HttpCode,
 } from '@nestjs/common';
 import { ConversationExplorerService } from '../services/conversation-explorer.service';
-import { AnalyzeConversationDto, TrendOptionsDto } from '../dto/analyze-conversation.dto';
-import { ConversationDto, ConversationTrendsDto, ConversationInsightDto } from '../dto/conversation-insight.dto';
+import {
+  AnalyzeConversationDto,
+  TrendOptionsDto,
+} from '../dto/analyze-conversation.dto';
+import {
+  ConversationDto,
+  ConversationTrendsDto,
+} from '../dto/conversation-insight.dto';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { Conversation } from '../entities/conversation.entity';
 import { ConversationTrends } from '../interfaces/conversation-analysis.interface';
+import { ConversationInsight } from '../entities/conversation-insight.entity';
 
 /**
  * Controller for the Conversation Explorer
@@ -22,7 +29,7 @@ import { ConversationTrends } from '../interfaces/conversation-analysis.interfac
 @Controller('conversation-explorer')
 export class ConversationExplorerController {
   constructor(
-    private readonly conversationExplorerService: ConversationExplorerService
+    private readonly conversationExplorerService: ConversationExplorerService,
   ) {}
 
   /**
@@ -34,17 +41,16 @@ export class ConversationExplorerController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard)
   async analyzeConversation(
-    @Body() data: AnalyzeConversationDto
+    @Body() data: AnalyzeConversationDto,
   ): Promise<ConversationDto> {
-    const conversation = await this.conversationExplorerService.analyzeConversation(
-      data
-    );
+    const conversation =
+      await this.conversationExplorerService.analyzeConversation(data);
     return {
       id: conversation.id,
       brandId: conversation.brandId,
       messages: conversation.messages,
       metadata: conversation.metadata,
-      insights: conversation.insights.map((insight: any) => ({
+      insights: conversation.insights.map((insight: ConversationInsight) => ({
         id: insight.id,
         type: insight.type,
         category: insight.category,
@@ -53,6 +59,8 @@ export class ConversationExplorerController {
       })),
       engagementScore: conversation.engagementScore,
       analyzedAt: conversation.analyzedAt,
+      createdAt: conversation.createdAt,
+      updatedAt: conversation.updatedAt,
     };
   }
 
@@ -67,15 +75,16 @@ export class ConversationExplorerController {
   @UseGuards(JwtAuthGuard)
   async getConversationTrends(
     @Param('brandId') brandId: string,
-    @Query() options: TrendOptionsDto
+    @Query() options: TrendOptionsDto,
   ): Promise<ConversationTrendsDto> {
     // Set default dates if not provided
-    const startDate = options.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+    const startDate =
+      options.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
     const endDate = options.endDate || new Date();
 
     const trends = await this.conversationExplorerService.getConversationTrends(
       brandId,
-      { startDate, endDate }
+      { startDate, endDate },
     );
 
     return {
@@ -94,10 +103,9 @@ export class ConversationExplorerController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  async getConversation(
-    @Param('id') id: string
-  ): Promise<ConversationDto> {
-    const conversation = await this.conversationExplorerService.getConversationById(id);
+  async getConversation(@Param('id') id: string): Promise<ConversationDto> {
+    const conversation =
+      await this.conversationExplorerService.getConversationById(id);
     return this.transformToDto(conversation);
   }
 
@@ -117,12 +125,15 @@ export class ConversationExplorerController {
         type: insight.type,
         category: insight.category,
         confidence: insight.confidence,
-        details: typeof insight.details === 'string' 
-          ? JSON.parse(insight.details) 
-          : insight.details,
+        details:
+          typeof insight.details === 'string'
+            ? JSON.parse(insight.details)
+            : insight.details,
       })),
       engagementScore: conversation.engagementScore,
       analyzedAt: conversation.analyzedAt,
+      createdAt: conversation.createdAt,
+      updatedAt: conversation.updatedAt,
     };
   }
 
@@ -131,7 +142,9 @@ export class ConversationExplorerController {
    * @param trends Conversation trends
    * @returns Conversation trends DTO
    */
-  private transformTrendsToDto(trends: ConversationTrends): ConversationTrendsDto {
+  private transformTrendsToDto(
+    trends: ConversationTrends,
+  ): ConversationTrendsDto {
     return {
       topIntents: trends.topIntents,
       topTopics: trends.topTopics,
@@ -139,4 +152,4 @@ export class ConversationExplorerController {
       commonActions: trends.commonActions,
     };
   }
-} 
+}

@@ -9,37 +9,51 @@ describe('ConversationAnalyzerService', () => {
   let cacheService: any;
 
   const mockMessages: Message[] = [
-    { role: 'user', content: 'Hello, I need help with my account', timestamp: new Date() },
-    { role: 'assistant', content: 'I\'d be happy to help with your account. What seems to be the issue?', timestamp: new Date() },
+    {
+      role: 'user',
+      content: 'Hello, I need help with my account',
+      timestamp: new Date(),
+    },
+    {
+      role: 'assistant',
+      content:
+        "I'd be happy to help with your account. What seems to be the issue?",
+      timestamp: new Date(),
+    },
   ];
 
   const mockNlpAnalysis = {
     intents: [
-      { category: 'help', confidence: 0.85, context: { source: 'greeting' } }
+      { category: 'help', confidence: 0.85, context: { source: 'greeting' } },
     ],
     sentiment: {
       score: 0.6,
       progression: 0.2,
-      aspects: [
-        { aspect: 'service', score: 0.7 }
-      ]
+      aspects: [{ aspect: 'service', score: 0.7 }],
     },
-    topics: [
-      { name: 'account_issue', relevance: 0.9, mentions: 2 }
-    ],
+    topics: [{ name: 'account_issue', relevance: 0.9, mentions: 2 }],
     actions: [
-      { type: 'request_information', confidence: 0.75, context: { target: 'account' } }
-    ]
+      {
+        type: 'request_information',
+        confidence: 0.75,
+        context: { target: 'account' },
+      },
+    ],
   };
 
   beforeEach(async () => {
     // Create mock implementations
     nlpService = {
-      analyzeConversation: jest.fn().mockResolvedValue(mockNlpAnalysis)
+      analyzeConversation: jest.fn().mockResolvedValue(mockNlpAnalysis),
     };
 
     cacheService = {
-      getOrSet: jest.fn().mockImplementation((key: string, factory: () => Promise<any>, ttl?: number) => factory())
+      getOrSet: jest
+        .fn()
+        .mockImplementation(
+          (key: string, factory: () => Promise<any>, _ttl?: number) =>
+            factory(),
+        ),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -56,7 +70,9 @@ describe('ConversationAnalyzerService', () => {
       ],
     }).compile();
 
-    service = module.get<ConversationAnalyzerService>(ConversationAnalyzerService);
+    service = module.get<ConversationAnalyzerService>(
+      ConversationAnalyzerService,
+    );
   });
 
   it('should be defined', () => {
@@ -72,21 +88,25 @@ describe('ConversationAnalyzerService', () => {
       expect(nlpService.analyzeConversation).toHaveBeenCalledWith(mockMessages);
       expect(result).toEqual({
         intents: [
-          { category: 'help', confidence: 0.85, details: { source: 'greeting' } }
+          {
+            category: 'help',
+            confidence: 0.85,
+            details: { source: 'greeting' },
+          },
         ],
         sentiment: {
           overall: 0.6,
           progression: 0.2,
-          aspects: [
-            { aspect: 'service', score: 0.7 }
-          ]
+          aspects: [{ aspect: 'service', score: 0.7 }],
         },
-        topics: [
-          { name: 'account_issue', relevance: 0.9, mentions: 2 }
-        ],
+        topics: [{ name: 'account_issue', relevance: 0.9, mentions: 2 }],
         actions: [
-          { type: 'request_information', confidence: 0.75, context: { target: 'account' } }
-        ]
+          {
+            type: 'request_information',
+            confidence: 0.75,
+            context: { target: 'account' },
+          },
+        ],
       });
     });
 
@@ -96,7 +116,7 @@ describe('ConversationAnalyzerService', () => {
         intents: [{ category: 'cached_intent', confidence: 0.9 }],
         sentiment: { overall: 0.5, progression: 0.1, aspects: [] },
         topics: [{ name: 'cached_topic', relevance: 0.8, mentions: 1 }],
-        actions: [{ type: 'cached_action', confidence: 0.7, context: {} }]
+        actions: [{ type: 'cached_action', confidence: 0.7, context: {} }],
       };
 
       cacheService.getOrSet.mockResolvedValue(cachedResult);
@@ -106,16 +126,16 @@ describe('ConversationAnalyzerService', () => {
 
       // Assert
       expect(result).toEqual(cachedResult);
-      
+
       // Verify cache key generation
       const expectedCacheKey = `conversation:${createHash('md5')
         .update(JSON.stringify(mockMessages))
         .digest('hex')}`;
-      
+
       expect(cacheService.getOrSet).toHaveBeenCalledWith(
         expectedCacheKey,
         expect.any(Function),
-        900
+        900,
       );
     });
 
@@ -123,10 +143,14 @@ describe('ConversationAnalyzerService', () => {
       // Arrange
       const error = new Error('NLP service error');
       nlpService.analyzeConversation.mockRejectedValue(error);
-      cacheService.getOrSet.mockImplementation((key: string, factory: () => Promise<any>) => factory());
+      cacheService.getOrSet.mockImplementation(
+        (key: string, factory: () => Promise<any>) => factory(),
+      );
 
       // Act & Assert
-      await expect(service.analyzeConversation(mockMessages)).rejects.toThrow(error);
+      await expect(service.analyzeConversation(mockMessages)).rejects.toThrow(
+        error,
+      );
     });
   });
 
@@ -137,7 +161,7 @@ describe('ConversationAnalyzerService', () => {
 
       // Assert
       expect(result.intents).toEqual([
-        { category: 'help', confidence: 0.85, details: { source: 'greeting' } }
+        { category: 'help', confidence: 0.85, details: { source: 'greeting' } },
       ]);
     });
 
@@ -149,9 +173,7 @@ describe('ConversationAnalyzerService', () => {
       expect(result.sentiment).toEqual({
         overall: 0.6,
         progression: 0.2,
-        aspects: [
-          { aspect: 'service', score: 0.7 }
-        ]
+        aspects: [{ aspect: 'service', score: 0.7 }],
       });
     });
 
@@ -161,7 +183,7 @@ describe('ConversationAnalyzerService', () => {
 
       // Assert
       expect(result.topics).toEqual([
-        { name: 'account_issue', relevance: 0.9, mentions: 2 }
+        { name: 'account_issue', relevance: 0.9, mentions: 2 },
       ]);
     });
 
@@ -171,7 +193,11 @@ describe('ConversationAnalyzerService', () => {
 
       // Assert
       expect(result.actions).toEqual([
-        { type: 'request_information', confidence: 0.75, context: { target: 'account' } }
+        {
+          type: 'request_information',
+          confidence: 0.75,
+          context: { target: 'account' },
+        },
       ]);
     });
   });

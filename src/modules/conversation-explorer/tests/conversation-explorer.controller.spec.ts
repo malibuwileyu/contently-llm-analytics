@@ -1,13 +1,21 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { v4 as uuidv4 } from 'uuid';
-import { AnalyzeConversationDto, TrendOptionsDto } from '../dto/analyze-conversation.dto';
-import { ConversationDto, ConversationInsightDto, ConversationTrendsDto } from '../dto/conversation-insight.dto';
+import {
+  AnalyzeConversationDto,
+  TrendOptionsDto,
+} from '../dto/analyze-conversation.dto';
+import {
+  ConversationDto,
+  ConversationInsightDto,
+  ConversationTrendsDto,
+} from '../dto/conversation-insight.dto';
 
 // Create a mock controller that mimics the real controller but doesn't import it
 class MockConversationExplorerController {
   constructor(private readonly service: any) {}
 
-  async analyzeConversation(data: AnalyzeConversationDto): Promise<ConversationDto> {
+  async analyzeConversation(
+    data: AnalyzeConversationDto,
+  ): Promise<ConversationDto> {
     const conversation = await this.service.analyzeConversation(data);
     return {
       id: conversation.id,
@@ -19,14 +27,15 @@ class MockConversationExplorerController {
         type: insight.type,
         category: insight.category,
         confidence: insight.confidence,
-        details: typeof insight.details === 'string' 
-          ? JSON.parse(insight.details) 
-          : insight.details,
+        details:
+          typeof insight.details === 'string'
+            ? JSON.parse(insight.details)
+            : insight.details,
       })),
       engagementScore: conversation.engagementScore,
       analyzedAt: conversation.analyzedAt,
       createdAt: conversation.createdAt,
-      updatedAt: conversation.updatedAt
+      updatedAt: conversation.updatedAt,
     };
   }
 
@@ -42,29 +51,31 @@ class MockConversationExplorerController {
         type: insight.type,
         category: insight.category,
         confidence: insight.confidence,
-        details: typeof insight.details === 'string' 
-          ? JSON.parse(insight.details) 
-          : insight.details,
+        details:
+          typeof insight.details === 'string'
+            ? JSON.parse(insight.details)
+            : insight.details,
       })),
       engagementScore: conversation.engagementScore,
       analyzedAt: conversation.analyzedAt,
       createdAt: conversation.createdAt,
-      updatedAt: conversation.updatedAt
+      updatedAt: conversation.updatedAt,
     };
   }
 
   async getConversationTrends(
     brandId: string,
-    options: TrendOptionsDto
+    options: TrendOptionsDto,
   ): Promise<ConversationTrendsDto> {
     // Set default dates if not provided
-    const startDate = options.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+    const startDate =
+      options.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
     const endDate = options.endDate || new Date();
 
-    const trends = await this.service.getConversationTrends(
-      brandId,
-      { startDate, endDate }
-    );
+    const trends = await this.service.getConversationTrends(brandId, {
+      startDate,
+      endDate,
+    });
 
     return {
       topIntents: trends.topIntents || [],
@@ -88,15 +99,15 @@ describe('ConversationExplorerController', () => {
       type: 'intent',
       category: 'account_inquiry',
       confidence: 0.85,
-      details: { relevance: 0.9 }
+      details: { relevance: 0.9 },
     },
     {
       id: uuidv4(),
       type: 'sentiment',
       category: 'positive',
       confidence: 0.75,
-      details: { score: 0.75 }
-    }
+      details: { score: 0.75 },
+    },
   ];
 
   const mockConversationDto: ConversationDto = {
@@ -110,7 +121,8 @@ describe('ConversationExplorerController', () => {
       },
       {
         role: 'assistant',
-        content: 'I\'d be happy to help with your account. What do you need assistance with?',
+        content:
+          "I'd be happy to help with your account. What do you need assistance with?",
         timestamp: new Date(),
       },
     ],
@@ -123,14 +135,14 @@ describe('ConversationExplorerController', () => {
     engagementScore: 0.75,
     analyzedAt: new Date(),
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   };
 
   const mockTrends: ConversationTrendsDto = {
     topIntents: [],
     topTopics: [],
     engagementTrend: [],
-    commonActions: []
+    commonActions: [],
   };
 
   beforeEach(async () => {
@@ -145,8 +157,8 @@ describe('ConversationExplorerController', () => {
           engagementScore: 0.75,
           createdAt: new Date(),
           updatedAt: new Date(),
-          deletedAt: null
-        }))
+          deletedAt: null,
+        })),
       }),
       getConversationById: jest.fn().mockResolvedValue({
         ...mockConversationDto,
@@ -158,10 +170,10 @@ describe('ConversationExplorerController', () => {
           engagementScore: 0.75,
           createdAt: new Date(),
           updatedAt: new Date(),
-          deletedAt: null
-        }))
+          deletedAt: null,
+        })),
       }),
-      getConversationTrends: jest.fn().mockResolvedValue(mockTrends)
+      getConversationTrends: jest.fn().mockResolvedValue(mockTrends),
     };
 
     controller = new MockConversationExplorerController(mockService);
@@ -184,7 +196,8 @@ describe('ConversationExplorerController', () => {
           },
           {
             role: 'assistant',
-            content: 'I\'d be happy to help with your account. What do you need assistance with?',
+            content:
+              "I'd be happy to help with your account. What do you need assistance with?",
             timestamp: new Date(),
           },
         ],
@@ -195,9 +208,9 @@ describe('ConversationExplorerController', () => {
         },
         topics: ['account'],
         includeEntities: true,
-        includeSentiment: true
+        includeSentiment: true,
       };
-      
+
       const result = await controller.analyzeConversation(dto);
       expect(mockService.analyzeConversation).toHaveBeenCalledWith(dto);
       expect(result).toEqual(mockConversationDto);
@@ -221,9 +234,9 @@ describe('ConversationExplorerController', () => {
         },
         topics: ['account'],
         includeEntities: true,
-        includeSentiment: true
+        includeSentiment: true,
       };
-      
+
       const error = new Error('Analysis failed');
       mockService.analyzeConversation.mockRejectedValueOnce(error);
 
@@ -235,9 +248,9 @@ describe('ConversationExplorerController', () => {
   describe('getConversation', () => {
     it('should get a conversation by ID', async () => {
       const id = mockConversationId;
-      
+
       const result = await controller.getConversation(id);
-      
+
       expect(mockService.getConversationById).toHaveBeenCalledWith(id);
       expect(result).toEqual(mockConversationDto);
     });
@@ -250,7 +263,7 @@ describe('ConversationExplorerController', () => {
         startDate: new Date('2023-01-01'),
         endDate: new Date('2023-01-31'),
       };
-      
+
       const result = await controller.getConversationTrends(brandId, options);
 
       expect(mockService.getConversationTrends).toHaveBeenCalledWith(brandId, {
@@ -263,14 +276,17 @@ describe('ConversationExplorerController', () => {
     it('should use default dates if not provided', async () => {
       const brandId = mockBrandId;
       const options: TrendOptionsDto = {};
-      
+
       const result = await controller.getConversationTrends(brandId, options);
 
-      expect(mockService.getConversationTrends).toHaveBeenCalledWith(brandId, expect.objectContaining({
-        startDate: expect.any(Date),
-        endDate: expect.any(Date),
-      }));
+      expect(mockService.getConversationTrends).toHaveBeenCalledWith(
+        brandId,
+        expect.objectContaining({
+          startDate: expect.any(Date),
+          endDate: expect.any(Date),
+        }),
+      );
       expect(result).toEqual(mockTrends);
     });
   });
-}); 
+});

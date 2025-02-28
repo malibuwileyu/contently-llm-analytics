@@ -5,14 +5,14 @@ import { Injectable } from '@nestjs/common';
  */
 @Injectable()
 export class CacheService {
-  private cache: Map<string, any> = new Map();
+  private cache: Map<string, unknown> = new Map();
 
   /**
    * Get a value from the cache
    * @param key The cache key
    */
   async get<T>(key: string): Promise<T | null> {
-    return this.cache.get(key) || null;
+    return (this.cache.get(key) as T) || null;
   }
 
   /**
@@ -23,7 +23,7 @@ export class CacheService {
    */
   async set<T>(key: string, value: T, ttl?: number): Promise<void> {
     this.cache.set(key, value);
-    
+
     if (ttl) {
       setTimeout(() => {
         this.cache.delete(key);
@@ -45,4 +45,4 @@ export class CacheService {
   async clear(): Promise<void> {
     this.cache.clear();
   }
-} 
+}

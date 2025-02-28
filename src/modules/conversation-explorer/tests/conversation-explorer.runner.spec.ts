@@ -1,7 +1,4 @@
-import { Test } from '@nestjs/testing';
-import { DataSource } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { ConversationAnalysis } from '../types/conversation-analysis.type';
 import { MockConversationExplorerRunner } from './mocks/conversation-explorer.runner.mock';
 
 // Define the DTO types
@@ -27,19 +24,11 @@ interface TrendOptionsDto {
 
 describe('ConversationExplorerRunner', () => {
   let runner: MockConversationExplorerRunner;
-  let mockMetricsService: any;
-  let mockAnalysisResult: ConversationAnalysis;
 
   const mockBrandId = uuidv4();
 
   beforeEach(() => {
-    // Create mock metrics service
-    mockMetricsService = {
-      recordAnalysisDuration: jest.fn(),
-      incrementErrorCount: jest.fn(),
-    };
-
-    // Create runner instance
+    // Create runner
     runner = new MockConversationExplorerRunner();
   });
 
@@ -65,7 +54,8 @@ describe('ConversationExplorerRunner', () => {
           },
           {
             role: 'assistant',
-            content: 'I\'d be happy to help with your account. What do you need assistance with?',
+            content:
+              "I'd be happy to help with your account. What do you need assistance with?",
             timestamp: new Date(),
           },
         ],
@@ -110,7 +100,9 @@ describe('ConversationExplorerRunner', () => {
       runner.analyzeConversation = jest.fn().mockRejectedValue(error);
 
       // Act & Assert
-      await expect(runner.analyzeConversation(input)).rejects.toThrow('Analysis failed');
+      await expect(runner.analyzeConversation(input)).rejects.toThrow(
+        'Analysis failed',
+      );
       expect(runner.analyzeConversation).toHaveBeenCalledWith(input);
     });
   });
@@ -131,7 +123,10 @@ describe('ConversationExplorerRunner', () => {
       expect(result.topIntents).toHaveLength(2);
       expect(result.topTopics).toHaveLength(2);
       expect(result.engagementTrends).toHaveLength(2);
-      expect(runner.getConversationTrends).toHaveBeenCalledWith(mockBrandId, options);
+      expect(runner.getConversationTrends).toHaveBeenCalledWith(
+        mockBrandId,
+        options,
+      );
     });
 
     it('should handle errors when getting trends', async () => {
@@ -140,8 +135,10 @@ describe('ConversationExplorerRunner', () => {
       runner.getConversationTrends = jest.fn().mockRejectedValue(error);
 
       // Act & Assert
-      await expect(runner.getConversationTrends(mockBrandId)).rejects.toThrow('Trend analysis failed');
+      await expect(runner.getConversationTrends(mockBrandId)).rejects.toThrow(
+        'Trend analysis failed',
+      );
       expect(runner.getConversationTrends).toHaveBeenCalledWith(mockBrandId);
     });
   });
-}); 
+});

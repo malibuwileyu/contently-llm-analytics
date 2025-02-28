@@ -1,4 +1,11 @@
-import { IsUUID, IsString, IsNumber, IsObject, IsDate, IsArray } from 'class-validator';
+import {
+  IsUUID,
+  IsString,
+  IsNumber,
+  IsObject,
+  IsDate,
+  IsArray,
+} from 'class-validator';
 
 /**
  * DTO for a conversation insight
@@ -32,7 +39,7 @@ export class ConversationInsightDto {
    * Additional details about the insight
    */
   @IsObject()
-  details: Record<string, any>;
+  details: Record<string, unknown>;
 }
 
 /**
@@ -144,4 +151,4 @@ export class ConversationTrendsDto {
     count: number;
     averageConfidence: number;
   }>;
-} 
+}

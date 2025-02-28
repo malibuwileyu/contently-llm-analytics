@@ -1,8 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, Repository, FindManyOptions, EntityNotFoundError, Between } from 'typeorm';
+import {
+  DataSource,
+  Repository,
+  FindManyOptions,
+  EntityNotFoundError,
+  Between,
+} from 'typeorm';
 import { Conversation } from '../entities/conversation.entity';
-import { EngagementTrend, TopIntent, TopTopic } from '../interfaces/conversation-analysis.interface';
-import { ConversationInsight } from '../entities/conversation-insight.entity';
+import {
+  EngagementTrend,
+  TopIntent,
+  TopTopic,
+} from '../interfaces/conversation-analysis.interface';
 import { ConversationTrendsType } from '../graphql/types/conversation-trends.type';
 import { ConversationInsightType } from '../graphql/types/conversation-insight.type';
 import { ConversationInsightOptionsInput } from '../graphql/inputs/conversation-insight-options.input';
@@ -25,7 +34,7 @@ export class ConversationRepository extends Repository<Conversation> {
    */
   async findByBrandId(
     brandId: string,
-    options: FindManyOptions<Conversation>
+    options: FindManyOptions<Conversation>,
   ): Promise<Conversation[]> {
     return this.find({
       where: { brandId },
@@ -44,11 +53,11 @@ export class ConversationRepository extends Repository<Conversation> {
       .leftJoinAndSelect('conversation.insights', 'insights')
       .where('conversation.id = :id', { id })
       .getOne();
-      
+
     if (!conversation) {
       throw new EntityNotFoundError(Conversation, id);
     }
-    
+
     return conversation;
   }
 
@@ -62,7 +71,7 @@ export class ConversationRepository extends Repository<Conversation> {
   async getEngagementTrend(
     brandId: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
   ): Promise<EngagementTrend[]> {
     return this.createQueryBuilder('conversation')
       .select('DATE(conversation.analyzedAt)', 'date')
@@ -77,28 +86,32 @@ export class ConversationRepository extends Repository<Conversation> {
       .getRawMany();
   }
 
-  async getTrends(brandId: string, options?: TrendOptionsDto): Promise<Partial<ConversationTrendsType>> {
-    const startDate = options?.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  async getTrends(
+    brandId: string,
+    options?: TrendOptionsDto,
+  ): Promise<Partial<ConversationTrendsType>> {
+    const startDate =
+      options?.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const endDate = options?.endDate || new Date();
 
     const conversations = await this.find({
       where: {
         brandId,
-        analyzedAt: Between(startDate, endDate)
+        analyzedAt: Between(startDate, endDate),
       },
-      relations: ['insights']
+      relations: ['insights'],
     });
 
     return {
       topIntents: this.extractTopIntents(conversations),
       topTopics: this.extractTopTopics(conversations),
-      commonActions: this.extractCommonActions(conversations)
+      commonActions: this.extractCommonActions(conversations),
     };
   }
 
   async findInsightsByBrandId(
-    brandId: string, 
-    options?: ConversationInsightOptionsInput
+    brandId: string,
+    options?: ConversationInsightOptionsInput,
   ): Promise<ConversationInsightType[]> {
     const qb = this.createQueryBuilder('conversation')
       .leftJoinAndSelect('conversation.insights', 'insight')
@@ -109,17 +122,21 @@ export class ConversationRepository extends Repository<Conversation> {
     }
 
     if (options?.startDate) {
-      qb.andWhere('conversation.analyzedAt >= :startDate', { startDate: options.startDate });
+      qb.andWhere('conversation.analyzedAt >= :startDate', {
+        startDate: options.startDate,
+      });
     }
 
     if (options?.endDate) {
-      qb.andWhere('conversation.analyzedAt <= :endDate', { endDate: options.endDate });
+      qb.andWhere('conversation.analyzedAt <= :endDate', {
+        endDate: options.endDate,
+      });
     }
 
     const conversations = await qb.getMany();
-    
+
     // Convert ConversationInsight to ConversationInsightType
-    return conversations.flatMap(conv => 
+    return conversations.flatMap(conv =>
       conv.insights.map(insight => ({
         id: insight.id,
         type: insight.type,
@@ -127,14 +144,14 @@ export class ConversationRepository extends Repository<Conversation> {
         confidence: insight.confidence,
         details: JSON.stringify(insight.details),
         createdAt: insight.createdAt,
-        updatedAt: insight.updatedAt
-      }))
+        updatedAt: insight.updatedAt,
+      })),
     );
   }
 
   private extractTopIntents(conversations: Conversation[]): TopIntent[] {
-    const intents = conversations.flatMap(conv => 
-      conv.insights.filter(insight => insight.type === 'intent')
+    const intents = conversations.flatMap(conv =>
+      conv.insights.filter(insight => insight.type === 'intent'),
     );
 
     interface IntentAccumulator {
@@ -155,15 +172,15 @@ export class ConversationRepository extends Repository<Conversation> {
       .map(([category, data]) => ({
         category,
         count: data.count,
-        averageConfidence: data.totalConfidence / data.count
+        averageConfidence: data.totalConfidence / data.count,
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
   }
 
   private extractTopTopics(conversations: Conversation[]): TopTopic[] {
-    const topics = conversations.flatMap(conv => 
-      conv.insights.filter(insight => insight.type === 'topic')
+    const topics = conversations.flatMap(conv =>
+      conv.insights.filter(insight => insight.type === 'topic'),
     );
 
     interface TopicAccumulator {
@@ -184,15 +201,17 @@ export class ConversationRepository extends Repository<Conversation> {
       .map(([name, data]) => ({
         name,
         count: data.count,
-        averageRelevance: data.totalRelevance / data.count
+        averageRelevance: data.totalRelevance / data.count,
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
   }
 
-  private extractCommonActions(conversations: Conversation[]): { type: string; count: number; averageConfidence: number }[] {
-    const actions = conversations.flatMap(conv => 
-      conv.insights.filter(insight => insight.type === 'action')
+  private extractCommonActions(
+    conversations: Conversation[],
+  ): { type: string; count: number; averageConfidence: number }[] {
+    const actions = conversations.flatMap(conv =>
+      conv.insights.filter(insight => insight.type === 'action'),
     );
 
     interface ActionAccumulator {
@@ -213,7 +232,7 @@ export class ConversationRepository extends Repository<Conversation> {
       .map(([type, data]) => ({
         type,
         count: data.count,
-        averageConfidence: data.totalConfidence / data.count
+        averageConfidence: data.totalConfidence / data.count,
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);

@@ -1,7 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { DataSource, FindManyOptions, SelectQueryBuilder } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 
 // Define the interfaces needed for testing
 interface ConversationInsight {
@@ -27,20 +25,26 @@ interface InsightSearchOptions {
 
 // Define the repository class
 class ConversationInsightRepository extends Repository<ConversationInsight> {
-  findByConversationId(conversationId: string, options?: FindManyOptions<ConversationInsight>): Promise<ConversationInsight[]> {
+  findByConversationId(
+    conversationId: string,
+    options?: FindManyOptions<ConversationInsight>,
+  ): Promise<ConversationInsight[]> {
     return this.find({
       where: { conversationId },
       order: { createdAt: 'DESC' },
-      ...options
+      ...options,
     });
   }
 
-  findByType(type: 'intent' | 'sentiment' | 'topic' | 'action', options?: FindManyOptions<ConversationInsight>): Promise<ConversationInsight[]> {
+  findByType(
+    type: 'intent' | 'sentiment' | 'topic' | 'action',
+    options?: FindManyOptions<ConversationInsight>,
+  ): Promise<ConversationInsight[]> {
     return this.find({
       where: { type },
       order: { confidence: 'DESC' },
       take: 10,
-      ...options
+      ...options,
     });
   }
 
@@ -48,7 +52,11 @@ class ConversationInsightRepository extends Repository<ConversationInsight> {
     return Promise.resolve([]);
   }
 
-  getTopInsightsByType(_brandId: string, _type: string, _limit: number): Promise<unknown[]> {
+  getTopInsightsByType(
+    _brandId: string,
+    _type: string,
+    _limit: number,
+  ): Promise<unknown[]> {
     return Promise.resolve([]);
   }
 }
@@ -67,7 +75,6 @@ interface MockRepository {
 
 describe('ConversationInsightRepository', () => {
   let repository: MockRepository;
-  let dataSource: any;
   let queryBuilder: Record<string, jest.Mock>;
 
   const mockInsight: ConversationInsight = {
@@ -86,36 +93,19 @@ describe('ConversationInsightRepository', () => {
     // Create mock query builder
     queryBuilder = {
       leftJoinAndSelect: jest.fn().mockReturnThis(),
-      innerJoin: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       orderBy: jest.fn().mockReturnThis(),
-      addOrderBy: jest.fn().mockReturnThis(),
-      take: jest.fn().mockReturnThis(),
-      skip: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      addSelect: jest.fn().mockReturnThis(),
-      groupBy: jest.fn().mockReturnThis(),
-      getOne: jest.fn(),
-      getMany: jest.fn(),
-      getRawMany: jest.fn(),
-    };
-
-    // Create mock data source
-    dataSource = {
-      createEntityManager: jest.fn(),
-      createQueryRunner: jest.fn().mockReturnValue({
-        connect: jest.fn(),
-        startTransaction: jest.fn(),
-        commitTransaction: jest.fn(),
-        rollbackTransaction: jest.fn(),
-        release: jest.fn(),
-      }),
+      limit: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue([]),
+      getOne: jest.fn().mockResolvedValue(null),
     };
 
     // Create a spy on the original repository methods
-    const originalFindByConversationId = ConversationInsightRepository.prototype.findByConversationId;
-    const originalFindByType = ConversationInsightRepository.prototype.findByType;
+    const originalFindByConversationId =
+      ConversationInsightRepository.prototype.findByConversationId;
+    const originalFindByType =
+      ConversationInsightRepository.prototype.findByType;
 
     // Create the repository with spies
     repository = {
@@ -123,12 +113,20 @@ describe('ConversationInsightRepository', () => {
       findOne: jest.fn().mockResolvedValue(mockInsight),
       save: jest.fn().mockResolvedValue(mockInsight),
       createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
-      findByConversationId: jest.fn().mockImplementation(
-        (conversationId, options) => originalFindByConversationId.call({ find: repository.find }, conversationId, options)
-      ),
-      findByType: jest.fn().mockImplementation(
-        (type, options) => originalFindByType.call({ find: repository.find }, type, options)
-      ),
+      findByConversationId: jest
+        .fn()
+        .mockImplementation((conversationId, options) =>
+          originalFindByConversationId.call(
+            { find: repository.find },
+            conversationId,
+            options,
+          ),
+        ),
+      findByType: jest
+        .fn()
+        .mockImplementation((type, options) =>
+          originalFindByType.call({ find: repository.find }, type, options),
+        ),
       searchInsights: jest.fn().mockResolvedValue([
         {
           id: mockInsight.id,
@@ -138,11 +136,11 @@ describe('ConversationInsightRepository', () => {
           confidence: mockInsight.confidence,
           relevance: 0.9,
           snippet: 'User asked about account details',
-        }
+        },
       ]),
       getTopInsightsByType: jest.fn().mockResolvedValue([
         { category: 'account_inquiry', count: 10, averageConfidence: 0.85 },
-        { category: 'billing_question', count: 5, averageConfidence: 0.75 }
+        { category: 'billing_question', count: 5, averageConfidence: 0.75 },
       ]),
     };
   });
@@ -155,7 +153,7 @@ describe('ConversationInsightRepository', () => {
     it('should find insights by conversation ID', async () => {
       // Arrange
       const conversationId = uuidv4();
-      
+
       // Act
       const result = await repository.findByConversationId(conversationId);
 
@@ -172,7 +170,7 @@ describe('ConversationInsightRepository', () => {
     it('should find insights by type', async () => {
       // Arrange
       const type: 'intent' | 'sentiment' | 'topic' | 'action' = 'intent';
-      
+
       // Act
       const result = await repository.findByType(type);
 
@@ -197,7 +195,7 @@ describe('ConversationInsightRepository', () => {
         limit: 10,
         offset: 0,
       };
-      
+
       const mockSearchResults = [
         {
           id: mockInsight.id,
@@ -207,9 +205,9 @@ describe('ConversationInsightRepository', () => {
           confidence: mockInsight.confidence,
           relevance: 0.9,
           snippet: 'User asked about account details',
-        }
+        },
       ];
-      
+
       repository.searchInsights.mockResolvedValue(mockSearchResults);
 
       // Act
@@ -227,20 +225,28 @@ describe('ConversationInsightRepository', () => {
       const brandId = uuidv4();
       const type = 'intent';
       const limit = 5;
-      
+
       const mockTopInsights = [
         { category: 'account_inquiry', count: 10, averageConfidence: 0.85 },
-        { category: 'billing_question', count: 5, averageConfidence: 0.75 }
+        { category: 'billing_question', count: 5, averageConfidence: 0.75 },
       ];
-      
+
       repository.getTopInsightsByType.mockResolvedValue(mockTopInsights);
 
       // Act
-      const result = await repository.getTopInsightsByType(brandId, type, limit);
+      const result = await repository.getTopInsightsByType(
+        brandId,
+        type,
+        limit,
+      );
 
       // Assert
-      expect(repository.getTopInsightsByType).toHaveBeenCalledWith(brandId, type, limit);
+      expect(repository.getTopInsightsByType).toHaveBeenCalledWith(
+        brandId,
+        type,
+        limit,
+      );
       expect(result).toEqual(mockTopInsights);
     });
   });
-}); 
+});

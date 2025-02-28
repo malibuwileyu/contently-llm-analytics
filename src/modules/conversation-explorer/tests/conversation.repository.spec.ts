@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DataSource, FindManyOptions, SelectQueryBuilder } from 'typeorm';
+import { DataSource, FindManyOptions } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Repository } from 'typeorm';
 
@@ -27,15 +27,22 @@ interface Conversation {
 
 // Define the repository interface
 class ConversationRepository extends Repository<Conversation> {
-  findWithInsights(id: string): Promise<Conversation | null> {
+  findWithInsights(_id: string): Promise<Conversation | null> {
     return Promise.resolve(null);
   }
 
-  findByBrandId(brandId: string, options?: FindManyOptions<Conversation>): Promise<Conversation[]> {
+  findByBrandId(
+    _brandId: string,
+    _options?: FindManyOptions<Conversation>,
+  ): Promise<Conversation[]> {
     return Promise.resolve([]);
   }
 
-  getEngagementTrend(brandId: string, startDate: Date, endDate: Date): Promise<any[]> {
+  getEngagementTrend(
+    _brandId: string,
+    _startDate: Date,
+    _endDate: Date,
+  ): Promise<any[]> {
     return Promise.resolve([]);
   }
 }
@@ -56,7 +63,8 @@ describe('ConversationRepository', () => {
       },
       {
         role: 'assistant',
-        content: 'I\'d be happy to help with your account. What do you need assistance with?',
+        content:
+          "I'd be happy to help with your account. What do you need assistance with?",
         timestamp: new Date(),
       },
     ],
@@ -151,7 +159,7 @@ describe('ConversationRepository', () => {
           },
         ],
       };
-      
+
       repository.findWithInsights.mockResolvedValue(conversationWithInsights);
 
       // Act
@@ -185,7 +193,7 @@ describe('ConversationRepository', () => {
         take: 10,
         skip: 0,
       };
-      
+
       repository.findByBrandId.mockResolvedValue([mockConversation]);
 
       // Act
@@ -203,22 +211,30 @@ describe('ConversationRepository', () => {
       const brandId = uuidv4();
       const startDate = new Date('2023-01-01');
       const endDate = new Date('2023-01-31');
-      
+
       const mockTrends = [
         { date: new Date('2023-01-05'), averageEngagement: 0.65 },
         { date: new Date('2023-01-12'), averageEngagement: 0.72 },
         { date: new Date('2023-01-19'), averageEngagement: 0.68 },
         { date: new Date('2023-01-26'), averageEngagement: 0.75 },
       ];
-      
+
       repository.getEngagementTrend.mockResolvedValue(mockTrends);
 
       // Act
-      const result = await repository.getEngagementTrend(brandId, startDate, endDate);
+      const result = await repository.getEngagementTrend(
+        brandId,
+        startDate,
+        endDate,
+      );
 
       // Assert
-      expect(repository.getEngagementTrend).toHaveBeenCalledWith(brandId, startDate, endDate);
+      expect(repository.getEngagementTrend).toHaveBeenCalledWith(
+        brandId,
+        startDate,
+        endDate,
+      );
       expect(result).toEqual(mockTrends);
     });
   });
-}); 
+});
