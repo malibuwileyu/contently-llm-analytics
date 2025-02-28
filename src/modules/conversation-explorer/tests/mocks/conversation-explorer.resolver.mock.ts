@@ -1,84 +1,193 @@
-import { v4 as uuidv4 } from 'uuid';
+import { ConversationExplorerResolver } from '../../resolvers/conversation-explorer.resolver';
+import { ConversationAnalysis } from '../../types/conversation-analysis.type';
+import { ConversationTrends } from '../../types/conversation-trends.type';
 
-export class MockConversationExplorerResolver {
-  async analyzeConversation(input: any) {
+/**
+ * Mock implementation of the ConversationExplorerResolver for testing
+ */
+export class MockConversationExplorerResolver implements Partial<ConversationExplorerResolver> {
+  /**
+   * Mock method for analyzing a conversation
+   */
+  analyzeConversation = jest.fn().mockImplementation(async (_input: Record<string, unknown>): Promise<ConversationAnalysis> => {
     return {
-      id: uuidv4(),
-      brandId: input.brandId,
-      messages: input.messages,
-      metadata: input.metadata,
-      insights: [
+      intents: [
         {
-          id: uuidv4(),
-          type: 'intent',
           category: 'account_inquiry',
-          confidence: 0.85,
-          details: { relevance: 0.9 },
-        },
+          confidence: 0.85
+        }
       ],
-      engagementScore: 0.75,
-      analyzedAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      topics: [
+        {
+          name: 'account',
+          relevance: 0.9
+        }
+      ],
+      entities: [
+        {
+          type: 'account',
+          value: 'personal',
+          confidence: 0.75
+        }
+      ],
+      sentiment: 0.65,
+      engagementScore: 0.8
     };
-  }
+  });
 
-  async conversationTrends(brandId: string, options?: any) {
+  /**
+   * Mock method for retrieving a conversation by ID
+   */
+  conversation = jest.fn().mockImplementation(async (_id: string): Promise<Record<string, unknown>> => {
     return {
-      topIntents: [
-        { category: 'account_inquiry', count: 10, averageConfidence: 0.85 },
-      ],
-      topTopics: [
-        { name: 'account', count: 8, averageRelevance: 0.8 },
-      ],
-      engagementTrends: [
-        { date: new Date(), averageEngagement: 0.65 },
-      ],
-      commonActions: [
-        { type: 'request_info', count: 12, averageConfidence: 0.82 },
-      ],
-    };
-  }
-
-  async conversation(id: string) {
-    return {
-      id,
-      brandId: uuidv4(),
+      id: 'mock-conversation-id',
+      brandId: 'mock-brand-id',
       messages: [],
-      metadata: { platform: 'web', context: 'support', tags: [] },
-      insights: [],
-      engagementScore: 0.75,
-      analyzedAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-  }
-
-  async conversationsByBrand(brandId: string) {
-    return [
-      {
-        id: uuidv4(),
-        brandId,
-        messages: [],
-        metadata: { platform: 'web', context: 'support', tags: [] },
-        insights: [],
-        engagementScore: 0.75,
-        analyzedAt: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+      metadata: {
+        platform: 'web',
+        context: 'support'
       },
-    ];
-  }
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  });
 
-  async getInsights(conversation: any) {
+  /**
+   * Mock method for retrieving conversations by brand ID
+   */
+  conversationsByBrand = jest.fn().mockImplementation(async (_brandId: string, _options?: Record<string, unknown>): Promise<Array<Record<string, unknown>>> => {
     return [
       {
-        id: uuidv4(),
+        id: 'mock-conversation-id-1',
+        brandId: 'mock-brand-id',
+        messages: [],
+        metadata: {
+          platform: 'web',
+          context: 'support'
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'mock-conversation-id-2',
+        brandId: 'mock-brand-id',
+        messages: [],
+        metadata: {
+          platform: 'mobile',
+          context: 'sales'
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+  });
+
+  /**
+   * Mock method for retrieving conversation insights
+   */
+  getConversationInsights = jest.fn().mockImplementation(async (_conversationId: string): Promise<Array<Record<string, unknown>>> => {
+    return [
+      {
+        id: 'mock-insight-id-1',
+        conversationId: 'mock-conversation-id',
         type: 'intent',
         category: 'account_inquiry',
         confidence: 0.85,
-        details: { relevance: 0.9 },
+        createdAt: new Date()
       },
+      {
+        id: 'mock-insight-id-2',
+        conversationId: 'mock-conversation-id',
+        type: 'topic',
+        category: 'account',
+        confidence: 0.9,
+        createdAt: new Date()
+      }
     ];
-  }
+  });
+
+  /**
+   * Mock method for retrieving conversation trends
+   */
+  getConversationTrends = jest.fn().mockImplementation(async (_brandId: string, _options?: Record<string, unknown>): Promise<ConversationTrends> => {
+    return {
+      topIntents: [
+        {
+          category: 'account_inquiry',
+          count: 25,
+          averageConfidence: 0.85
+        },
+        {
+          category: 'technical_support',
+          count: 18,
+          averageConfidence: 0.78
+        }
+      ],
+      topTopics: [
+        {
+          name: 'account',
+          count: 30,
+          averageRelevance: 0.9
+        },
+        {
+          name: 'billing',
+          count: 22,
+          averageRelevance: 0.82
+        }
+      ],
+      engagementTrends: [
+        {
+          date: new Date('2023-01-15'),
+          averageEngagement: 0.75
+        },
+        {
+          date: new Date('2023-01-16'),
+          averageEngagement: 0.78
+        }
+      ],
+      commonActions: [
+        {
+          type: 'account_view',
+          count: 42,
+          averageConfidence: 0.88
+        },
+        {
+          type: 'password_reset',
+          count: 15,
+          averageConfidence: 0.92
+        }
+      ]
+    };
+  });
+
+  /**
+   * Mock method for retrieving conversation trends (alias)
+   */
+  conversationTrends = jest.fn().mockImplementation(async (_brandId: string, _options?: Record<string, unknown>): Promise<ConversationTrends> => {
+    return this.getConversationTrends(_brandId, _options);
+  });
+
+  /**
+   * Mock method for retrieving insights
+   */
+  getInsights = jest.fn().mockImplementation(async (_options?: Record<string, unknown>): Promise<Array<Record<string, unknown>>> => {
+    return [
+      {
+        id: 'mock-insight-id-1',
+        conversationId: 'mock-conversation-id',
+        type: 'intent',
+        category: 'account_inquiry',
+        confidence: 0.85,
+        createdAt: new Date()
+      },
+      {
+        id: 'mock-insight-id-2',
+        conversationId: 'mock-conversation-id',
+        type: 'topic',
+        category: 'account',
+        confidence: 0.9,
+        createdAt: new Date()
+      }
+    ];
+  });
 } 

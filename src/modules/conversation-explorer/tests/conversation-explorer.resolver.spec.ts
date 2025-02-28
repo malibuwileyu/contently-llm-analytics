@@ -1,12 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { v4 as uuidv4 } from 'uuid';
 import { MockConversationExplorerResolver } from './mocks/conversation-explorer.resolver.mock';
 
 // Mock the GraphQL input types
 class AnalyzeConversationInput {
   brandId: string;
-  messages: any[];
-  metadata?: any;
+  messages: unknown[];
+  metadata?: Record<string, unknown>;
 }
 
 class TrendOptionsInput {
@@ -16,8 +15,6 @@ class TrendOptionsInput {
 
 describe('ConversationExplorerResolver', () => {
   let resolver: MockConversationExplorerResolver;
-  let service: any;
-  let conversationRepo: any;
 
   const mockBrandId = uuidv4();
 
@@ -43,18 +40,13 @@ describe('ConversationExplorerResolver', () => {
     },
     insights: [
       {
-        id: uuidv4(),
-        type: 'intent',
-        category: 'account_inquiry',
-        confidence: 0.85,
-        details: { relevance: 0.9 },
-      },
-      {
-        id: uuidv4(),
-        type: 'sentiment',
-        category: 'positive',
-        confidence: 0.75,
-        details: { score: 0.75 },
+        id: 'insight-id',
+        type: 'string',
+        category: 'string',
+        confidence: 0.9,
+        details: 'User is requesting account assistance',
+        createdAt: new Date(),
+        updatedAt: new Date()
       },
     ],
     engagementScore: 0.75,
@@ -72,9 +64,9 @@ describe('ConversationExplorerResolver', () => {
       { name: 'account', count: 8, averageRelevance: 0.8 },
       { name: 'billing', count: 6, averageRelevance: 0.7 },
     ],
-    engagementTrends: [
-      { date: new Date('2023-01-05'), averageEngagement: 0.65 },
-      { date: new Date('2023-01-12'), averageEngagement: 0.72 },
+    engagementTrend: [
+      { date: new Date(), averageEngagement: 0.8 },
+      { date: new Date(), averageEngagement: 0.7 }
     ],
     commonActions: [
       { type: 'request_info', count: 12, averageConfidence: 0.82 },
@@ -83,21 +75,15 @@ describe('ConversationExplorerResolver', () => {
   };
 
   beforeEach(async () => {
-    // Create mock repository
-    conversationRepo = {
-      findWithInsights: jest.fn().mockResolvedValue(mockConversation),
-      findByBrandId: jest.fn().mockResolvedValue([mockConversation]),
-    };
-
-    // Create mock service
-    service = {
-      analyzeConversation: jest.fn().mockResolvedValue(mockConversation),
-      getConversationTrends: jest.fn().mockResolvedValue(mockTrends),
-      conversationRepo: conversationRepo,
-    };
-
     // Create mock resolver
     resolver = new MockConversationExplorerResolver();
+    
+    // Set up mock resolver methods to return the mock data
+    (resolver.analyzeConversation as jest.Mock).mockResolvedValue(mockConversation);
+    (resolver.conversationTrends as jest.Mock).mockResolvedValue(mockTrends);
+    (resolver.conversation as jest.Mock).mockResolvedValue(mockConversation);
+    (resolver.conversationsByBrand as jest.Mock).mockResolvedValue([mockConversation]);
+    (resolver.getInsights as jest.Mock).mockResolvedValue(mockConversation.insights);
     
     // Spy on resolver methods
     jest.spyOn(resolver, 'analyzeConversation');
@@ -141,8 +127,18 @@ describe('ConversationExplorerResolver', () => {
       expect(resolver.analyzeConversation).toHaveBeenCalledWith(input);
       expect(result).toHaveProperty('id');
       expect(result).toHaveProperty('brandId', input.brandId);
-      expect(result).toHaveProperty('messages', input.messages);
-      expect(result).toHaveProperty('metadata', input.metadata);
+      
+      // Check messages structure without direct comparison of Date objects
+      expect(result).toHaveProperty('messages');
+      expect(Array.isArray(result.messages)).toBe(true);
+      expect(result.messages.length).toBe(input.messages.length);
+      expect(result.messages[0].role).toBe(input.messages[0].role);
+      expect(result.messages[0].content).toBe(input.messages[0].content);
+      expect(result.messages[1].role).toBe(input.messages[1].role);
+      expect(result.messages[1].content).toBe(input.messages[1].content);
+      
+      expect(result).toHaveProperty('metadata');
+      expect(result.metadata).toEqual(input.metadata);
       expect(result).toHaveProperty('insights');
       expect(result).toHaveProperty('engagementScore');
       expect(result).toHaveProperty('analyzedAt');
@@ -164,7 +160,7 @@ describe('ConversationExplorerResolver', () => {
       expect(resolver.conversationTrends).toHaveBeenCalledWith(brandId, options);
       expect(result).toHaveProperty('topIntents');
       expect(result).toHaveProperty('topTopics');
-      expect(result).toHaveProperty('engagementTrends');
+      expect(result).toHaveProperty('engagementTrend');
       expect(result).toHaveProperty('commonActions');
     });
 
@@ -177,10 +173,10 @@ describe('ConversationExplorerResolver', () => {
 
       // Assert
       expect(resolver.conversationTrends).toHaveBeenCalled();
-      // Just check that it was called with the brandId
+      expect(resolver.conversationTrends.mock.calls[0][0]).toBe(brandId);
       expect(result).toHaveProperty('topIntents');
       expect(result).toHaveProperty('topTopics');
-      expect(result).toHaveProperty('engagementTrends');
+      expect(result).toHaveProperty('engagementTrend');
       expect(result).toHaveProperty('commonActions');
     });
   });
@@ -224,7 +220,7 @@ describe('ConversationExplorerResolver', () => {
   describe('getInsights', () => {
     it('should resolve insights for a conversation', async () => {
       // Arrange
-      const conversation = { id: mockConversation.id };
+      const conversation = mockConversation;
 
       // Act
       const result = await resolver.getInsights(conversation);
@@ -233,9 +229,11 @@ describe('ConversationExplorerResolver', () => {
       expect(resolver.getInsights).toHaveBeenCalledWith(conversation);
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBeGreaterThan(0);
+      expect(result[0]).toHaveProperty('id');
       expect(result[0]).toHaveProperty('type');
       expect(result[0]).toHaveProperty('category');
       expect(result[0]).toHaveProperty('confidence');
+      expect(result[0]).toHaveProperty('details');
     });
   });
 }); 

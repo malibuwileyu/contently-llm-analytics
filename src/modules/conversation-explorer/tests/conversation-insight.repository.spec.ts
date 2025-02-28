@@ -10,10 +10,10 @@ interface ConversationInsight {
   type: 'intent' | 'sentiment' | 'topic' | 'action';
   category: string;
   confidence: number;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
-  conversation: any | null;
+  conversation: unknown | null;
 }
 
 interface InsightSearchOptions {
@@ -44,19 +44,31 @@ class ConversationInsightRepository extends Repository<ConversationInsight> {
     });
   }
 
-  searchInsights(options: InsightSearchOptions): Promise<any[]> {
+  searchInsights(_options: InsightSearchOptions): Promise<unknown[]> {
     return Promise.resolve([]);
   }
 
-  getTopInsightsByType(brandId: string, type: string, limit: number): Promise<any[]> {
+  getTopInsightsByType(_brandId: string, _type: string, _limit: number): Promise<unknown[]> {
     return Promise.resolve([]);
   }
 }
 
+// Define a type for our mock repository
+interface MockRepository {
+  find: jest.Mock;
+  findOne: jest.Mock;
+  save: jest.Mock;
+  createQueryBuilder: jest.Mock;
+  findByConversationId: jest.Mock;
+  findByType: jest.Mock;
+  searchInsights: jest.Mock;
+  getTopInsightsByType: jest.Mock;
+}
+
 describe('ConversationInsightRepository', () => {
-  let repository: any; // Changed to any to allow mocking
+  let repository: MockRepository;
   let dataSource: any;
-  let queryBuilder: any;
+  let queryBuilder: Record<string, jest.Mock>;
 
   const mockInsight: ConversationInsight = {
     id: uuidv4(),
@@ -159,7 +171,7 @@ describe('ConversationInsightRepository', () => {
   describe('findByType', () => {
     it('should find insights by type', async () => {
       // Arrange
-      const type = 'intent' as 'intent' | 'sentiment' | 'topic' | 'action';
+      const type: 'intent' | 'sentiment' | 'topic' | 'action' = 'intent';
       
       // Act
       const result = await repository.findByType(type);
