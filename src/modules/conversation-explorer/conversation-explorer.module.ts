@@ -10,19 +10,16 @@ import { QueryTrendAnalysisService } from './services/query-trend-analysis.servi
 import { TopicClusteringService } from './services/topic-clustering.service';
 import { VolumeEstimationService } from './services/volume-estimation.service';
 import { TopicGapAnalyzerService } from './services/topic-gap-analyzer.service';
-import { ContentSuggestionService } from './services/content-suggestion.service';
 import { ConversationExplorerController } from './controllers/conversation-explorer.controller';
 import { QueryTrendController } from './controllers/query-trend.controller';
 import { TopicClusteringController } from './controllers/topic-clustering.controller';
 import { VolumeEstimationController } from './controllers/volume-estimation.controller';
 import { TopicGapAnalyzerController } from './controllers/topic-gap-analyzer.controller';
-import { ContentSuggestionController } from './controllers/content-suggestion.controller';
 import { ConversationExplorerResolver } from './resolvers/conversation-explorer.resolver';
 import { QueryTrendResolver } from './resolvers/query-trend.resolver';
 import { TopicClusteringResolver } from './resolvers/topic-clustering.resolver';
 import { VolumeEstimationResolver } from './resolvers/volume-estimation.resolver';
 import { TopicGapAnalyzerResolver } from './resolvers/topic-gap-analyzer.resolver';
-import { ContentSuggestionResolver } from './resolvers/content-suggestion.resolver';
 import { CacheModule } from '@nestjs/cache-manager';
 import { SearchModule } from '../search/search.module';
 import { MetricsModule } from '../metrics/metrics.module';
@@ -56,7 +53,6 @@ interface CacheService {
     TopicClusteringController,
     VolumeEstimationController,
     TopicGapAnalyzerController,
-    ContentSuggestionController,
   ],
   providers: [
     ConversationRepository,
@@ -67,13 +63,11 @@ interface CacheService {
     TopicClusteringService,
     VolumeEstimationService,
     TopicGapAnalyzerService,
-    ContentSuggestionService,
     ConversationExplorerResolver,
     QueryTrendResolver,
     TopicClusteringResolver,
     VolumeEstimationResolver,
     TopicGapAnalyzerResolver,
-    ContentSuggestionResolver,
     {
       provide: 'CacheService',
       useFactory: (cacheManager: Cache): CacheService => ({
@@ -96,7 +90,6 @@ interface CacheService {
     TopicClusteringService,
     VolumeEstimationService,
     TopicGapAnalyzerService,
-    ContentSuggestionService,
   ],
 })
 export class ConversationExplorerModule {} 

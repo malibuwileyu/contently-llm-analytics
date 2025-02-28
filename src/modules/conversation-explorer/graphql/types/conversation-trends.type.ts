@@ -1,23 +1,76 @@
 import { ObjectType, Field } from '@nestjs/graphql';
-import { TopIntentType } from './top-intent.type';
-import { TopTopicType } from './top-topic.type';
-import { EngagementTrendType } from './engagement-trend.type';
-import { CommonActionType } from './common-action.type';
 
 /**
- * GraphQL type for conversation trends
+ * Type for top intent
  */
-@ObjectType('ConversationTrends')
+@ObjectType()
+class TopIntent {
+  @Field()
+  category: string;
+
+  @Field()
+  count: number;
+
+  @Field()
+  averageConfidence: number;
+}
+
+/**
+ * Type for top topic
+ */
+@ObjectType()
+class TopTopic {
+  @Field()
+  name: string;
+
+  @Field()
+  count: number;
+
+  @Field()
+  averageRelevance: number;
+}
+
+/**
+ * Type for common action
+ */
+@ObjectType()
+class CommonAction {
+  @Field()
+  type: string;
+
+  @Field()
+  count: number;
+
+  @Field()
+  averageConfidence: number;
+}
+
+/**
+ * Type for engagement trend
+ */
+@ObjectType()
+class EngagementTrendPoint {
+  @Field()
+  date: Date;
+
+  @Field()
+  averageEngagement: number;
+}
+
+/**
+ * GraphQL object type for conversation trends
+ */
+@ObjectType()
 export class ConversationTrendsType {
-  @Field(() => [TopIntentType])
-  topIntents: TopIntentType[];
+  @Field(() => [TopIntent])
+  topIntents: TopIntent[];
 
-  @Field(() => [TopTopicType])
-  topTopics: TopTopicType[];
+  @Field(() => [TopTopic])
+  topTopics: TopTopic[];
 
-  @Field(() => [EngagementTrendType])
-  engagementTrends: EngagementTrendType[];
+  @Field(() => [CommonAction])
+  commonActions: CommonAction[];
 
-  @Field(() => [CommonActionType])
-  commonActions: CommonActionType[];
+  @Field(() => [EngagementTrendPoint])
+  engagementTrend: EngagementTrendPoint[];
 } 

@@ -1,15 +1,12 @@
-import { ObjectType, Field, ID, Float } from '@nestjs/graphql';
+import { ObjectType, Field, ID } from '@nestjs/graphql';
 
 /**
- * GraphQL type for a conversation insight
+ * GraphQL object type for a conversation insight
  */
-@ObjectType('ConversationInsight')
+@ObjectType()
 export class ConversationInsightType {
   @Field(() => ID)
   id: string;
-
-  @Field(() => ID)
-  conversationId: string;
 
   @Field()
   type: string;
@@ -17,11 +14,11 @@ export class ConversationInsightType {
   @Field()
   category: string;
 
-  @Field(() => Float)
+  @Field()
   confidence: number;
 
-  @Field(() => Object, { nullable: true })
-  details?: Record<string, any>;
+  @Field()
+  details: string;
 
   @Field()
   createdAt: Date;

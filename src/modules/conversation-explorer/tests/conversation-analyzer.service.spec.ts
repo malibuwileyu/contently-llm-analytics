@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConversationAnalyzerService, Message } from '../services/conversation-analyzer.service';
+import { ConversationAnalyzerService } from '../services/conversation-analyzer.service';
+import { Message } from '../interfaces/conversation-analysis.interface';
 import { createHash } from 'crypto';
 
 describe('ConversationAnalyzerService', () => {
@@ -38,7 +39,7 @@ describe('ConversationAnalyzerService', () => {
     };
 
     cacheService = {
-      getOrSet: jest.fn().mockImplementation((key: string, factory: () => Promise<any>) => factory())
+      getOrSet: jest.fn().mockImplementation((key: string, factory: () => Promise<any>, ttl?: number) => factory())
     };
 
     const module: TestingModule = await Test.createTestingModule({

@@ -1,33 +1,25 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
-  DeleteDateColumn, 
-  OneToMany 
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { ConversationInsight } from './conversation-insight.entity';
 
 /**
- * Entity representing a conversation
+ * Entity representing a conversation between a user and an AI assistant
  */
 @Entity('conversations')
 export class Conversation {
   /**
-   * Unique identifier for the conversation
+   * The ID of the conversation
    */
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   /**
-   * ID of the brand associated with this conversation
+   * The ID of the brand associated with this conversation
    */
   @Column('uuid')
   brandId: string;
 
   /**
-   * Messages in the conversation
+   * The messages in the conversation
    */
   @Column('jsonb')
   messages: Array<{
@@ -47,7 +39,7 @@ export class Conversation {
   };
 
   /**
-   * Insights extracted from the conversation
+   * Insights derived from this conversation
    */
   @OneToMany(() => ConversationInsight, insight => insight.conversation)
   insights: ConversationInsight[];
@@ -61,7 +53,7 @@ export class Conversation {
   /**
    * When the conversation was analyzed
    */
-  @Column('timestamp')
+  @Column('timestamp with time zone')
   analyzedAt: Date;
 
   /**
@@ -75,10 +67,4 @@ export class Conversation {
    */
   @UpdateDateColumn()
   updatedAt: Date;
-
-  /**
-   * When the conversation was deleted (for soft delete)
-   */
-  @DeleteDateColumn()
-  deletedAt: Date;
 } 

@@ -18,4 +18,10 @@ export class TrendOptionsInput {
   @IsOptional()
   @Type(() => Date)
   endDate?: Date;
+
+  @Field(() => [String], { nullable: true })
+  topics?: string[];
+
+  @Field(() => [String], { nullable: true })
+  intents?: string[];
 } 

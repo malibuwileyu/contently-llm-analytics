@@ -1,46 +1,36 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { 
+  Entity, 
+  PrimaryGeneratedColumn, 
+  Column, 
+  CreateDateColumn, 
+  UpdateDateColumn, 
+  DeleteDateColumn, 
+  ManyToOne, 
+  JoinColumn 
+} from 'typeorm';
 import { Conversation } from './conversation.entity';
 
 /**
- * Entity representing an insight extracted from a conversation
+ * Types of insights that can be extracted from a conversation
  */
-@Entity('conversation_insights')
+export type InsightType = 'intent' | 'sentiment' | 'topic' | 'action';
+
+/**
+ * Entity representing an insight derived from a conversation
+ */
+@Entity('conversation_insight')
 export class ConversationInsight {
   /**
-   * Unique identifier for the insight
+   * The ID of the insight
    */
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   /**
-   * ID of the conversation this insight belongs to
+   * The ID of the conversation this insight belongs to
    */
-  @Column('uuid')
+  @Column({ name: 'conversation_id', type: 'uuid' })
   conversationId: string;
-
-  /**
-   * Type of insight (intent, sentiment, topic, action)
-   */
-  @Column('varchar')
-  type: string;
-
-  /**
-   * Category of the insight
-   */
-  @Column('varchar')
-  category: string;
-
-  /**
-   * Confidence score for the insight (0-1)
-   */
-  @Column('float')
-  confidence: number;
-
-  /**
-   * Additional details about the insight
-   */
-  @Column('jsonb')
-  details: Record<string, any>;
 
   /**
    * The conversation this insight belongs to
@@ -50,14 +40,44 @@ export class ConversationInsight {
   conversation: Conversation;
 
   /**
+   * The type of insight
+   */
+  @Column({ type: 'enum', enum: ['intent', 'sentiment', 'topic', 'action'] })
+  type: InsightType;
+
+  /**
+   * The category of the insight
+   */
+  @Column()
+  category: string;
+
+  /**
+   * The confidence score for this insight (0-1)
+   */
+  @Column({ type: 'float' })
+  confidence: number;
+
+  /**
+   * Additional details about the insight
+   */
+  @Column({ type: 'jsonb' })
+  details: Record<string, unknown>;
+
+  /**
    * When the insight was created
    */
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
 
   /**
    * When the insight was last updated
    */
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
+
+  /**
+   * When the insight was deleted (for soft delete)
+   */
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp with time zone', nullable: true })
+  deletedAt: Date;
 } 

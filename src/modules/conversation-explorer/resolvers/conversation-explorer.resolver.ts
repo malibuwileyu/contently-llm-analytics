@@ -1,7 +1,7 @@
 import { Resolver, Query, Mutation, Args, ResolveField, Parent } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { ConversationExplorerService } from '../services/conversation-explorer.service';
-import { GqlAuthGuard } from '../../../auth/gql-auth.guard';
+import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { Conversation } from '../entities/conversation.entity';
 import { AnalyzeConversationInput } from '../graphql/inputs/analyze-conversation.input';
 import { TrendOptionsInput } from '../graphql/inputs/trend-options.input';
@@ -9,8 +9,7 @@ import { ConversationTrendsType } from '../graphql/types/conversation-trends.typ
 import { ConversationType } from '../graphql/types/conversation.type';
 import { ConversationInsightType } from '../graphql/types/conversation-insight.type';
 import { ConversationInsightOptionsInput } from '../graphql/inputs/conversation-insight-options.input';
-import { Message } from '../types/message.type';
-import { ConversationMetadata } from '../types/conversation-metadata.type';
+import { AnalyzeConversationDto } from '../dto/analyze-conversation.dto';
 
 /**
  * GraphQL resolver for the Conversation Explorer
@@ -27,11 +26,13 @@ export class ConversationExplorerResolver {
    * @returns Analyzed conversation with insights
    */
   @Mutation(() => ConversationType)
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async analyzeConversation(
     @Args('input') input: AnalyzeConversationInput
   ): Promise<Conversation> {
-    return this.conversationExplorerService.analyzeConversation({
+    // Create a DTO that matches what the service expects
+    const dto: AnalyzeConversationDto = {
+      conversationId: '', // Generate a new conversation
       brandId: input.brandId,
       messages: input.messages.map(msg => ({
         role: msg.role as 'user' | 'assistant',
@@ -43,7 +44,9 @@ export class ConversationExplorerResolver {
         context: input.metadata?.context || '',
         tags: input.metadata?.tags || []
       }
-    });
+    };
+    
+    return this.conversationExplorerService.analyzeConversation(dto);
   }
 
   /**
@@ -53,7 +56,7 @@ export class ConversationExplorerResolver {
    * @returns Conversation trends
    */
   @Query(() => ConversationTrendsType)
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async conversationTrends(
     @Args('brandId') brandId: string,
     @Args('options', { nullable: true }) options?: TrendOptionsInput
@@ -73,7 +76,7 @@ export class ConversationExplorerResolver {
    * @returns Conversation with insights
    */
   @Query(() => ConversationType)
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async conversation(
     @Args('id') id: string
   ): Promise<Conversation> {
@@ -86,11 +89,11 @@ export class ConversationExplorerResolver {
    * @returns Array of conversations
    */
   @Query(() => [ConversationType])
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async conversationsByBrand(
     @Args('brandId') brandId: string
   ): Promise<Conversation[]> {
-    return this.conversationExplorerService.getConversationsByBrandId(brandId);
+    return this.conversationExplorerService.findByBrandId(brandId);
   }
 
   /**
@@ -99,9 +102,18 @@ export class ConversationExplorerResolver {
    * @returns Array of conversation insights
    */
   @ResolveField(() => [ConversationInsightType])
-  async insights(@Parent() conversation: ConversationType): Promise<ConversationInsightType[]> {
+  async insights(@Parent() conversation: Conversation): Promise<ConversationInsightType[]> {
     const fullConversation = await this.conversationExplorerService.getConversationById(conversation.id);
-    return fullConversation.insights;
+    // Convert ConversationInsight[] to ConversationInsightType[]
+    return fullConversation.insights.map(insight => ({
+      id: insight.id,
+      type: insight.type,
+      category: insight.category,
+      confidence: insight.confidence,
+      details: JSON.stringify(insight.details),
+      createdAt: insight.createdAt,
+      updatedAt: insight.updatedAt
+    }));
   }
 
   @Query(() => [ConversationInsightType], { name: 'conversationInsights' })
@@ -109,6 +121,16 @@ export class ConversationExplorerResolver {
     @Args('brandId') brandId: string,
     @Args('options', { nullable: true }) options?: ConversationInsightOptionsInput
   ): Promise<ConversationInsightType[]> {
-    return this.conversationExplorerService.getConversationInsights(brandId, options);
+    const insights = await this.conversationExplorerService.getConversationInsights(brandId, options);
+    // Convert ConversationInsight[] to ConversationInsightType[]
+    return insights.map(insight => ({
+      id: insight.id,
+      type: insight.type,
+      category: insight.category,
+      confidence: insight.confidence,
+      details: JSON.stringify(insight.details),
+      createdAt: insight.createdAt,
+      updatedAt: insight.updatedAt
+    }));
   }
 } 

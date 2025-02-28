@@ -4,8 +4,16 @@ import { MockConversationExplorerResolver } from './mocks/conversation-explorer.
 // Mock the GraphQL input types
 class AnalyzeConversationInput {
   brandId: string;
-  messages: unknown[];
-  metadata?: Record<string, unknown>;
+  messages: {
+    role: string;
+    content: string;
+    timestamp: Date;
+  }[];
+  metadata?: {
+    platform?: string;
+    context?: string;
+    tags?: string[];
+  };
 }
 
 class TrendOptionsInput {

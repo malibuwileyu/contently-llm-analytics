@@ -1,6 +1,8 @@
-export class MockSearchService {
-  async indexConversation(data: any): Promise<void> {
-    // Mock implementation that returns void
-    return;
-  }
+import { SearchService } from '../../services/search.service';
+
+export class MockSearchService implements Partial<SearchService> {
+  searchConversations = jest.fn();
+  indexConversation = jest.fn();
+  deleteConversation = jest.fn();
+  updateConversation = jest.fn();
 } 

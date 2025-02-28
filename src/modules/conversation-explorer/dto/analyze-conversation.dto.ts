@@ -1,6 +1,7 @@
 import { IsString, IsUUID, IsArray, ValidateNested, IsObject, IsOptional, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Message } from '../interfaces/conversation-analysis.interface';
+import { Field, InputType } from '@nestjs/graphql';
 
 /**
  * DTO for a message in a conversation
@@ -49,31 +50,34 @@ export class ConversationMetadataDto {
   tags: string[];
 }
 
-/**
- * DTO for analyzing a conversation
- */
+@InputType()
 export class AnalyzeConversationDto {
-  /**
-   * The ID of the brand associated with this conversation
-   */
-  @IsUUID()
-  brandId: string;
-  
-  /**
-   * The messages in the conversation
-   */
+  @Field()
+  conversationId: string;
+
+  @Field({ nullable: true })
+  brandId?: string;
+
+  @Field(() => [MessageDto])
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => MessageDto)
   messages: MessageDto[];
-  
-  /**
-   * Metadata about the conversation
-   */
+
+  @Field(() => ConversationMetadataDto)
   @IsObject()
   @ValidateNested()
   @Type(() => ConversationMetadataDto)
   metadata: ConversationMetadataDto;
+
+  @Field(() => [String], { nullable: true })
+  topics?: string[];
+
+  @Field(() => Boolean, { nullable: true })
+  includeEntities?: boolean;
+
+  @Field(() => Boolean, { nullable: true })
+  includeSentiment?: boolean;
 }
 
 /**
@@ -93,4 +97,4 @@ export class TrendOptionsDto {
   @IsOptional()
   @Type(() => Date)
   endDate?: Date;
-} 
+}

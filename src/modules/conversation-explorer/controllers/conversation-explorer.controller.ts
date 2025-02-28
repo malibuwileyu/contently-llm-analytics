@@ -81,7 +81,7 @@ export class ConversationExplorerController {
     return {
       topIntents: trends.topIntents,
       topTopics: trends.topTopics,
-      engagementTrend: trends.engagementTrends,
+      engagementTrend: trends.engagementTrend,
       commonActions: trends.commonActions,
     };
   }
@@ -97,22 +97,8 @@ export class ConversationExplorerController {
   async getConversation(
     @Param('id') id: string
   ): Promise<ConversationDto> {
-    const conversation = await this.conversationExplorerService['conversationRepo'].findWithInsights(id);
-    return {
-      id: conversation.id,
-      brandId: conversation.brandId,
-      messages: conversation.messages,
-      metadata: conversation.metadata,
-      insights: conversation.insights.map((insight: any) => ({
-        id: insight.id,
-        type: insight.type,
-        category: insight.category,
-        confidence: insight.confidence,
-        details: insight.details,
-      })),
-      engagementScore: conversation.engagementScore,
-      analyzedAt: conversation.analyzedAt,
-    };
+    const conversation = await this.conversationExplorerService.getConversationById(id);
+    return this.transformToDto(conversation);
   }
 
   /**
@@ -131,7 +117,9 @@ export class ConversationExplorerController {
         type: insight.type,
         category: insight.category,
         confidence: insight.confidence,
-        details: insight.details,
+        details: typeof insight.details === 'string' 
+          ? JSON.parse(insight.details) 
+          : insight.details,
       })),
       engagementScore: conversation.engagementScore,
       analyzedAt: conversation.analyzedAt,

@@ -88,6 +88,18 @@ export class ConversationDto {
    */
   @IsDate()
   analyzedAt: Date;
+
+  /**
+   * When the conversation was created
+   */
+  @IsDate()
+  createdAt: Date;
+
+  /**
+   * When the conversation was last updated
+   */
+  @IsDate()
+  updatedAt: Date;
 }
 
 /**

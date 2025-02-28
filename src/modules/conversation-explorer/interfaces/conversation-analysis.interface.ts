@@ -1,11 +1,11 @@
 /**
- * Interface for a message in a conversation
+ * Represents a message in a conversation
  */
 export interface Message {
   /**
    * The role of the message sender
    */
-  role: 'user' | 'assistant';
+  role: string;
   
   /**
    * The content of the message
@@ -19,7 +19,7 @@ export interface Message {
 }
 
 /**
- * Interface for an intent detected in a conversation
+ * Represents an intent detected in a conversation
  */
 export interface Intent {
   /**
@@ -33,28 +33,36 @@ export interface Intent {
   confidence: number;
   
   /**
-   * Additional context for this intent
+   * Additional details about the intent
    */
-  context: Record<string, any>;
+  details: Record<string, unknown>;
 }
 
 /**
- * Interface for sentiment analysis of a conversation
+ * Represents sentiment analysis of a conversation
  */
 export interface Sentiment {
   /**
    * The overall sentiment score (-1 to 1)
    */
-  score: number;
+  overall: number;
   
   /**
-   * The magnitude of the sentiment (0 to infinity)
+   * How sentiment changed throughout the conversation
    */
-  magnitude: number;
+  progression: number;
+  
+  /**
+   * Sentiment broken down by aspects
+   */
+  aspects: {
+    aspect: string;
+    score: number;
+  }[];
 }
 
 /**
- * Interface for a topic detected in a conversation
+ * Represents a topic identified in a conversation
  */
 export interface Topic {
   /**
@@ -63,13 +71,18 @@ export interface Topic {
   name: string;
   
   /**
-   * The relevance score for this topic (0-1)
+   * How relevant the topic is to the conversation (0-1)
    */
   relevance: number;
+  
+  /**
+   * How many times the topic was mentioned
+   */
+  mentions: number;
 }
 
 /**
- * Interface for an action detected in a conversation
+ * Represents an action identified in a conversation
  */
 export interface Action {
   /**
@@ -81,12 +94,17 @@ export interface Action {
    * The confidence score for this action (0-1)
    */
   confidence: number;
+  
+  /**
+   * Context around the action
+   */
+  context: Record<string, unknown>;
 }
 
 /**
- * Interface for NLP analysis of a conversation
+ * Represents the complete analysis of a conversation
  */
-export interface NLPAnalysis {
+export interface ConversationAnalysis {
   /**
    * Intents detected in the conversation
    */
@@ -98,18 +116,33 @@ export interface NLPAnalysis {
   sentiment: Sentiment;
   
   /**
-   * Topics detected in the conversation
+   * Topics identified in the conversation
    */
   topics: Topic[];
   
   /**
-   * Actions detected in the conversation
+   * Actions identified in the conversation
    */
   actions: Action[];
 }
 
 /**
- * Interface for a top intent in conversation trends
+ * Represents a data point in an engagement trend
+ */
+export interface EngagementTrend {
+  /**
+   * The date of the trend data point
+   */
+  date: Date;
+  
+  /**
+   * The average engagement score for that date
+   */
+  averageEngagement: number;
+}
+
+/**
+ * Represents a top intent in conversation trends
  */
 export interface TopIntent {
   /**
@@ -129,7 +162,7 @@ export interface TopIntent {
 }
 
 /**
- * Interface for a top topic in conversation trends
+ * Represents a top topic in conversation trends
  */
 export interface TopTopic {
   /**
@@ -149,22 +182,7 @@ export interface TopTopic {
 }
 
 /**
- * Interface for an engagement trend data point
- */
-export interface EngagementTrend {
-  /**
-   * The date of the trend data point
-   */
-  date: Date;
-  
-  /**
-   * The average engagement score for that date
-   */
-  averageEngagement: number;
-}
-
-/**
- * Interface for a common action in conversation trends
+ * Represents a common action in conversation trends
  */
 export interface CommonAction {
   /**
@@ -184,7 +202,7 @@ export interface CommonAction {
 }
 
 /**
- * Interface for conversation trends
+ * Represents trends in conversations
  */
 export interface ConversationTrends {
   /**

@@ -1,72 +1,32 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { ConversationAnalyzerService, ConversationAnalysis } from './conversation-analyzer.service';
-import { ConversationIndexerService, Conversation } from './conversation-indexer.service';
+import { ConversationAnalyzerService } from './conversation-analyzer.service';
+import { ConversationIndexerService } from './conversation-indexer.service';
+import { ConversationRepository } from '../repositories/conversation.repository';
+import { ConversationInsightRepository } from '../repositories/conversation-insight.repository';
+import { Conversation } from '../entities/conversation.entity';
+import { ConversationInsightType } from '../graphql/types/conversation-insight.type';
+import { ConversationInsightOptionsInput } from '../graphql/inputs/conversation-insight-options.input';
+import { AnalyzeConversationDto } from '../dto/analyze-conversation.dto';
+import { TrendOptionsDto } from '../dto/analyze-conversation.dto';
+import { ConversationTrendsType } from '../graphql/types/conversation-trends.type';
+import { ConversationAnalysis } from '../interfaces/conversation-analysis.interface';
+import { FindManyOptions } from 'typeorm';
+import { InsightType } from '../entities/conversation-insight.entity';
+import { TopIntent, TopTopic, EngagementTrend } from '../interfaces/conversation-analysis.interface';
+import { MetricsService as ExternalMetricsService } from '../../metrics/metrics.service';
 
-// Interfaces
-export interface AnalyzeConversationDto {
-  brandId: string;
-  messages: Array<{
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp: Date;
-  }>;
-  metadata: {
-    platform: string;
-    context: string;
-    tags: string[];
-  };
-}
-
-export interface TrendOptionsDto {
-  startDate?: Date;
-  endDate?: Date;
-}
-
-export interface TopIntent {
-  category: string;
-  count: number;
-  averageConfidence: number;
-}
-
-export interface TopTopic {
-  name: string;
-  count: number;
-  averageRelevance: number;
-}
-
-export interface EngagementTrend {
-  date: Date;
-  averageEngagement: number;
-}
-
-export interface CommonAction {
-  type: string;
-  count: number;
-  averageConfidence: number;
-}
-
-export interface ConversationTrends {
-  topIntents: TopIntent[];
-  topTopics: TopTopic[];
-  engagementTrends: EngagementTrend[];
-  commonActions: CommonAction[];
-}
-
-// Metrics Service interface
-export interface MetricsService {
-  recordAnalysisDuration(duration: number): void;
-  incrementErrorCount(errorType: string): void;
-}
-
+/**
+ * Service for exploring conversations
+ */
 @Injectable()
 export class ConversationExplorerService {
   constructor(
     @Inject('ConversationRepository')
-    private readonly conversationRepo: any,
-    private readonly analyzer: ConversationAnalyzerService,
-    private readonly indexer: ConversationIndexerService,
-    @Inject('MetricsService')
-    private readonly metrics: MetricsService
+    private readonly conversationRepo: ConversationRepository,
+    private readonly conversationInsightRepo: ConversationInsightRepository,
+    private readonly analyzerService: ConversationAnalyzerService,
+    private readonly indexerService: ConversationIndexerService,
+    private readonly metrics: ExternalMetricsService
   ) {}
 
   async analyzeConversation(
@@ -76,7 +36,7 @@ export class ConversationExplorerService {
 
     try {
       // Analyze conversation
-      const analysis = await this.analyzer.analyzeConversation(data.messages);
+      const analysis = await this.analyzerService.analyzeConversation(data.messages);
 
       // Calculate engagement score
       const engagementScore = this.calculateEngagementScore(
@@ -94,7 +54,7 @@ export class ConversationExplorerService {
       });
 
       // Index conversation and insights
-      await this.indexer.indexConversation(conversation, analysis);
+      await this.indexerService.indexConversation(conversation, analysis);
 
       // Record metrics
       const duration = Date.now() - startTime;
@@ -107,39 +67,55 @@ export class ConversationExplorerService {
     }
   }
 
+  /**
+   * Get conversation trends for a brand
+   * @param brandId ID of the brand
+   * @param options Options for trend analysis
+   * @returns Conversation trends
+   */
   async getConversationTrends(
     brandId: string,
-    options?: TrendOptionsDto
-  ): Promise<ConversationTrends> {
-    try {
-      const startDate = options?.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // Default to 30 days ago
-      const endDate = options?.endDate || new Date(); // Default to now
-
-      const [conversations, engagementTrends] = await Promise.all([
-        this.conversationRepo.findByBrandId(brandId, {
-          order: { analyzedAt: 'DESC' },
-          take: 100,
-        }),
-        this.conversationRepo.getEngagementTrend(
-          brandId,
-          startDate,
-          endDate
-        ),
-      ]);
-
-      return {
-        topIntents: this.extractTopIntents(conversations),
-        topTopics: this.extractTopTopics(conversations),
-        engagementTrends,
-        commonActions: this.extractCommonActions(conversations),
-      };
-    } catch (error) {
-      this.metrics.incrementErrorCount('trends_error');
-      throw error;
-    }
+    options: TrendOptionsDto = {}
+  ): Promise<ConversationTrendsType> {
+    const startDate = options.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // Default to last 30 days
+    const endDate = options.endDate || new Date(); // Default to now
+    
+    const engagementTrend = await this.conversationRepo.getEngagementTrend(brandId, startDate, endDate);
+    const trends = await this.conversationRepo.getTrends(brandId, options);
+    
+    return {
+      engagementTrend,
+      topIntents: trends.topIntents || [],
+      topTopics: trends.topTopics || [],
+      commonActions: trends.commonActions || []
+    };
   }
 
-  private calculateEngagementScore(
+  async getConversationById(id: string): Promise<Conversation> {
+    return this.conversationRepo.findWithInsights(id);
+  }
+
+  /**
+   * Find conversations by brand ID
+   * @param brandId ID of the brand
+   * @returns Array of conversations
+   */
+  async findByBrandId(brandId: string): Promise<Conversation[]> {
+    return this.conversationRepo.findByBrandId(brandId, {});
+  }
+
+  async getConversationInsights(
+    brandId: string, 
+    options?: ConversationInsightOptionsInput
+  ): Promise<ConversationInsightType[]> {
+    return this.conversationRepo.findInsightsByBrandId(brandId, options);
+  }
+
+  private async processConversation(conversation: Conversation): Promise<void> {
+    // Implementation
+  }
+
+  protected calculateEngagementScore(
     messages: Array<{ role: string; content: string; timestamp: Date }>,
     analysis: ConversationAnalysis
   ): number {
@@ -241,7 +217,12 @@ export class ConversationExplorerService {
       .slice(0, 10);
   }
 
-  private extractCommonActions(conversations: Conversation[]): CommonAction[] {
+  /**
+   * Extract common actions from conversations
+   * @param conversations Array of conversations
+   * @returns Array of common actions
+   */
+  private extractCommonActions(conversations: Conversation[]): any[] {
     const actions = conversations.flatMap(conv =>
       conv.insights
         .filter(insight => insight.type === 'action')

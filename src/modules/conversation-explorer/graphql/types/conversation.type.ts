@@ -1,37 +1,59 @@
-import { ObjectType, Field, ID, Float } from '@nestjs/graphql';
+import { ObjectType, Field, ID } from '@nestjs/graphql';
 import { ConversationInsightType } from './conversation-insight.type';
-import { MessageType } from './message.type';
-import { MetadataType } from './metadata.type';
 
 /**
- * GraphQL type for a conversation
+ * Type for a message in a conversation
  */
-@ObjectType('Conversation')
+@ObjectType()
+export class MessageType {
+  @Field()
+  role: string;
+
+  @Field()
+  content: string;
+
+  @Field()
+  timestamp: Date;
+}
+
+/**
+ * Type for conversation metadata
+ */
+@ObjectType()
+export class ConversationMetadataType {
+  @Field({ nullable: true })
+  platform?: string;
+
+  @Field({ nullable: true })
+  context?: string;
+
+  @Field(() => [String], { nullable: true })
+  tags?: string[];
+}
+
+/**
+ * GraphQL object type for a conversation
+ */
+@ObjectType()
 export class ConversationType {
   @Field(() => ID)
   id: string;
 
-  @Field(() => ID)
+  @Field()
   brandId: string;
 
   @Field(() => [MessageType])
   messages: MessageType[];
 
-  @Field(() => MetadataType)
-  metadata: MetadataType;
+  @Field(() => ConversationMetadataType, { nullable: true })
+  metadata?: ConversationMetadataType;
 
-  @Field(() => [ConversationInsightType])
-  insights: ConversationInsightType[];
+  @Field(() => [ConversationInsightType], { nullable: true })
+  insights?: ConversationInsightType[];
 
-  @Field(() => Float)
+  @Field()
   engagementScore: number;
 
   @Field()
   analyzedAt: Date;
-
-  @Field()
-  createdAt: Date;
-
-  @Field()
-  updatedAt: Date;
 } 

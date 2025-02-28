@@ -1,46 +1,24 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { ConversationAnalysis, Intent, Topic, Action, Sentiment } from './conversation-analyzer.service';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Conversation } from '../entities/conversation.entity';
+import { ConversationInsight, InsightType } from '../entities/conversation-insight.entity';
+import { 
+  ConversationAnalysis, 
+  Intent, 
+  Topic, 
+  Action 
+} from '../interfaces/conversation-analysis.interface';
+import { CreateInsightDto } from '../interfaces/insight.interface';
 
-// Interfaces
-export interface Conversation {
-  id: string;
-  brandId: string;
-  messages: Array<{
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp: Date;
-  }>;
-  metadata: {
-    platform: string;
-    context: string;
-    tags: string[];
-  };
-  insights: any[];
-  engagementScore: number;
-  analyzedAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt?: Date;
-}
-
-export interface ConversationInsight {
-  id: string;
-  conversationId: string;
-  type: 'intent' | 'sentiment' | 'topic' | 'action';
-  category: string;
-  confidence: number;
-  details: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-  conversation: Conversation | null;
-}
-
-// Search Service interface
-export interface SearchService {
+/**
+ * Interface for search service
+ */
+interface SearchService {
   indexConversation(data: {
     id: string;
     content: string;
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
   }): Promise<void>;
 }
 
@@ -50,9 +28,8 @@ export interface SearchService {
 @Injectable()
 export class ConversationIndexerService {
   constructor(
-    @Inject('ConversationInsightRepository')
-    private readonly insightRepository: any,
-    @Inject('SearchService')
+    @InjectRepository(ConversationInsight)
+    private readonly insightRepo: Repository<ConversationInsight>,
     private readonly searchService: SearchService
   ) {}
 
@@ -95,11 +72,12 @@ export class ConversationIndexerService {
   ): Promise<void> {
     await Promise.all(
       intents.map(intent =>
-        this.createInsight(conversation, {
+        this.createInsight({
+          conversation,
           type: 'intent',
           category: intent.category,
           confidence: intent.confidence,
-          details: intent.details || {},
+          details: intent.details,
         })
       )
     );
@@ -116,11 +94,14 @@ export class ConversationIndexerService {
   ): Promise<void> {
     await Promise.all(
       topics.map(topic =>
-        this.createInsight(conversation, {
+        this.createInsight({
+          conversation,
           type: 'topic',
           category: topic.name,
           confidence: topic.relevance,
-          details: { mentions: topic.mentions },
+          details: {
+            mentions: topic.mentions,
+          },
         })
       )
     );
@@ -137,11 +118,12 @@ export class ConversationIndexerService {
   ): Promise<void> {
     await Promise.all(
       actions.map(action =>
-        this.createInsight(conversation, {
+        this.createInsight({
+          conversation,
           type: 'action',
           category: action.type,
           confidence: action.confidence,
-          details: action.context || {},
+          details: action.context,
         })
       )
     );
@@ -154,43 +136,54 @@ export class ConversationIndexerService {
    */
   private async indexSentiment(
     conversation: Conversation,
-    sentiment: Sentiment
+    sentiment: { overall: number; progression: number; aspects: { aspect: string; score: number }[] }
   ): Promise<void> {
-    await this.createInsight(conversation, {
+    // Index overall sentiment
+    await this.createInsight({
+      conversation,
       type: 'sentiment',
       category: 'overall',
-      confidence: sentiment.overall,
+      confidence: Math.abs(sentiment.overall), // Use absolute value for confidence
       details: {
         score: sentiment.overall,
         progression: sentiment.progression,
       },
     });
+
+    // Index aspect-based sentiments
+    await Promise.all(
+      sentiment.aspects.map(aspect =>
+        this.createInsight({
+          conversation,
+          type: 'sentiment',
+          category: aspect.aspect,
+          confidence: Math.abs(aspect.score),
+          details: {
+            score: aspect.score,
+          },
+        })
+      )
+    );
   }
 
   /**
    * Create an insight in the database
-   * @param conversation The conversation
    * @param data Insight data
    * @returns Created insight
    */
-  private async createInsight(
-    conversation: Conversation,
-    data: {
-      type: 'intent' | 'sentiment' | 'topic' | 'action';
-      category: string;
-      confidence: number;
-      details: Record<string, any>;
-    }
-  ): Promise<ConversationInsight> {
-    const insight = this.insightRepository.create({
-      conversation,
-      type: data.type,
+  private async createInsight(data: CreateInsightDto): Promise<ConversationInsight> {
+    const insight = this.insightRepo.create({
+      conversationId: data.conversation.id,
+      type: data.type as InsightType,
       category: data.category,
       confidence: data.confidence,
       details: data.details,
     });
 
-    return this.insightRepository.save(insight);
+    // Set the relation after creation
+    insight.conversation = data.conversation;
+
+    return this.insightRepo.save(insight);
   }
 
   /**
@@ -203,4 +196,4 @@ export class ConversationIndexerService {
       .map(msg => `${msg.role}: ${msg.content}`)
       .join('\n');
   }
-} 
+}

@@ -6,38 +6,60 @@ import { ConversationInsightRepository } from '../repositories/conversation-insi
 import { DataSource } from 'typeorm';
 import { AnalyzeConversationDto, TrendOptionsDto } from '../dto/analyze-conversation.dto';
 import { Logger } from '@nestjs/common';
-import { NLPService } from '../../nlp/nlp.service';
 import { SearchService } from '../../search/search.service';
 import { MetricsService } from '../../metrics/metrics.service';
 import { CacheService } from '../../cache/cache.service';
 import { ConversationAnalysis } from '../types/conversation-analysis.type';
 import { ConversationTrends } from '../types/conversation-trends.type';
-import { ConversationInsight } from '../entities/conversation-insight.entity';
+import { ConversationInsight, InsightType } from '../entities/conversation-insight.entity';
 import { Entity } from '../types/conversation-analysis.type';
+import { Message } from '../types/message.type';
 
 // Define string literals for insight types to match the entity types
-const INSIGHT_TYPE = {
+const INSIGHT_TYPE: Record<string, InsightType> = {
   INTENT: 'intent',
   SENTIMENT: 'sentiment',
   TOPIC: 'topic',
-  ENTITY: 'entity',
   ACTION: 'action'
-} as const;
+};
 
-// Define interfaces for the services to satisfy TypeScript
-interface NLPServiceInterface {
-  serviceUrl: string;
-  analyzeSentiment(text: string): Promise<Record<string, unknown>>;
-  extractTopics(text: string): Promise<Array<Record<string, unknown>>>;
-  detectIntent(text: string): Promise<Array<Record<string, unknown>>>;
-  identifyEntities(text: string): Promise<Array<Record<string, unknown>>>;
-  analyzeConversation(messages: Array<Record<string, unknown>>): Promise<Record<string, unknown>>;
+// Define a custom type for entity since it's not in InsightType
+type CustomInsightType = InsightType | 'entity';
+
+// Define the NLPAnalysis interface based on what ConversationAnalyzerService expects
+interface NLPAnalysis {
+  intents: {
+    category: string;
+    confidence: number;
+    context: Record<string, unknown>;
+  }[];
+  sentiment: {
+    score: number;
+    progression: number;
+    aspects: {
+      aspect: string;
+      score: number;
+    }[];
+  };
+  topics: {
+    name: string;
+    relevance: number;
+    mentions: number;
+  }[];
+  actions: {
+    type: string;
+    confidence: number;
+    context: Record<string, unknown>;
+  }[];
 }
 
-interface CacheServiceInterface {
-  get<T>(key: string): Promise<T | null>;
-  set(key: string, value: unknown, ttl?: number): Promise<void>;
-  delete(key: string): Promise<void>;
+// Define the NLPService interface that matches what ConversationAnalyzerService expects
+interface NLPServiceInterface {
+  analyzeConversation(messages: Message[]): Promise<NLPAnalysis>;
+}
+
+// Define the CacheService interface that matches what ConversationAnalyzerService expects
+interface AnalyzerCacheService {
   getOrSet<T>(key: string, factory: () => Promise<T>, ttl?: number): Promise<T>;
 }
 
@@ -95,10 +117,11 @@ export class ConversationExplorerRunner {
       const cacheServiceWrapper = this.createMockCacheService();
       const metricsServiceWrapper = this.createMockMetricsService();
 
-      // Initialize services
+      // Initialize services with type assertions to satisfy the compiler
+      // In a real implementation, we would use proper implementations
       const analyzerService = new ConversationAnalyzerService(
-        nlpService as unknown as NLPService,
-        cacheServiceWrapper as unknown as CacheService
+        nlpService,
+        cacheServiceWrapper
       );
 
       const indexerService = new ConversationIndexerService(
@@ -130,25 +153,28 @@ export class ConversationExplorerRunner {
    */
   private createMockNLPService(): NLPServiceInterface {
     return {
-      serviceUrl: this.nlpServiceUrl,
-      analyzeSentiment: async (_text: string): Promise<Record<string, unknown>> => {
-        return { overall: 0.5, progression: 0.1, aspects: [] };
-      },
-      extractTopics: async (_text: string): Promise<Array<Record<string, unknown>>> => {
-        return [{ name: 'general', relevance: 0.8, mentions: 1 }];
-      },
-      detectIntent: async (_text: string): Promise<Array<Record<string, unknown>>> => {
-        return [{ category: 'general', confidence: 0.7, details: {} }];
-      },
-      identifyEntities: async (_text: string): Promise<Array<Record<string, unknown>>> => {
-        return [{ type: 'generic', value: 'entity', confidence: 0.6 }];
-      },
-      analyzeConversation: async (_messages: Array<Record<string, unknown>>): Promise<Record<string, unknown>> => {
+      analyzeConversation: async (_messages: Message[]): Promise<NLPAnalysis> => {
         return {
-          intents: [{ category: 'general', confidence: 0.7, details: {} }],
-          topics: [{ name: 'general', relevance: 0.8, mentions: 1 }],
-          sentiment: { overall: 0.5, progression: 0.1, aspects: [] },
-          entities: [{ type: 'generic', value: 'entity', confidence: 0.6 }]
+          intents: [{ 
+            category: 'general', 
+            confidence: 0.7, 
+            context: {} 
+          }],
+          topics: [{ 
+            name: 'general', 
+            relevance: 0.8, 
+            mentions: 1 
+          }],
+          sentiment: { 
+            score: 0.5, 
+            progression: 0.1, 
+            aspects: [] 
+          },
+          actions: [{ 
+            type: 'generic', 
+            confidence: 0.6, 
+            context: {} 
+          }]
         };
       }
     };
@@ -158,12 +184,14 @@ export class ConversationExplorerRunner {
    * Create a mock cache service for testing
    * @returns A mock cache service
    */
-  private createMockCacheService(): CacheServiceInterface {
+  private createMockCacheService(): AnalyzerCacheService {
+    // Create a cache wrapper that implements the getOrSet method
     return {
-      get: async <T>(_key: string): Promise<T | null> => null,
-      set: async (_key: string, _value: unknown, _ttl?: number): Promise<void> => {},
-      delete: async (_key: string): Promise<void> => {},
-      getOrSet: async <T>(_key: string, factory: () => Promise<T>, _ttl?: number): Promise<T> => factory()
+      getOrSet: async <T>(_key: string, factory: () => Promise<T>, _ttl?: number): Promise<T> => {
+        // In a real implementation, we would check the cache first
+        // For testing, just call the factory function directly
+        return factory();
+      }
     };
   }
 
@@ -210,7 +238,7 @@ export class ConversationExplorerRunner {
             relevance: topic.confidence
           })),
         entities: conversation.insights
-          .filter(insight => insight.type === INSIGHT_TYPE.ENTITY)
+          .filter(insight => insight.type === 'entity' as CustomInsightType)
           .map(entity => ({
             type: entity.category,
             value: entity.details?.value?.toString() || '',
