@@ -9,7 +9,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 // Create a test entity class
 class TestEntity extends BaseEntity {
   name: string;
-  description: string;
+  _description: string;
 }
 
 // Create a test service class
@@ -24,7 +24,7 @@ const testEntityFactory = {
   build: (overrides: Partial<TestEntity> = {}): Partial<TestEntity> => ({
     id: 'test-id',
     name: 'Test Name',
-    description: 'Test Description',
+    _description: 'Test Description',
     createdAt: new Date(),
     updatedAt: new Date(),
     deletedAt: null,

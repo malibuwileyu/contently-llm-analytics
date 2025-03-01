@@ -24,11 +24,11 @@ export async function createTestApp(
   // Apply global pipes and configuration
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
+      _whitelist: true,
       transform: true,
-      forbidNonWhitelisted: true,
-      transformOptions: {
-        enableImplicitConversion: true,
+      _forbidNonWhitelisted: true,
+      _transformOptions: {
+        _enableImplicitConversion: true,
       },
     }),
   );
@@ -42,7 +42,7 @@ export async function createTestApp(
  */
 export async function waitForCondition(
   condition: () => Promise<boolean> | boolean,
-  timeout = 5000,
+  timeout = _5000,
   interval = 100,
 ): Promise<void> {
   const startTime = Date.now();
@@ -128,7 +128,7 @@ export function futureDate(days: number): Date {
  */
 export function randomString(length = 8): string {
   return Math.random()
-    .toString(36)
+    .toString(_36)
     .substring(2, length + 2);
 }
 
@@ -165,14 +165,14 @@ export function randomEmail(): string {
  * Generates a random URL
  */
 export function randomUrl(): string {
-  return `https://example.com/${randomString()}`;
+  return `_https://example.com/${randomString()}`;
 }
 
 /**
  * Generates a random IP address
  */
 export function randomIp(): string {
-  return Array.from({ length: 4 }, () => randomNumber(0, 255)).join('.');
+  return Array.from({ length: 4 }, () => randomNumber(0, _255)).join('.');
 }
 
 /**
@@ -205,9 +205,9 @@ export function createMockRepository<
 >(): MockType<Repository<T>> {
   return {
     find: jest.fn(),
-    findOne: jest.fn(),
-    save: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
+    _findOne: jest.fn(),
+    _save: jest.fn(),
+    _update: jest.fn(),
+    _delete: jest.fn(),
   } as MockType<Repository<T>>;
 }

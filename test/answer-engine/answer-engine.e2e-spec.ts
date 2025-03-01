@@ -53,22 +53,22 @@ describe('Answer Engine E2E', () => {
     answerEngineService = {
       analyzeMention: jest.fn().mockImplementation(data =>
         Promise.resolve({
-          id: 'mention-123',
+          _id: 'mention-123',
           brandId: data.brandId,
           content: data.content,
           sentiment: 0.8,
-          magnitude: 0.5,
+          _magnitude: 0.5,
           context: data.context,
-          mentionedAt: new Date(),
+          _mentionedAt: new Date(),
           createdAt: new Date(),
           updatedAt: new Date(),
           citations: [],
         }),
       ),
-      getBrandHealth: jest.fn().mockImplementation(_brandId =>
+      getBrandHealth: jest.fn().mockImplementation(brandId =>
         Promise.resolve({
           overallSentiment: 0.75,
-          trend: [{ date: new Date(), averageSentiment: 0.75 }],
+          _trend: [{ date: new Date(), _averageSentiment: 0.75 }],
           mentionCount: 1,
           topCitations: [{ source: 'trusted-source.com', authority: 0.85 }],
         }),
@@ -77,8 +77,8 @@ describe('Answer Engine E2E', () => {
 
     // Create mock runner
     answerEngineRunner = {
-      getName: jest.fn().mockReturnValue('answer-engine'),
-      isEnabled: jest.fn().mockResolvedValue(true),
+      _getName: jest.fn().mockReturnValue('answer-engine'),
+      _isEnabled: jest.fn().mockResolvedValue(true),
       run: jest
         .fn()
         .mockImplementation(
@@ -110,7 +110,7 @@ describe('Answer Engine E2E', () => {
                     error instanceof Error ? error.message : 'Unknown error',
                   code: 'ANSWER_ENGINE_ERROR',
                   details: {
-                    _brandId: context.brandId,
+                    brandId: context.brandId,
                     timestamp: new Date().toISOString(),
                   },
                 },

@@ -1,4 +1,12 @@
-import { ObjectType, Field, ID, Float, InputType, GraphQLISODateTime, Scalar } from '@nestjs/graphql';
+import {
+  ObjectType,
+  Field,
+  ID,
+  Float,
+  InputType,
+  GraphQLISODateTime,
+  Scalar,
+} from '@nestjs/graphql';
 import { GraphQLScalarType, Kind } from 'graphql';
 
 // Define a JSON scalar type for metadata fields
@@ -109,4 +117,4 @@ export class BrandMentionAddedPayload implements Record<string, unknown> {
   brandMentionAdded: BrandMention;
 
   [key: string]: unknown;
-} 
+}

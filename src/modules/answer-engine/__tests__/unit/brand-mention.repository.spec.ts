@@ -33,8 +33,12 @@ describe('BrandMentionRepository', () => {
           provide: BrandMentionRepository,
           useFactory: () => {
             const repo = new BrandMentionRepository(dataSource);
-            jest.spyOn(repo, 'createQueryBuilder').mockReturnValue(queryBuilder);
-            jest.spyOn(repo, 'find').mockImplementation(() => Promise.resolve([]));
+            jest
+              .spyOn(repo, 'createQueryBuilder')
+              .mockReturnValue(queryBuilder);
+            jest
+              .spyOn(repo, 'find')
+              .mockImplementation(() => Promise.resolve([]));
             return repo;
           },
         },
@@ -96,7 +100,9 @@ describe('BrandMentionRepository', () => {
       (repository.find as jest.Mock).mockRejectedValue(error);
 
       // Act & Assert
-      await expect(repository.findByBrandId(brandId, {})).rejects.toThrow(error);
+      await expect(repository.findByBrandId(brandId, {})).rejects.toThrow(
+        error,
+      );
     });
   });
 
@@ -107,9 +113,7 @@ describe('BrandMentionRepository', () => {
       const expectedMention = {
         id: mentionId,
         brandId: 'brand-123',
-        citations: [
-          { id: 'citation-1', source: 'source-1' },
-        ],
+        citations: [{ id: 'citation-1', source: 'source-1' }],
       } as BrandMention;
 
       queryBuilder.getOne.mockResolvedValue(expectedMention);
@@ -120,8 +124,13 @@ describe('BrandMentionRepository', () => {
       // Assert
       expect(result).toEqual(expectedMention);
       expect(repository.createQueryBuilder).toHaveBeenCalledWith('mention');
-      expect(queryBuilder.leftJoinAndSelect).toHaveBeenCalledWith('mention.citations', 'citations');
-      expect(queryBuilder.where).toHaveBeenCalledWith('mention.id = :id', { id: mentionId });
+      expect(queryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'mention.citations',
+        'citations',
+      );
+      expect(queryBuilder.where).toHaveBeenCalledWith('mention.id = :id', {
+        id: mentionId,
+      });
       expect(queryBuilder.getOne).toHaveBeenCalled();
     });
 
@@ -131,9 +140,9 @@ describe('BrandMentionRepository', () => {
       queryBuilder.getOne.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(repository.findWithCitations(mentionId))
-        .rejects
-        .toThrow(EntityNotFoundError);
+      await expect(repository.findWithCitations(mentionId)).rejects.toThrow(
+        EntityNotFoundError,
+      );
     });
 
     it('should handle errors when finding mention with citations', async () => {
@@ -143,7 +152,9 @@ describe('BrandMentionRepository', () => {
       queryBuilder.getOne.mockRejectedValue(error);
 
       // Act & Assert
-      await expect(repository.findWithCitations(mentionId)).rejects.toThrow(error);
+      await expect(repository.findWithCitations(mentionId)).rejects.toThrow(
+        error,
+      );
     });
   });
 
@@ -161,20 +172,41 @@ describe('BrandMentionRepository', () => {
       queryBuilder.getRawMany.mockResolvedValue(expectedTrend);
 
       // Act
-      const result = await repository.getSentimentTrend(brandId, startDate, endDate);
+      const result = await repository.getSentimentTrend(
+        brandId,
+        startDate,
+        endDate,
+      );
 
       // Assert
       expect(result).toEqual(expectedTrend);
       expect(repository.createQueryBuilder).toHaveBeenCalledWith('mention');
-      expect(queryBuilder.select).toHaveBeenCalledWith('DATE(mention.mentionedAt)', 'date');
-      expect(queryBuilder.addSelect).toHaveBeenCalledWith('AVG(mention.sentiment)', 'averageSentiment');
-      expect(queryBuilder.where).toHaveBeenCalledWith('mention.brandId = :brandId', { brandId });
-      expect(queryBuilder.andWhere).toHaveBeenCalledWith('mention.mentionedAt BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      });
-      expect(queryBuilder.groupBy).toHaveBeenCalledWith('DATE(mention.mentionedAt)');
-      expect(queryBuilder.orderBy).toHaveBeenCalledWith('DATE(mention.mentionedAt)', 'ASC');
+      expect(queryBuilder.select).toHaveBeenCalledWith(
+        'DATE(mention.mentionedAt)',
+        'date',
+      );
+      expect(queryBuilder.addSelect).toHaveBeenCalledWith(
+        'AVG(mention.sentiment)',
+        'averageSentiment',
+      );
+      expect(queryBuilder.where).toHaveBeenCalledWith(
+        'mention.brandId = :brandId',
+        { brandId },
+      );
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        'mention.mentionedAt _BETWEEN :startDate _AND :endDate',
+        {
+          startDate,
+          endDate,
+        },
+      );
+      expect(queryBuilder.groupBy).toHaveBeenCalledWith(
+        'DATE(mention.mentionedAt)',
+      );
+      expect(queryBuilder.orderBy).toHaveBeenCalledWith(
+        'DATE(mention.mentionedAt)',
+        'ASC',
+      );
       expect(queryBuilder.getRawMany).toHaveBeenCalled();
     });
 
@@ -183,11 +215,15 @@ describe('BrandMentionRepository', () => {
       const brandId = 'brand-123';
       const startDate = new Date('2023-01-01');
       const endDate = new Date('2023-01-31');
-      
+
       queryBuilder.getRawMany.mockResolvedValue([]);
 
       // Act
-      const result = await repository.getSentimentTrend(brandId, startDate, endDate);
+      const result = await repository.getSentimentTrend(
+        brandId,
+        startDate,
+        endDate,
+      );
 
       // Assert
       expect(result).toEqual([]);
@@ -199,11 +235,13 @@ describe('BrandMentionRepository', () => {
       const startDate = new Date('2023-01-01');
       const endDate = new Date('2023-01-31');
       const error = new Error('Database error');
-      
+
       queryBuilder.getRawMany.mockRejectedValue(error);
 
       // Act & Assert
-      await expect(repository.getSentimentTrend(brandId, startDate, endDate)).rejects.toThrow(error);
+      await expect(
+        repository.getSentimentTrend(brandId, startDate, endDate),
+      ).rejects.toThrow(error);
     });
   });
-}); 
+});

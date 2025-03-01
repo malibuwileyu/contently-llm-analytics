@@ -16,7 +16,7 @@ const createMockRepository = () => ({
   create: jest.fn(),
   save: jest.fn(),
   find: jest.fn(),
-  findOne: jest.fn(),
+  _findOne: jest.fn(),
 });
 
 // Create a mock for AuthorityCalculatorService
@@ -49,14 +49,15 @@ describe('CitationTrackerService', () => {
         },
       ],
     })
-    .overrideProvider(CitationTrackerService)
-    .useFactory({
-      factory: () => new CitationTrackerService(
-        citationRepository as any,
-        authorityCalculator
-      ),
-    })
-    .compile();
+      .overrideProvider(CitationTrackerService)
+      .useFactory({
+        factory: () =>
+          new CitationTrackerService(
+            citationRepository as any,
+            authorityCalculator,
+          ),
+      })
+      .compile();
 
     service = module.get<CitationTrackerService>(CitationTrackerService);
   });
@@ -83,17 +84,19 @@ describe('CitationTrackerService', () => {
         brandMention: citationDto.brandMention as BrandMention,
         brandMentionId: (citationDto.brandMention as BrandMention).id,
       } as Citation;
-      const savedCitation = { 
-        id: 'citation-id', 
+      const savedCitation = {
+        id: 'citation-id',
         source: citationDto.source,
         text: citationDto.source,
         brandMention: citationDto.brandMention,
         brandMentionId: (citationDto.brandMention as BrandMention).id,
         metadata: citationDto.metadata,
-        authority 
+        authority,
       } as Citation;
 
-      (authorityCalculator.calculateAuthority as jest.Mock).mockResolvedValue(authority);
+      (authorityCalculator.calculateAuthority as jest.Mock).mockResolvedValue(
+        authority,
+      );
       citationRepository.create!.mockReturnValue(createdCitation);
       citationRepository.save!.mockResolvedValue(savedCitation);
 
@@ -102,7 +105,9 @@ describe('CitationTrackerService', () => {
 
       // Assert
       expect(result).toEqual(savedCitation);
-      expect(authorityCalculator.calculateAuthority).toHaveBeenCalledWith(citationDto.source);
+      expect(authorityCalculator.calculateAuthority).toHaveBeenCalledWith(
+        citationDto.source,
+      );
       expect(citationRepository.create).toHaveBeenCalledWith({
         source: citationDto.source,
         text: citationDto.source,
@@ -123,7 +128,9 @@ describe('CitationTrackerService', () => {
       };
       const error = new Error('Database error');
 
-      (authorityCalculator.calculateAuthority as jest.Mock).mockResolvedValue(0.8);
+      (authorityCalculator.calculateAuthority as jest.Mock).mockResolvedValue(
+        0.8,
+      );
       citationRepository.create!.mockReturnValue({} as Citation);
       citationRepository.save!.mockRejectedValue(error);
 
@@ -138,9 +145,11 @@ describe('CitationTrackerService', () => {
         source: '',
         brandMention,
       };
-      
-      (authorityCalculator.calculateAuthority as jest.Mock).mockResolvedValue(0.1); // Low authority for empty source
-      citationRepository.create!.mockReturnValue({ 
+
+      (authorityCalculator.calculateAuthority as jest.Mock).mockResolvedValue(
+        0.1,
+      ); // Low authority for empty source
+      citationRepository.create!.mockReturnValue({
         source: citationDto.source,
         text: citationDto.source,
         authority: 0.1,
@@ -148,8 +157,8 @@ describe('CitationTrackerService', () => {
         brandMention: citationDto.brandMention as BrandMention,
         brandMentionId: (citationDto.brandMention as BrandMention).id,
       } as Citation);
-      citationRepository.save!.mockResolvedValue({ 
-        id: 'citation-id', 
+      citationRepository.save!.mockResolvedValue({
+        id: 'citation-id',
         source: citationDto.source,
         text: citationDto.source,
         authority: 0.1,
@@ -208,7 +217,9 @@ describe('CitationTrackerService', () => {
       citationRepository.find!.mockRejectedValue(error);
 
       // Act & Assert
-      await expect(service.getCitationsByBrandMention(brandMentionId)).rejects.toThrow(error);
+      await expect(
+        service.getCitationsByBrandMention(brandMentionId),
+      ).rejects.toThrow(error);
     });
   });
 
@@ -259,4 +270,4 @@ describe('CitationTrackerService', () => {
       await expect(service.getTopCitations()).rejects.toThrow(error);
     });
   });
-}); 
+});

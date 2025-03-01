@@ -2,7 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AnswerResolver } from '../../graphql/answer.resolver';
 import { AnswerEngineService } from '../../services/answer-engine.service';
 import { BrandMention } from '../../entities/brand-mention.entity';
-import { BrandHealth, SentimentTrend } from '../../interfaces/sentiment-analysis.interface';
+import {
+  BrandHealth,
+  SentimentTrend,
+} from '../../interfaces/sentiment-analysis.interface';
 import { AnalyzeContentDto } from '../../dto/analyze-content.dto';
 import { BrandHealthInput } from '../../dto/brand-mention.dto';
 import { AuthGuard } from '../../../../auth/guards/auth.guard';
@@ -14,7 +17,7 @@ class MockPubSub {
   publish = jest.fn().mockResolvedValue(undefined);
   asyncIterator = jest.fn().mockReturnValue({
     [Symbol.asyncIterator]: () => ({
-      next: jest.fn(),
+      _next: jest.fn(),
       return: jest.fn(),
       throw: jest.fn(),
     }),
@@ -58,7 +61,9 @@ describe('AnswerResolver', () => {
         {
           provide: JwtService,
           useValue: {
-            verify: jest.fn().mockReturnValue({ sub: 'user-123', roles: ['admin'] }),
+            verify: jest
+              .fn()
+              .mockReturnValue({ sub: 'user-123', roles: ['admin'] }),
           },
         },
         {
@@ -92,7 +97,9 @@ describe('AnswerResolver', () => {
         mentionCount: 2,
       };
 
-      (answerEngineService.getBrandHealth as jest.Mock).mockResolvedValue(health);
+      (answerEngineService.getBrandHealth as jest.Mock).mockResolvedValue(
+        health,
+      );
 
       // Act
       const result = await resolver.getRecentMentions(brandId, limit);
@@ -125,7 +132,9 @@ describe('AnswerResolver', () => {
         mentionCount: 2,
       };
 
-      (answerEngineService.getBrandHealth as jest.Mock).mockResolvedValue(health);
+      (answerEngineService.getBrandHealth as jest.Mock).mockResolvedValue(
+        health,
+      );
 
       // Act
       const result = await resolver.getBrandHealth(input);
@@ -139,7 +148,9 @@ describe('AnswerResolver', () => {
         })),
         mentionCount: health.mentionCount,
       });
-      expect(answerEngineService.getBrandHealth).toHaveBeenCalledWith(input.brandId);
+      expect(answerEngineService.getBrandHealth).toHaveBeenCalledWith(
+        input.brandId,
+      );
     });
   });
 
@@ -161,12 +172,18 @@ describe('AnswerResolver', () => {
         brandId: data.brandId,
         content: data.content,
         sentiment: 0.8,
+        magnitude: 0.5,
+        mentionedAt: new Date(),
         context: data.context as any,
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as BrandMention;
+        deletedAt: null as unknown as Date,
+        citations: [],
+      };
 
-      (answerEngineService.analyzeMention as jest.Mock).mockResolvedValue(mention);
+      (answerEngineService.analyzeMention as jest.Mock).mockResolvedValue(
+        mention,
+      );
 
       // Act
       const result = await resolver.analyzeContent(data);
@@ -202,4 +219,4 @@ describe('AnswerResolver', () => {
       expect(pubSub.asyncIterator).toHaveBeenCalledWith('brandMentionAdded');
     });
   });
-}); 
+});

@@ -21,19 +21,16 @@ class MockConversationExplorerController {
       id: conversation.id,
       brandId: conversation.brandId,
       messages: conversation.messages,
-      metadata: conversation.metadata,
-      insights: conversation.insights.map((insight: any) => ({
+      _metadata: conversation._metadata,
+      _insights: conversation._insights.map((insight: any) => ({
         id: insight.id,
         type: insight.type,
         category: insight.category,
         confidence: insight.confidence,
-        details:
-          typeof insight.details === 'string'
-            ? JSON.parse(insight.details)
-            : insight.details,
+        details: insight.details,
       })),
-      engagementScore: conversation.engagementScore,
-      analyzedAt: conversation.analyzedAt,
+      _engagementScore: conversation._engagementScore,
+      _analyzedAt: conversation._analyzedAt,
       createdAt: conversation.createdAt,
       updatedAt: conversation.updatedAt,
     };
@@ -45,19 +42,16 @@ class MockConversationExplorerController {
       id: conversation.id,
       brandId: conversation.brandId,
       messages: conversation.messages,
-      metadata: conversation.metadata,
-      insights: conversation.insights.map((insight: any) => ({
+      _metadata: conversation._metadata,
+      _insights: conversation._insights.map((insight: any) => ({
         id: insight.id,
         type: insight.type,
         category: insight.category,
         confidence: insight.confidence,
-        details:
-          typeof insight.details === 'string'
-            ? JSON.parse(insight.details)
-            : insight.details,
+        details: insight.details,
       })),
-      engagementScore: conversation.engagementScore,
-      analyzedAt: conversation.analyzedAt,
+      _engagementScore: conversation._engagementScore,
+      _analyzedAt: conversation._analyzedAt,
       createdAt: conversation.createdAt,
       updatedAt: conversation.updatedAt,
     };
@@ -80,7 +74,7 @@ class MockConversationExplorerController {
     return {
       topIntents: trends.topIntents || [],
       topTopics: trends.topTopics || [],
-      engagementTrend: trends.engagementTrend || [],
+      _engagementTrend: trends.engagementTrend || [],
       commonActions: trends.commonActions || [],
     };
   }
@@ -126,14 +120,14 @@ describe('ConversationExplorerController', () => {
         timestamp: new Date(),
       },
     ],
-    metadata: {
+    _metadata: {
       platform: 'web',
       context: 'support',
       tags: ['account', 'help'],
     },
-    insights: mockInsightDtos,
-    engagementScore: 0.75,
-    analyzedAt: new Date(),
+    _insights: mockInsightDtos,
+    _engagementScore: 0.75,
+    _analyzedAt: new Date(),
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -141,7 +135,7 @@ describe('ConversationExplorerController', () => {
   const mockTrends: ConversationTrendsDto = {
     topIntents: [],
     topTopics: [],
-    engagementTrend: [],
+    _engagementTrend: [],
     commonActions: [],
   };
 
@@ -149,12 +143,13 @@ describe('ConversationExplorerController', () => {
     mockService = {
       analyzeConversation: jest.fn().mockResolvedValue({
         ...mockConversationDto,
-        insights: mockInsightDtos.map(insight => ({
+        _insights: mockInsightDtos.map(insight => ({
           ...insight,
           conversationId: mockConversationId,
           brandId: mockBrandId,
           conversation: null,
-          engagementScore: 0.75,
+          _engagementScore: 0.75,
+          _analyzedAt: new Date(),
           createdAt: new Date(),
           updatedAt: new Date(),
           deletedAt: null,
@@ -162,12 +157,13 @@ describe('ConversationExplorerController', () => {
       }),
       getConversationById: jest.fn().mockResolvedValue({
         ...mockConversationDto,
-        insights: mockInsightDtos.map(insight => ({
+        _insights: mockInsightDtos.map(insight => ({
           ...insight,
           conversationId: mockConversationId,
           brandId: mockBrandId,
           conversation: null,
-          engagementScore: 0.75,
+          _engagementScore: 0.75,
+          _analyzedAt: new Date(),
           createdAt: new Date(),
           updatedAt: new Date(),
           deletedAt: null,

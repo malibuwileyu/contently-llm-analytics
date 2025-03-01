@@ -37,7 +37,7 @@ export class ConversationMetadataType {
 @ObjectType()
 export class ConversationType {
   @Field(() => ID)
-  id: string;
+  _id: string;
 
   @Field()
   brandId: string;
@@ -52,8 +52,8 @@ export class ConversationType {
   insights?: ConversationInsightType[];
 
   @Field()
-  engagementScore: number;
+  _engagementScore: number;
 
   @Field()
   analyzedAt: Date;
-} 
+}

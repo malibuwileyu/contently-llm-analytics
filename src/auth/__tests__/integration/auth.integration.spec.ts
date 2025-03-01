@@ -21,6 +21,8 @@ import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '../../guards/auth.guard';
 import { JwtService } from '../../services/jwt.service';
 import { Controller, Get, UseGuards } from '@nestjs/common';
+import 'reflect-metadata';
+import { Roles } from '../../decorators/roles.decorator';
 
 // Add a type for the request object
 type SuperTestRequest = request.SuperTest<request.Test>;
@@ -48,9 +50,9 @@ describe('Auth Integration', () => {
   let app: INestApplication;
   let httpServer: any;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let _authService: AuthService;
+  let authService: AuthService;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let _jwtService: JwtService;
+  let jwtService: JwtService;
   let testRequest: SuperTestRequest;
   let mockJwtAuthGuard: any;
   let mockRolesGuard: any;
@@ -127,7 +129,42 @@ describe('Auth Integration', () => {
         if (context.switchToHttp) {
           const req = context.switchToHttp().getRequest();
           if (req) {
-            req.user = testUser;
+            const authHeader = req.headers.authorization;
+            if (!authHeader) {
+              return false;
+            }
+
+            const [type, token] = authHeader.split(' ');
+            if (type !== 'Bearer' || !token) {
+              return false;
+            }
+
+            try {
+              // Set the user based on the token
+              if (
+                token === 'test-token' ||
+                token.includes('admin') ||
+                token.includes('permission')
+              ) {
+                req.user = token.includes('admin')
+                  ? { ...testUser, roles: [Role.ADMIN] }
+                  : token.includes('permission')
+                    ? { ...testUser, permissions: [Permission.MANAGE_SYSTEM] }
+                    : testUser;
+                return true;
+              }
+
+              if (
+                token === 'Invalid-token-format' ||
+                token === 'expired-token'
+              ) {
+                return false;
+              }
+
+              return true;
+            } catch (error) {
+              return false;
+            }
           }
         }
         return true;
@@ -136,23 +173,40 @@ describe('Auth Integration', () => {
 
     mockRolesGuard = {
       canActivate: jest.fn().mockImplementation((context: ExecutionContext) => {
-        // For tests that should fail, return false based on the URL
         if (context.switchToHttp) {
           const req = context.switchToHttp().getRequest();
-          if (req && req.url) {
-            if (
-              req.url.includes('admin') &&
-              !req.headers.authorization.includes('admin')
-            ) {
-              return false;
+          if (req && req.user) {
+            // Get the required roles from the handler metadata
+            const handler = context.getHandler();
+            const requiredRoles = Reflect.getMetadata('roles', handler);
+
+            if (requiredRoles) {
+              // Check if the user has the required roles
+              const hasRole =
+                req.user.roles &&
+                requiredRoles.some((role: Role) =>
+                  req.user.roles.includes(role),
+                );
+
+              if (!hasRole) {
+                return false;
+              }
             }
-            if (
-              req.url.includes('settings') &&
-              !req.headers.authorization.includes('permission')
-            ) {
-              return false;
+
+            // For the settings route, check for MANAGE_SYSTEM permission
+            if (req.url && req.url.includes('settings')) {
+              const hasPermission =
+                req.user.permissions &&
+                req.user.permissions.includes(Permission.MANAGE_SYSTEM);
+
+              if (!hasPermission) {
+                return false;
+              }
             }
+
+            return true;
           }
+          return false;
         }
         return true;
       }),
@@ -266,8 +320,8 @@ describe('Auth Integration', () => {
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
 
-    _authService = moduleFixture.get<AuthService>(AuthService);
-    _jwtService = moduleFixture.get<JwtService>(JwtService);
+    authService = moduleFixture.get<AuthService>(AuthService);
+    jwtService = moduleFixture.get<JwtService>(JwtService);
     httpServer = app.getHttpServer();
     testRequest = request(httpServer);
   });

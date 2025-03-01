@@ -25,4 +25,4 @@ export class ConversationInsightType {
 
   @Field()
   updatedAt: Date;
-} 
+}

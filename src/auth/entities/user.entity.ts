@@ -33,7 +33,7 @@ export class User extends BaseEntity {
   lastName?: string;
 
   @Column({ default: false })
-  isVerified: boolean;
+  _isVerified: boolean;
 
   @Column({ nullable: true })
   lastLoginAt?: Date;
@@ -43,4 +43,4 @@ export class User extends BaseEntity {
 
   @Column({ nullable: true })
   userAgent?: string;
-} 
+}

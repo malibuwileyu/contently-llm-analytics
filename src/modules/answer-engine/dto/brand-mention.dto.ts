@@ -124,4 +124,4 @@ export class BrandHealthInput {
   @Expose()
   @Type(() => Date)
   endDate: Date;
-} 
+}

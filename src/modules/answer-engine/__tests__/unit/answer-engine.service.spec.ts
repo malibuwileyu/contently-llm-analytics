@@ -30,7 +30,7 @@ describe('AnswerEngineService', () => {
     // Create mocks
     brandMentionRepository = {
       save: jest.fn(),
-      findOne: jest.fn(),
+      _findOne: jest.fn(),
       find: jest.fn(),
       findByBrandId: jest.fn(),
       findWithCitations: jest.fn(),
@@ -92,7 +92,7 @@ describe('AnswerEngineService', () => {
         content: dto.content,
         sentiment: sentiment.score,
         magnitude: sentiment.magnitude,
-        context: dto.context,
+        context: {},
         mentionedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),

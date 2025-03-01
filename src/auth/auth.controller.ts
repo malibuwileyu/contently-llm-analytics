@@ -24,7 +24,7 @@ import { AuthService } from './auth.service';
 export class AuthController {
   constructor(
     private readonly supabaseService: SupabaseService,
-    private readonly configService: ConfigService,
+    private readonly _configService: ConfigService,
     private readonly authService: AuthService,
   ) {}
 
@@ -51,7 +51,7 @@ export class AuthController {
     );
 
     if (error) {
-      throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
+      throw new HttpException(error.message, HttpStatus._UNAUTHORIZED);
     }
 
     return data;
@@ -63,7 +63,7 @@ export class AuthController {
     const { error } = await this.supabaseService.signOut();
 
     if (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, HttpStatus._INTERNAL_SERVER_ERROR);
     }
 
     return { message: 'Signed out successfully' };
@@ -95,8 +95,8 @@ export class AuthController {
 
     const token = await this.authService.generateToken(user as User);
     res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      _httpOnly: true,
+      _secure: process.env.NODE_ENV === 'production',
     });
 
     res.redirect('/');

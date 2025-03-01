@@ -1,5 +1,11 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { IsString, IsArray, IsObject, ValidateNested, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsArray,
+  IsObject,
+  ValidateNested,
+  IsOptional,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 /**
@@ -51,7 +57,7 @@ export class AnalyzeConversationInput {
 
   @Field(() => [MessageInput])
   @IsArray()
-  @ValidateNested({ each: true })
+  @ValidateNested({ _each: true })
   @Type(() => MessageInput)
   messages: MessageInput[];
 
@@ -61,4 +67,4 @@ export class AnalyzeConversationInput {
   @ValidateNested()
   @Type(() => ConversationMetadataInput)
   metadata?: ConversationMetadataInput;
-} 
+}

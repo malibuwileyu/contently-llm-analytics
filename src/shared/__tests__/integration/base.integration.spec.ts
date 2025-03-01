@@ -10,7 +10,7 @@ import { NotFoundException } from '@nestjs/common';
 // Create a test entity class
 class TestEntity extends BaseEntity {
   name: string;
-  description: string;
+  _description: string;
 }
 
 // Create a test service class
@@ -26,7 +26,7 @@ const createTestEntity = (
 ): Partial<TestEntity> => ({
   id: 'test-id',
   name: 'Test Name',
-  description: 'Test Description',
+  _description: 'Test Description',
   createdAt: new Date(),
   updatedAt: new Date(),
   deletedAt: null,
@@ -82,7 +82,7 @@ describe('Base Service Tests', () => {
       expect(entity).toBeDefined();
       expect(entity.id).toBeDefined();
       expect(entity.name).toBe(testData.name);
-      expect(entity.description).toBe(testData.description);
+      expect(entity._description).toBe(testData._description);
 
       const found = await service.findById(entity.id);
       expect(found).toEqual(entity);
@@ -93,7 +93,7 @@ describe('Base Service Tests', () => {
       const entity = createTestEntity() as TestEntity;
       const updateData = createTestEntity({
         name: 'Updated Name',
-        description: 'Updated Description',
+        _description: 'Updated Description',
       });
       const updatedEntity = {
         ...entity,
@@ -104,7 +104,7 @@ describe('Base Service Tests', () => {
       repository.update!.mockResolvedValue({
         affected: 1,
         raw: [],
-        generatedMaps: [],
+        _generatedMaps: [],
       });
       repository.findOne!.mockResolvedValue(updatedEntity);
 
@@ -113,7 +113,7 @@ describe('Base Service Tests', () => {
 
       // Assert
       expect(updated.name).toBe(updateData.name);
-      expect(updated.description).toBe(updateData.description);
+      expect(updated._description).toBe(updateData._description);
     });
 
     it('should delete an entity', async () => {

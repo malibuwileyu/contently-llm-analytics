@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import {
   ConfigModule,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ConfigService,
+  _ConfigService,
 } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -52,12 +52,12 @@ describe('Answer Engine E2E', () => {
     {
       source: 'https://example.com/review1',
       text: 'Great product',
-      metadata: { page: 1 },
+      _metadata: { page: 1 },
     },
     {
       source: 'https://academic.edu/paper',
       text: 'Scientific analysis',
-      metadata: { section: 'Results' },
+      _metadata: { section: 'Results' },
     },
   ];
 
@@ -76,7 +76,7 @@ describe('Answer Engine E2E', () => {
           // Add test-specific configuration
           load: [
             () => ({
-              features: {
+              _features: {
                 answerEngine: {
                   enabled: true,
                 },
@@ -103,8 +103,8 @@ describe('Answer Engine E2E', () => {
           useValue: {
             analyzeSentiment: jest.fn().mockResolvedValue({
               score: 0.8,
-              magnitude: 0.6,
-              aspects: [
+              _magnitude: 0.6,
+              _aspects: [
                 { topic: 'product', score: 0.9 },
                 { topic: 'performance', score: 0.7 },
               ],
@@ -115,14 +115,14 @@ describe('Answer Engine E2E', () => {
           provide: 'MetricsService',
           useValue: {
             recordAnalysisDuration: jest.fn(),
-            incrementErrorCount: jest.fn(),
+            _incrementErrorCount: jest.fn(),
           },
         },
         {
           provide: 'PUB_SUB',
           useValue: {
             publish: jest.fn(),
-            asyncIterator: jest.fn(),
+            _asyncIterator: jest.fn(),
           },
         },
       ],
@@ -164,7 +164,7 @@ describe('Answer Engine E2E', () => {
       // Create a feature context with test data
       const context: FeatureContext = {
         brandId: testBrandId,
-        metadata: {
+        _metadata: {
           content: testContent,
           context: {
             query: 'product review',
@@ -239,7 +239,7 @@ describe('Answer Engine E2E', () => {
       const contexts = [
         {
           brandId: testBrandId,
-          metadata: {
+          _metadata: {
             content: 'This is a positive review. The product is excellent!',
             context: {
               query: 'review 1',
@@ -253,7 +253,7 @@ describe('Answer Engine E2E', () => {
         },
         {
           brandId: testBrandId,
-          metadata: {
+          _metadata: {
             content: 'This is a neutral review. The product works as expected.',
             context: {
               query: 'review 2',
@@ -267,7 +267,7 @@ describe('Answer Engine E2E', () => {
         },
         {
           brandId: testBrandId,
-          metadata: {
+          _metadata: {
             content:
               'This is a negative review. The product did not meet expectations.',
             context: {
@@ -305,10 +305,10 @@ describe('Answer Engine E2E', () => {
     });
 
     it('should handle errors gracefully', async () => {
-      // Create an invalid context (missing required fields)
+      // Create an invalid context (missing required _fields)
       const invalidContext: FeatureContext = {
         brandId: testBrandId,
-        metadata: {
+        _metadata: {
           // Missing content field
           context: {
             query: 'invalid query',
@@ -328,7 +328,7 @@ describe('Answer Engine E2E', () => {
       expect(result.error).toBeDefined();
 
       if (result.error) {
-        expect(result.error.code).toBe('ANSWER_ENGINE_ERROR');
+        expect(result.error._code).toBe('ANSWER_ENGINE_ERROR');
       } else {
         fail('Expected result.error to be defined');
       }
@@ -340,7 +340,7 @@ describe('Answer Engine E2E', () => {
       // Create multiple contexts
       const contexts = Array.from({ length: 10 }, (_, i) => ({
         brandId: testBrandId,
-        metadata: {
+        _metadata: {
           content: `Test content ${i}. This is a sample review.`,
           context: {
             query: `query ${i}`,
@@ -375,7 +375,7 @@ describe('Answer Engine E2E', () => {
         `Processed 10 mentions in ${duration}ms (${duration / 10}ms per mention)`,
       );
 
-      // Ensure processing time is reasonable (adjust threshold as needed)
+      // Ensure processing time is reasonable (adjust threshold as _needed)
       expect(duration).toBeLessThan(10000); // Less than 10 seconds for 10 mentions
     });
   });

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthorityCalculatorService } from '../../services/authority-calculator.service';
-import { CacheService } from '../../../../cache/cache.service';
+import { CacheService } from '../../../../auth/cache/cache.service';
 
 describe('AuthorityCalculatorService', () => {
   let service: AuthorityCalculatorService;
@@ -22,7 +22,9 @@ describe('AuthorityCalculatorService', () => {
       ],
     }).compile();
 
-    service = module.get<AuthorityCalculatorService>(AuthorityCalculatorService);
+    service = module.get<AuthorityCalculatorService>(
+      AuthorityCalculatorService,
+    );
   });
 
   it('should be defined', () => {
@@ -42,20 +44,22 @@ describe('AuthorityCalculatorService', () => {
       // Assert
       expect(result).toBe(expectedScore);
       expect(cacheService.getOrSet).toHaveBeenCalledWith(
-        expect.stringContaining('authority:'),
+        expect.any(String),
         expect.any(Function),
-        86400
+        86400,
       );
     });
 
     it('should calculate authority score for educational domains', async () => {
       // Arrange
       const source = 'https://stanford.edu/research/paper';
-      
+
       // Mock cache miss and calculate score
-      (cacheService.getOrSet as jest.Mock).mockImplementation(async (key, factory) => {
-        return factory();
-      });
+      (cacheService.getOrSet as jest.Mock).mockImplementation(
+        async (key, factory) => {
+          return factory();
+        },
+      );
 
       // Act
       const result = await service.calculateAuthority(source);
@@ -69,11 +73,13 @@ describe('AuthorityCalculatorService', () => {
     it('should calculate authority score for government domains', async () => {
       // Arrange
       const source = 'https://nih.gov/research';
-      
+
       // Mock cache miss and calculate score
-      (cacheService.getOrSet as jest.Mock).mockImplementation(async (key, factory) => {
-        return factory();
-      });
+      (cacheService.getOrSet as jest.Mock).mockImplementation(
+        async (key, factory) => {
+          return factory();
+        },
+      );
 
       // Act
       const result = await service.calculateAuthority(source);
@@ -87,11 +93,13 @@ describe('AuthorityCalculatorService', () => {
     it('should calculate authority score for commercial domains', async () => {
       // Arrange
       const source = 'https://example.com/blog';
-      
+
       // Mock cache miss and calculate score
-      (cacheService.getOrSet as jest.Mock).mockImplementation(async (key, factory) => {
-        return factory();
-      });
+      (cacheService.getOrSet as jest.Mock).mockImplementation(
+        async (key, factory) => {
+          return factory();
+        },
+      );
 
       // Act
       const result = await service.calculateAuthority(source);
@@ -105,11 +113,13 @@ describe('AuthorityCalculatorService', () => {
     it('should handle invalid URLs', async () => {
       // Arrange
       const source = 'not-a-valid-url';
-      
+
       // Mock cache miss and calculate score
-      (cacheService.getOrSet as jest.Mock).mockImplementation(async (key, factory) => {
-        return factory();
-      });
+      (cacheService.getOrSet as jest.Mock).mockImplementation(
+        async (key, factory) => {
+          return factory();
+        },
+      );
 
       // Act
       const result = await service.calculateAuthority(source);
@@ -120,4 +130,4 @@ describe('AuthorityCalculatorService', () => {
       expect(cacheService.getOrSet).toHaveBeenCalled();
     });
   });
-}); 
+});

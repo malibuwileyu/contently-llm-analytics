@@ -25,7 +25,7 @@ import * as redisStore from 'cache-manager-redis-store';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         store: redisStore,
-        host: configService.get('REDIS_HOST'),
+        _host: configService.get('REDIS_HOST'),
         port: configService.get('REDIS_PORT'),
         ttl: 60,
       }),
@@ -47,8 +47,6 @@ import * as redisStore from 'cache-manager-redis-store';
     HealthSchedulerService,
     SupabaseHealthIndicator,
   ],
-  exports: [
-    HealthSchedulerService,
-  ],
+  exports: [HealthSchedulerService],
 })
 export class HealthModule {}

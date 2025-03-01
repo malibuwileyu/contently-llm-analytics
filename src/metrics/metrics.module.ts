@@ -15,10 +15,10 @@ import { HttpMetricsInterceptor } from './interceptors/http-metrics.interceptor'
 export interface MetricsModuleOptions {
   /** Whether to enable metrics collection */
   isGlobal?: boolean;
-  
+
   /** Whether to register the metrics controller */
   registerController?: boolean;
-  
+
   /** Metrics configuration */
   config?: Partial<MetricsConfig>;
 }
@@ -65,13 +65,12 @@ export class MetricsModule {
       HttpMetricsInterceptor,
     ];
 
-    const controllers = options.registerController !== false ? [MetricsController] : [];
+    const controllers =
+      options.registerController !== false ? [MetricsController] : [];
 
-    const imports = [
-      TypeOrmModule.forFeature([]),
-    ];
+    const imports = [TypeOrmModule.forFeature([])];
 
-    // If controller is registered, add route configuration
+    // If controller is _registered, add route configuration
     if (options.registerController !== false) {
       imports.push(
         RouterModule.register([
@@ -89,7 +88,7 @@ export class MetricsModule {
       providers,
       exports,
       controllers,
-      global: options.isGlobal === true,
+      _global: options.isGlobal === true,
     };
   }
-} 
+}

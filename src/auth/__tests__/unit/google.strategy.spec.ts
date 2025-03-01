@@ -24,8 +24,6 @@ describe('GoogleStrategy', () => {
                   return 'mock-client-secret';
                 case 'auth.google.callbackUrl':
                   return 'mock-callback-url';
-                default:
-                  return undefined;
               }
             }),
           },
@@ -40,7 +38,9 @@ describe('GoogleStrategy', () => {
   describe('constructor', () => {
     it('should set up strategy with correct config', () => {
       expect(configService.get).toHaveBeenCalledWith('auth.google.clientId');
-      expect(configService.get).toHaveBeenCalledWith('auth.google.clientSecret');
+      expect(configService.get).toHaveBeenCalledWith(
+        'auth.google.clientSecret',
+      );
       expect(configService.get).toHaveBeenCalledWith('auth.google.callbackUrl');
     });
   });
@@ -49,7 +49,12 @@ describe('GoogleStrategy', () => {
     const mockProfile: Partial<Profile> = {
       id: 'test-id',
       displayName: 'Test User',
-      emails: [{ value: 'test@example.com', verified: true }],
+      emails: [
+        {
+          value: 'test@example.com',
+          verified: true,
+        },
+      ],
       name: {
         givenName: 'Test',
         familyName: 'User',
@@ -70,20 +75,23 @@ describe('GoogleStrategy', () => {
         done,
       );
 
-      expect(done).toHaveBeenCalledWith(null, expect.objectContaining({
-        id: mockProfile.id,
-        email: mockProfile.emails?.[0].value,
-        roles: [Role.USER],
-        permissions: [Permission.READ_CONTENT],
-        googleProfile: {
-          displayName: mockProfile.displayName,
-          firstName: mockProfile.name?.givenName,
-          lastName: mockProfile.name?.familyName,
-          picture: mockProfile.photos?.[0].value,
-          accessToken: mockAccessToken,
-          refreshToken: mockRefreshToken,
-        },
-      }));
+      expect(done).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({
+          id: mockProfile.id,
+          email: mockProfile.emails?.[0].value,
+          roles: [Role.USER],
+          permissions: [Permission.READ_CONTENT],
+          googleProfile: {
+            displayName: mockProfile.displayName,
+            firstName: mockProfile.name?.givenName,
+            lastName: mockProfile.name?.familyName,
+            picture: mockProfile.photos?.[0].value,
+            accessToken: mockAccessToken,
+            refreshToken: mockRefreshToken,
+          },
+        }),
+      );
     });
 
     it('should handle missing profile information', async () => {
@@ -99,11 +107,14 @@ describe('GoogleStrategy', () => {
         done,
       );
 
-      expect(done).toHaveBeenCalledWith(null, expect.objectContaining({
-        id: minimalProfile.id,
-        roles: [Role.USER],
-        permissions: [Permission.READ_CONTENT],
-      }));
+      expect(done).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({
+          id: minimalProfile.id,
+          roles: [Role.USER],
+          permissions: [Permission.READ_CONTENT],
+        }),
+      );
     });
 
     it('should handle validation errors', async () => {
@@ -125,4 +136,4 @@ describe('GoogleStrategy', () => {
       );
     });
   });
-}); 
+});

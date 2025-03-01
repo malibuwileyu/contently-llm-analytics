@@ -103,6 +103,7 @@ describe('ConversationExplorerService', () => {
         .fn()
         .mockReturnValue({ save: jest.fn().mockResolvedValue({}) }),
       findByConversationId: jest.fn().mockResolvedValue([]),
+      findByBrandId: jest.fn().mockResolvedValue([]),
       save: jest.fn().mockResolvedValue({}),
     };
 

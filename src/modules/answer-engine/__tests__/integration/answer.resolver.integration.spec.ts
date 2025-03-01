@@ -5,7 +5,10 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { AnswerResolver } from '../../graphql/answer.resolver';
 import { AnswerEngineService } from '../../services/answer-engine.service';
 import { BrandMention } from '../../entities/brand-mention.entity';
-import { BrandHealth, SentimentTrend } from '../../interfaces/sentiment-analysis.interface';
+import {
+  BrandHealth,
+  SentimentTrend,
+} from '../../interfaces/sentiment-analysis.interface';
 import { AuthGuard } from '../../../../auth/guards/auth.guard';
 import * as request from 'supertest';
 
@@ -71,7 +74,9 @@ describe('AnswerResolver Integration', () => {
         mentionCount: 2,
       };
 
-      (answerEngineService.getBrandHealth as jest.Mock).mockResolvedValue(health);
+      (answerEngineService.getBrandHealth as jest.Mock).mockResolvedValue(
+        health,
+      );
 
       // Act & Assert
       const query = `
@@ -93,8 +98,12 @@ describe('AnswerResolver Integration', () => {
         .expect(200);
 
       expect(response.body.data.getBrandHealth).toBeDefined();
-      expect(response.body.data.getBrandHealth.overallSentiment).toBe(health.overallSentiment);
-      expect(response.body.data.getBrandHealth.mentionCount).toBe(health.mentionCount);
+      expect(response.body.data.getBrandHealth.overallSentiment).toBe(
+        health.overallSentiment,
+      );
+      expect(response.body.data.getBrandHealth.mentionCount).toBe(
+        health.mentionCount,
+      );
       expect(answerEngineService.getBrandHealth).toHaveBeenCalledWith(brandId);
     });
   });
@@ -109,6 +118,8 @@ describe('AnswerResolver Integration', () => {
         brandId,
         content,
         sentiment: 0.8,
+        magnitude: 0.5,
+        mentionedAt: new Date(),
         context: {
           query: 'test query',
           response: 'test response',
@@ -116,9 +127,13 @@ describe('AnswerResolver Integration', () => {
         } as any,
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as BrandMention;
+        deletedAt: null as unknown as Date,
+        citations: [],
+      };
 
-      (answerEngineService.analyzeMention as jest.Mock).mockResolvedValue(mention);
+      (answerEngineService.analyzeMention as jest.Mock).mockResolvedValue(
+        mention,
+      );
 
       // Act & Assert
       const mutation = `
@@ -153,4 +168,4 @@ describe('AnswerResolver Integration', () => {
       expect(answerEngineService.analyzeMention).toHaveBeenCalled();
     });
   });
-}); 
+});

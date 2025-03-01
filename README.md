@@ -1,3 +1,5 @@
+# Contently LLM Analytics
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
@@ -24,7 +26,7 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Contently LLM Analytics is a platform for analyzing customer reviews and conversations using AI. It leverages large language models to extract insights, sentiment, topics, and trends from customer feedback.
 
 ## Project setup
 
@@ -45,18 +47,70 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Run tests
+## Testing Infrastructure
+
+The project includes a comprehensive testing infrastructure with unit tests, integration tests, and end-to-end (E2E) tests.
+
+### Test Types
+
+1. **Unit Tests**: Test individual components in isolation
+2. **Integration Tests**: Test interactions between components
+3. **End-to-End Tests**: Test complete workflows from start to finish
+
+### Running Tests
 
 ```bash
-# unit tests
+# Run all tests (unit, integration, and E2E)
+$ ./scripts/run-all-tests.ps1
+
+# Run all tests with detailed output to a file
+$ ./scripts/run-all-tests-with-output.ps1
+
+# Run unit tests only
 $ npm run test
 
-# e2e tests
+# Run integration tests only
+$ npm run test:integration
+
+# Run E2E tests only
 $ npm run test:e2e
 
-# test coverage
+# Run AI analytics workflow E2E tests only
+$ ./scripts/run-ai-workflow-tests.ps1
+
+# Run E2E tests with output to a file
+$ ./scripts/run-tests-with-output.ps1
+
+# Test coverage
 $ npm run test:cov
 ```
+
+### Test Output Files
+
+When using the scripts that save output to files, the results are stored in the `test-results` directory with timestamps:
+
+- `all-test-results_YYYY-MM-DD_HH-MM-SS.txt`: Results from running all tests
+- `e2e-test-results_YYYY-MM-DD_HH-MM-SS.txt`: Results from running E2E tests
+- `ai-workflow-test-results_YYYY-MM-DD_HH-MM-SS.txt`: Results from running AI workflow tests
+
+### Test Structure
+
+- **Unit Tests**: Located in `__tests__/unit` directories within each module
+- **Integration Tests**: Located in `__tests__/integration` directories within each module
+- **E2E Tests**: Located in `test/e2e` directory at the project root
+
+### Key Test Files
+
+- **AI Provider Tests**: `src/modules/ai-provider/__tests__/`
+- **Answer Engine Tests**: `src/modules/answer-engine/__tests__/`
+- **Conversation Explorer Tests**: `src/modules/conversation-explorer/tests/`
+- **E2E Workflow Tests**: `test/e2e/ai-analytics-workflow.e2e-spec.ts`
+
+### E2E Testing
+
+The E2E tests validate complete workflows from AI output ingestion through the answer engine and conversation explorer. These tests ensure that the entire analytics pipeline functions correctly.
+
+For more information about the E2E tests, see the [E2E Test README](test/e2e/README.md).
 
 ## Deployment
 
@@ -97,3 +151,130 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+# AI Provider Module Tests
+
+This directory contains tests for the AI Provider module. The tests are designed to validate the functionality of the AI Provider module with minimal configuration.
+
+## Test Structure
+
+The tests are organized into the following categories:
+
+### Mock Tests
+
+Mock tests use mock implementations of the AI Provider services and do not require actual API keys. These tests validate the basic functionality of the module without making actual API calls.
+
+- `services/ai-provider-factory.mock.spec.ts`: Tests the AI Provider Factory service with mock providers.
+- `integration/ai-provider-mock-integration.spec.ts`: Tests the integration of the AI Provider module with mock implementations.
+
+### Integration Tests
+
+Integration tests use real API calls to validate the functionality of the module. These tests require an OpenAI API key to run.
+
+- `integration/ai-provider-real-integration.spec.ts`: Tests the integration of the AI Provider module with real API calls.
+
+## Environment Variables
+
+The following environment variables are used by the tests:
+
+- `OPENAI_API_KEY`: Required for integration tests. Your OpenAI API key.
+- `OPENAI_ORGANIZATION_ID`: Optional. Your OpenAI organization ID.
+- `OPENAI_DEFAULT_MODEL`: Optional. The default model to use for OpenAI. Defaults to `gpt-3.5-turbo`.
+- `OPENAI_DEFAULT_TEMPERATURE`: Optional. The default temperature to use for OpenAI. Defaults to `0.7`.
+- `OPENAI_TIMEOUT_MS`: Optional. The timeout in milliseconds for OpenAI requests. Defaults to `30000`.
+- `OPENAI_MAX_RETRIES`: Optional. The maximum number of retries for OpenAI requests. Defaults to `3`.
+
+## Running Tests
+
+### Using PowerShell Scripts
+
+The easiest way to run the tests is to use the provided PowerShell scripts:
+
+- `run-integration-tests.ps1`: Runs all integration tests.
+- `run-e2e-tests.ps1`: Runs all E2E tests.
+- `run-all-tests.ps1`: Runs all tests (unit, integration, and E2E).
+
+```powershell
+# Run from the project root
+powershell -ExecutionPolicy Bypass -File .\scripts\run-integration-tests.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\run-e2e-tests.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\run-all-tests.ps1
+```
+
+### Running Tests Manually
+
+You can also run the tests manually using Jest:
+
+```powershell
+# Run all tests
+npx jest
+
+# Run mock tests only
+npx jest "src/modules/ai-provider/__tests__/services/ai-provider-factory.mock.spec.ts"
+npx jest "src/modules/ai-provider/__tests__/integration/ai-provider-mock-integration.spec.ts"
+
+# Run integration tests only
+npx jest "src/modules/ai-provider/__tests__/integration/ai-provider-real-integration.spec.ts"
+
+# Run E2E tests only
+npx jest --config=jest-e2e.config.js
+```
+
+## Test Files
+
+- `services/ai-provider-factory.mock.spec.ts`: Tests the AI Provider Factory service with mock providers.
+- `integration/ai-provider-mock-integration.spec.ts`: Tests the integration of the AI Provider module with mock implementations.
+- `integration/ai-provider-real-integration.spec.ts`: Tests the integration of the AI Provider module with real API calls.
+- `run-integration-tests.ps1`: PowerShell script to run integration tests.
+- `.env.test.example`: Example environment variables for testing.
+
+## Adding More Provider Tests
+
+To add tests for additional providers like Perplexity and SerpAPI, follow these steps:
+
+1. Create mock implementations of the providers in the mock integration test file.
+2. Add test cases for the new providers in the real integration test file.
+3. Update the environment variables in `.env.test` to include the new provider's API keys.
+
+Example structure for Perplexity provider:
+
+```typescript
+// Mock implementation
+if (context.type === 'perplexity') {
+  if (context.operation === OperationType.CHAT) {
+    return {
+      data: {
+        text: "Perplexity response...",
+        choices: ["Perplexity response..."]
+      },
+      metadata: {
+        provider: 'Perplexity',
+        model: 'llama-3-8b-instruct',
+        timestamp: new Date(),
+        latencyMs: 300,
+        usage: {
+          promptTokens: 30,
+          completionTokens: 180,
+          totalTokens: 210
+        }
+      }
+    };
+  }
+}
+```
+
+## Test Coverage
+
+The tests cover the following aspects of the AI Provider module:
+
+- Provider initialization and configuration
+- Provider capabilities and availability
+- Provider operations (chat, complete, embed, search)
+- Error handling and fallback mechanisms
+- Integration with other modules (Answer Engine, Conversation Explorer)
+
+## Mocking Strategy
+
+For tests that do not require actual API calls, we use mock implementations of the AI Provider services. These mocks simulate the behavior of the real services without making actual API calls.
+
+The `MockAIProvider` class implements the `AIProvider` interface and provides mock implementations of the provider methods. This allows us to test the module's functionality without requiring actual API keys.

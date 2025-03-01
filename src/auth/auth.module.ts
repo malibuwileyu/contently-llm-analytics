@@ -16,12 +16,12 @@ import { GoogleAuthGuard } from './guards/google-auth.guard';
     forwardRef(() => SupabaseModule),
     PassportModule.register({
       session: false,
-      defaultStrategy: 'google',
+      _defaultStrategy: 'google',
     }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('auth.supabase.jwtSecret'),
+        _secret: configService.get<string>('auth.supabase.jwtSecret'),
         signOptions: {
           expiresIn: configService.get<number>('auth.session.maxAge'),
         },

@@ -20,12 +20,7 @@ import { PrometheusMetricsService } from '../metrics/services/prometheus-metrics
 import { ConfigService } from '@nestjs/config';
 import { SupabaseHealthIndicator } from './indicators/supabase.health';
 import { Controller, Get, Param } from '@nestjs/common';
-
-interface HealthHistory {
-  timestamp: string;
-  status: string;
-  details: Record<string, unknown>;
-}
+import { HealthHistoryEntry } from './services/health-scheduler.service';
 
 @Controller('health')
 export class HealthController {
@@ -43,9 +38,9 @@ export class HealthController {
     private healthScheduler: HealthSchedulerService,
     private metricsService: PrometheusMetricsService,
     private configService: ConfigService,
-    private supabaseHealthIndicator: SupabaseHealthIndicator,
+    private _supabaseHealthIndicator: SupabaseHealthIndicator,
   ) {
-    // When running in Docker, use localhost for self-checks since we're checking internally
+    // When running in _Docker, use localhost for self-checks since we're checking internally
     const host = 'localhost';
     const port = this.configService.get<number>('app.port', 3000);
     this.selfUrl = `http://${host}:${port}/health`;
@@ -333,7 +328,7 @@ export class HealthController {
 
   @Get('history')
   @Public()
-  async getHealthHistory(): Promise<{ history: HealthHistory[] }> {
+  async getHealthHistory(): Promise<{ history: HealthHistoryEntry[] }> {
     return {
       history: await this.healthScheduler.getHealthHistory(),
     };

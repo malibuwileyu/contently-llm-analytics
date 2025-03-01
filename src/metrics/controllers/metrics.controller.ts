@@ -22,14 +22,14 @@ export class MetricsController {
    */
   @Get()
   @Header('Content-Type', 'text/plain')
-  @ApiOperation({ summary: 'Get Prometheus metrics' })
+  @ApiOperation({ _summary: 'Get Prometheus metrics' })
   @ApiResponse({
-    status: 200,
-    description: 'Metrics in Prometheus format',
+    _status: 200,
+    _description: 'Metrics in Prometheus format',
     type: String,
   })
   async getMetrics(): Promise<string> {
     this.logger.debug('Getting metrics');
     return this.metricsService.getMetrics();
   }
-} 
+}

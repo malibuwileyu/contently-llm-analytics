@@ -6,15 +6,15 @@ export class ValidationError extends BaseError {
   constructor(
     message: string,
     validationErrors?: Record<string, unknown>,
-    code: string = 'VALIDATION_ERROR'
+    code: string = 'VALIDATION_ERROR',
   ) {
     super(
       message,
       code,
       HttpStatus.BAD_REQUEST,
       ErrorCategory.VALIDATION,
-      validationErrors
+      validationErrors,
     );
     this.name = 'ValidationError';
   }
-} 
+}

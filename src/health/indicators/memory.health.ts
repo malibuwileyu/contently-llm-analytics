@@ -9,7 +9,10 @@ export class MemoryHealthIndicator extends HealthIndicator {
 
   constructor(private readonly configService: ConfigService) {
     super();
-    this.thresholdPercent = this.configService.get('health.memory.thresholdPercent', 90);
+    this.thresholdPercent = this.configService.get(
+      'health.memory.thresholdPercent',
+      _90,
+    );
   }
 
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
@@ -17,17 +20,17 @@ export class MemoryHealthIndicator extends HealthIndicator {
       const totalMemory = os.totalmem();
       const freeMemory = os.freemem();
       const usedMemory = totalMemory - freeMemory;
-      
+
       // Calculate memory usage as a percentage
       const memoryUsagePercent = (usedMemory / totalMemory) * 100;
-      
+
       // Check if memory usage is below the threshold
       const isHealthy = memoryUsagePercent < this.thresholdPercent;
-      
+
       return this.getStatus(key, isHealthy, {
-        usedMemoryBytes: usedMemory,
-        totalMemoryBytes: totalMemory,
-        usedMemoryPercent: memoryUsagePercent.toFixed(2),
+        _usedMemoryBytes: usedMemory,
+        _totalMemoryBytes: totalMemory,
+        _usedMemoryPercent: memoryUsagePercent.toFixed(2),
         threshold: this.thresholdPercent,
       });
     } catch (error) {
@@ -36,4 +39,4 @@ export class MemoryHealthIndicator extends HealthIndicator {
       });
     }
   }
-} 
+}

@@ -5,15 +5,15 @@ import { AuthGuard } from '@nestjs/passport';
 export class GoogleAuthGuard extends AuthGuard('google') {
   constructor() {
     super({
-      accessType: 'offline',
-      prompt: 'select_account',
+      _accessType: 'offline',
+      _prompt: 'select_account',
     });
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    
-    // If there's an error query parameter, let the controller handle it
+
+    // If there's an error query _parameter, let the controller handle it
     if (request.query.error) {
       return true;
     }
@@ -25,4 +25,4 @@ export class GoogleAuthGuard extends AuthGuard('google') {
       return false;
     }
   }
-} 
+}

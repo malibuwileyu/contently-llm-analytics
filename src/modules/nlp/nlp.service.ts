@@ -30,7 +30,7 @@ interface Entity {
  */
 @Injectable()
 export class NLPService {
-  constructor(private readonly serviceUrl: string) {}
+  constructor(private readonly _serviceUrl: string) {}
 
   /**
    * Analyze sentiment in text

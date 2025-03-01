@@ -71,8 +71,8 @@ describe('ConversationExplorerRunner', () => {
 
       // Assert
       expect(result).toBeDefined();
-      expect(result.intents).toHaveLength(1);
-      expect(result.topics).toHaveLength(1);
+      expect(result._intents).toHaveLength(1);
+      expect(result._topics).toHaveLength(1);
       expect(result.entities).toHaveLength(1);
       expect(runner.analyzeConversation).toHaveBeenCalledWith(input);
     });

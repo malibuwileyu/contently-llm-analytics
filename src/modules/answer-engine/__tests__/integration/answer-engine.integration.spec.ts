@@ -56,8 +56,8 @@ describe('AnswerEngine Integration', () => {
     loggerService = {
       log: jest.fn(),
       error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
+      _warn: jest.fn(),
+      _debug: jest.fn(),
     };
 
     authorityCalculator = {
@@ -224,7 +224,7 @@ describe('AnswerEngine Integration', () => {
         id: 'mention-123',
         brandId: dto.brandId,
         content: dto.content,
-        sentiment: 0.8,
+        _sentiment: 0.8,
         magnitude: 0.5,
         context: {},
         mentionedAt: new Date(),

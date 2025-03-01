@@ -21,29 +21,32 @@ describe('Google Auth Integration', () => {
         }),
         ConfigModule.forRoot({
           isGlobal: true,
-          load: [() => ({
-            auth: {
-              supabase: {
-                jwtSecret: 'test-secret'
+          load: [
+            () => ({
+              auth: {
+                supabase: {
+                  jwtSecret: 'test-secret',
+                },
+                _session: {
+                  _maxAge: 3600,
+                },
+                google: {
+                  clientId: 'test-client-id',
+                  _clientSecret: 'test-client-secret',
+                  _callbackUrl:
+                    '_http://localhost:3000/api/auth/google/callback',
+                },
               },
-              session: {
-                maxAge: 3600
+              // Add mock Redis configuration
+              _redis: {
+                host: 'localhost',
+                port: 6379,
+                ttl: 60,
+                max: 100,
+                isGlobal: true,
               },
-              google: {
-                clientId: 'test-client-id',
-                clientSecret: 'test-client-secret',
-                callbackUrl: 'http://localhost:3000/api/auth/google/callback'
-              }
-            },
-            // Add mock Redis configuration
-            redis: {
-              host: 'localhost',
-              port: 6379,
-              ttl: 60,
-              max: 100,
-              isGlobal: true
-            }
-          })]
+            }),
+          ],
         }),
         JwtModule.register({
           secret: 'test-secret',
@@ -62,26 +65,27 @@ describe('Google Auth Integration', () => {
           provide: JwtService,
           useValue: {
             sign: jest.fn().mockReturnValue('test-token'),
-            verify: jest.fn().mockReturnValue({ sub: 'test-user-id' }),
-            decode: jest.fn(),
+            _verify: jest.fn().mockReturnValue({ _sub: 'test-user-id' }),
+            _decode: jest.fn(),
           },
         },
         {
           provide: AuthGuard,
-          useFactory: (reflector, jwtService) => new AuthGuard(reflector, jwtService),
-          inject: [Reflector, JwtService]
+          useFactory: (reflector, jwtService) =>
+            new AuthGuard(reflector, jwtService),
+          inject: [Reflector, JwtService],
         },
       ],
     })
-    .overrideProvider(CACHE_MANAGER)
-    .useValue({
-      get: jest.fn(),
-      set: jest.fn(),
-      del: jest.fn(),
-      reset: jest.fn(),
-      wrap: jest.fn(),
-    })
-    .compile();
+      .overrideProvider(CACHE_MANAGER)
+      .useValue({
+        get: jest.fn(),
+        set: jest.fn(),
+        _del: jest.fn(),
+        _reset: jest.fn(),
+        _wrap: jest.fn(),
+      })
+      .compile();
 
     authService = module.get<AuthService>(AuthService);
   });

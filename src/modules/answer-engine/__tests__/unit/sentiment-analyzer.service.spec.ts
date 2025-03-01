@@ -2,7 +2,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SentimentAnalyzerService } from '../../services/sentiment-analyzer.service';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { CacheService } from '../../../../cache/cache.service';
+import { CacheService } from '../../../../auth/cache/cache.service';
 import { SentimentAnalysis } from '../../interfaces/sentiment-analysis.interface';
 
 // Define the NLPService interface
@@ -51,7 +51,7 @@ describe('SentimentAnalyzerService', () => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           _factory: () => Promise<any>,
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          _ttl?: number,
+          ttl?: number,
         ) => {
           return expectedResult;
         },
@@ -85,7 +85,7 @@ describe('SentimentAnalyzerService', () => {
           _key: string,
           factory: () => Promise<any>,
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          _ttl?: number,
+          ttl?: number,
         ) => {
           return factory();
         },
@@ -122,7 +122,7 @@ describe('SentimentAnalyzerService', () => {
           _key: string,
           factory: () => Promise<any>,
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          _ttl?: number,
+          ttl?: number,
         ) => {
           return factory();
         },
@@ -146,7 +146,7 @@ describe('SentimentAnalyzerService', () => {
           _key: string,
           factory: () => Promise<any>,
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          _ttl?: number,
+          ttl?: number,
         ) => {
           return factory();
         },
@@ -173,7 +173,7 @@ describe('SentimentAnalyzerService', () => {
           _key: string,
           factory: () => Promise<any>,
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          _ttl?: number,
+          ttl?: number,
         ) => {
           return factory();
         },
@@ -204,7 +204,7 @@ describe('SentimentAnalyzerService', () => {
           _key: string,
           factory: () => Promise<any>,
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          _ttl?: number,
+          ttl?: number,
         ) => {
           return factory();
         },

@@ -15,5 +15,5 @@ export enum Permission {
 
   // System permissions
   MANAGE_SYSTEM = 'manage:system',
-  VIEW_SYSTEM = 'view:system'
-} 
+  VIEW_SYSTEM = 'view:system',
+}

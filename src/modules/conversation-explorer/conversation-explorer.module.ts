@@ -71,7 +71,11 @@ interface CacheService {
     {
       provide: 'CacheService',
       useFactory: (cacheManager: Cache): CacheService => ({
-        getOrSet: async <T>(key: string, factory: () => Promise<T>, ttl = 900): Promise<T> => {
+        getOrSet: async <T>(
+          key: string,
+          factory: () => Promise<T>,
+          ttl = 900,
+        ): Promise<T> => {
           let data = await cacheManager.get<T>(key);
           if (!data) {
             data = await factory();
@@ -92,4 +96,4 @@ interface CacheService {
     TopicGapAnalyzerService,
   ],
 })
-export class ConversationExplorerModule {} 
+export class ConversationExplorerModule {}

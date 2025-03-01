@@ -68,33 +68,33 @@ export function createRepositoryMock<T extends ObjectLiteral>(): MockType<
 > {
   const queryBuilder = {
     where: jest.fn().mockReturnThis(),
-    andWhere: jest.fn().mockReturnThis(),
-    leftJoinAndSelect: jest.fn().mockReturnThis(),
-    innerJoinAndSelect: jest.fn().mockReturnThis(),
-    orderBy: jest.fn().mockReturnThis(),
-    addOrderBy: jest.fn().mockReturnThis(),
-    skip: jest.fn().mockReturnThis(),
-    take: jest.fn().mockReturnThis(),
+    _andWhere: jest.fn().mockReturnThis(),
+    _leftJoinAndSelect: jest.fn().mockReturnThis(),
+    _innerJoinAndSelect: jest.fn().mockReturnThis(),
+    _orderBy: jest.fn().mockReturnThis(),
+    _addOrderBy: jest.fn().mockReturnThis(),
+    _skip: jest.fn().mockReturnThis(),
+    _take: jest.fn().mockReturnThis(),
     getOne: jest.fn(),
     getMany: jest.fn(),
     execute: jest.fn(),
   } as MockQueryBuilder;
 
   const manager = {
-    transaction: jest.fn(cb => Promise.resolve(cb())),
+    _transaction: jest.fn(cb => Promise.resolve(cb())),
   } as unknown as EntityManager;
 
   return {
-    findOne: jest.fn(),
+    _findOne: jest.fn(),
     find: jest.fn(),
     create: jest.fn(),
-    save: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
+    _save: jest.fn(),
+    _update: jest.fn(),
+    _delete: jest.fn(),
     softDelete: jest.fn(),
-    restore: jest.fn(),
+    _restore: jest.fn(),
     count: jest.fn(),
-    createQueryBuilder: jest.fn(() => queryBuilder),
+    _createQueryBuilder: jest.fn(() => queryBuilder),
     manager,
   } as unknown as MockType<Repository<T>>;
 }

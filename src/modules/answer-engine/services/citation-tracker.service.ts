@@ -20,7 +20,7 @@ export class CitationTrackerService {
   constructor(
     @InjectRepository(Citation)
     private readonly citationRepo: Repository<Citation>,
-    private readonly authorityCalculator: AuthorityCalculatorService
+    private readonly authorityCalculator: AuthorityCalculatorService,
   ) {}
 
   /**
@@ -31,7 +31,7 @@ export class CitationTrackerService {
   async trackCitation(citation: CreateCitationDto): Promise<Citation> {
     // Calculate authority score for the citation source
     const authority = await this.authorityCalculator.calculateAuthority(
-      citation.source
+      citation.source,
     );
 
     // Create and save the citation
@@ -52,7 +52,9 @@ export class CitationTrackerService {
    * @param brandMentionId ID of the brand mention
    * @returns Array of citations
    */
-  async getCitationsByBrandMention(brandMentionId: string): Promise<Citation[]> {
+  async getCitationsByBrandMention(
+    brandMentionId: string,
+  ): Promise<Citation[]> {
     return this.citationRepo.find({
       where: { brandMention: { id: brandMentionId } },
       order: { authority: 'DESC' },
@@ -70,4 +72,4 @@ export class CitationTrackerService {
       take: limit,
     });
   }
-} 
+}

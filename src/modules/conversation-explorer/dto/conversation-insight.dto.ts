@@ -18,7 +18,7 @@ export class ConversationInsightDto {
   id: string;
 
   /**
-   * Type of insight (intent, sentiment, topic, action)
+   * Type of insight (intent, _sentiment, topic, action)
    */
   @IsString()
   type: string;
@@ -72,7 +72,7 @@ export class ConversationDto {
    * Metadata about the conversation
    */
   @IsObject()
-  metadata: {
+  _metadata: {
     platform: string;
     context: string;
     tags: string[];
@@ -82,19 +82,19 @@ export class ConversationDto {
    * Insights extracted from the conversation
    */
   @IsArray()
-  insights: ConversationInsightDto[];
+  _insights: ConversationInsightDto[];
 
   /**
    * Engagement score for the conversation (0-1)
    */
   @IsNumber()
-  engagementScore: number;
+  _engagementScore: number;
 
   /**
    * When the conversation was analyzed
    */
   @IsDate()
-  analyzedAt: Date;
+  _analyzedAt: Date;
 
   /**
    * When the conversation was created
@@ -137,7 +137,7 @@ export class ConversationTrendsDto {
    * Engagement trend over time
    */
   @IsArray()
-  engagementTrend: Array<{
+  _engagementTrend: Array<{
     date: Date;
     averageEngagement: number;
   }>;

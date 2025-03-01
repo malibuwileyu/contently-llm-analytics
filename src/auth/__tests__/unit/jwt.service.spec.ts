@@ -85,8 +85,6 @@ describe('JwtAuthService', () => {
                   return mockJwtSecret;
                 case 'auth.session.maxAge':
                   return mockSessionMaxAge;
-                default:
-                  return null;
               }
             }),
           },

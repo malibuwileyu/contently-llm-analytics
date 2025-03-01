@@ -2,7 +2,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  DeleteDateColumn
+  DeleteDateColumn,
 } from 'typeorm';
 import { BaseEntity as IBaseEntity } from '../interfaces/base.interface';
 
@@ -22,4 +22,4 @@ export abstract class BaseEntity implements IBaseEntity {
 
   @DeleteDateColumn()
   deletedAt?: Date;
-} 
+}

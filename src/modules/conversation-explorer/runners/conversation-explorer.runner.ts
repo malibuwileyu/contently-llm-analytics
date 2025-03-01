@@ -4,14 +4,20 @@ import { ConversationIndexerService } from '../services/conversation-indexer.ser
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { ConversationInsightRepository } from '../repositories/conversation-insight.repository';
 import { DataSource } from 'typeorm';
-import { AnalyzeConversationDto, TrendOptionsDto } from '../dto/analyze-conversation.dto';
+import {
+  AnalyzeConversationDto,
+  TrendOptionsDto,
+} from '../dto/analyze-conversation.dto';
 import { Logger } from '@nestjs/common';
 import { SearchService } from '../../search/search.service';
 import { MetricsService } from '../../metrics/metrics.service';
 import { CacheService } from '../../cache/cache.service';
 import { ConversationAnalysis } from '../types/conversation-analysis.type';
 import { ConversationTrends } from '../types/conversation-trends.type';
-import { ConversationInsight, InsightType } from '../entities/conversation-insight.entity';
+import {
+  ConversationInsight,
+  InsightType,
+} from '../entities/conversation-insight.entity';
 import { Entity } from '../types/conversation-analysis.type';
 import { Message } from '../types/message.type';
 
@@ -20,7 +26,7 @@ const INSIGHT_TYPE: Record<string, InsightType> = {
   INTENT: 'intent',
   SENTIMENT: 'sentiment',
   TOPIC: 'topic',
-  ACTION: 'action'
+  _ACTION: 'action',
 };
 
 // Define a custom type for entity since it's not in InsightType
@@ -65,14 +71,19 @@ interface AnalyzerCacheService {
 
 interface MetricsServiceInterface {
   trackEvent(eventName: string, properties: Record<string, unknown>): void;
-  trackTiming(category: string, variable: string, time: number, properties?: Record<string, unknown>): void;
+  trackTiming(
+    category: string,
+    variable: string,
+    time: number,
+    properties?: Record<string, unknown>,
+  ): void;
   recordAnalysisDuration(duration: number): void;
   incrementErrorCount(type: string): void;
 }
 
 /**
  * Runner for the Conversation Explorer module
- * 
+ *
  * This runner orchestrates the conversation analysis process by initializing
  * all required dependencies and providing methods to analyze conversations
  * and retrieve trends.
@@ -105,11 +116,16 @@ export class ConversationExplorerRunner {
   private initialize(): void {
     try {
       // Initialize repositories
-      const conversationRepository = new ConversationRepository(this.dataSource);
-      
+      const conversationRepository = new ConversationRepository(
+        this.dataSource,
+      );
+
       // Create a repository for ConversationInsight
       const insightRepo = this.dataSource.getRepository(ConversationInsight);
-      const insightRepository = new ConversationInsightRepository(insightRepo, this.dataSource);
+      const insightRepository = new ConversationInsightRepository(
+        insightRepo,
+        this.dataSource,
+      );
 
       // Create simplified mock services for testing
       const nlpService = this.createMockNLPService();
@@ -121,12 +137,12 @@ export class ConversationExplorerRunner {
       // In a real implementation, we would use proper implementations
       const analyzerService = new ConversationAnalyzerService(
         nlpService,
-        cacheServiceWrapper
+        cacheServiceWrapper,
       );
 
       const indexerService = new ConversationIndexerService(
         insightRepo,
-        searchService
+        searchService,
       );
 
       // Initialize main service with all required parameters
@@ -135,14 +151,18 @@ export class ConversationExplorerRunner {
         insightRepository,
         analyzerService,
         indexerService,
-        metricsServiceWrapper as unknown as MetricsService
+        metricsServiceWrapper as unknown as MetricsService,
       );
 
       this.logger.log('ConversationExplorerRunner initialized successfully');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       const errorStack = error instanceof Error ? error.stack : undefined;
-      this.logger.error(`Failed to initialize ConversationExplorerRunner: ${errorMessage}`, errorStack);
+      this.logger.error(
+        `Failed to initialize ConversationExplorerRunner: ${errorMessage}`,
+        errorStack,
+      );
       throw error;
     }
   }
@@ -153,30 +173,38 @@ export class ConversationExplorerRunner {
    */
   private createMockNLPService(): NLPServiceInterface {
     return {
-      analyzeConversation: async (_messages: Message[]): Promise<NLPAnalysis> => {
+      analyzeConversation: async (
+        messages: Message[],
+      ): Promise<NLPAnalysis> => {
         return {
-          intents: [{ 
-            category: 'general', 
-            confidence: 0.7, 
-            context: {} 
-          }],
-          topics: [{ 
-            name: 'general', 
-            relevance: 0.8, 
-            mentions: 1 
-          }],
-          sentiment: { 
-            score: 0.5, 
-            progression: 0.1, 
-            aspects: [] 
+          intents: [
+            {
+              category: 'general',
+              confidence: 0.7,
+              context: {},
+            },
+          ],
+          topics: [
+            {
+              name: 'general',
+              relevance: 0.8,
+              mentions: 1,
+            },
+          ],
+          sentiment: {
+            score: 0.5,
+            progression: 0.1,
+            aspects: [],
           },
-          actions: [{ 
-            type: 'generic', 
-            confidence: 0.6, 
-            context: {} 
-          }]
+          actions: [
+            {
+              type: 'generic',
+              confidence: 0.6,
+              context: {},
+            },
+          ],
         };
-      }
+      },
     };
   }
 
@@ -187,11 +215,15 @@ export class ConversationExplorerRunner {
   private createMockCacheService(): AnalyzerCacheService {
     // Create a cache wrapper that implements the getOrSet method
     return {
-      getOrSet: async <T>(_key: string, factory: () => Promise<T>, _ttl?: number): Promise<T> => {
+      getOrSet: async <T>(
+        _key: string,
+        factory: () => Promise<T>,
+        ttl?: number,
+      ): Promise<T> => {
         // In a real implementation, we would check the cache first
         // For testing, just call the factory function directly
         return factory();
-      }
+      },
     };
   }
 
@@ -201,10 +233,18 @@ export class ConversationExplorerRunner {
    */
   private createMockMetricsService(): MetricsServiceInterface {
     return {
-      trackEvent: (_eventName: string, _properties: Record<string, unknown>): void => {},
-      trackTiming: (_category: string, _variable: string, _time: number, _properties?: Record<string, unknown>): void => {},
+      trackEvent: (
+        _eventName: string,
+        _properties: Record<string, unknown>,
+      ): void => {},
+      trackTiming: (
+        category: string,
+        _variable: string,
+        _time: number,
+        _properties?: Record<string, unknown>,
+      ): void => {},
       recordAnalysisDuration: (_duration: number): void => {},
-      incrementErrorCount: (_type: string): void => {}
+      incrementErrorCount: (type: string): void => {},
     };
   }
 
@@ -213,48 +253,56 @@ export class ConversationExplorerRunner {
    * @param input The conversation data to analyze
    * @returns The analyzed conversation with insights
    */
-  async analyzeConversation(input: AnalyzeConversationDto): Promise<ConversationAnalysis> {
+  async analyzeConversation(
+    input: AnalyzeConversationDto,
+  ): Promise<ConversationAnalysis> {
     try {
       this.logger.debug(`Analyzing conversation for brand: ${input.brandId}`);
       const startTime = Date.now();
-      
+
       // Get the conversation with analysis from the service
       const conversation = await this.service.analyzeConversation(input);
-      
+
       // Convert to ConversationAnalysis format
       const analysis: ConversationAnalysis = {
         intents: conversation.insights
           .filter(insight => insight.type === INSIGHT_TYPE.INTENT)
           .map(intent => ({
             category: intent.category,
-            confidence: intent.confidence
+            confidence: intent.confidence,
           })),
-        sentiment: conversation.insights
-          .find(insight => insight.type === INSIGHT_TYPE.SENTIMENT)?.confidence || 0,
+        sentiment:
+          conversation.insights.find(
+            insight => insight.type === INSIGHT_TYPE.SENTIMENT,
+          )?.confidence || 0,
         topics: conversation.insights
           .filter(insight => insight.type === INSIGHT_TYPE.TOPIC)
           .map(topic => ({
             name: topic.category,
-            relevance: topic.confidence
+            relevance: topic.confidence,
           })),
         entities: conversation.insights
-          .filter(insight => insight.type === 'entity' as CustomInsightType)
+          .filter(insight => insight.type === ('entity' as CustomInsightType))
           .map(entity => ({
             type: entity.category,
             value: entity.details?.value?.toString() || '',
-            confidence: entity.confidence
+            confidence: entity.confidence,
           })) as Entity[],
-        engagementScore: conversation.engagementScore || 0
+        engagementScore: conversation.engagementScore || 0,
       };
-      
+
       const duration = Date.now() - startTime;
       this.logger.debug(`Conversation analysis completed in ${duration}ms`);
-      
+
       return analysis;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       const errorStack = error instanceof Error ? error.stack : undefined;
-      this.logger.error(`Error analyzing conversation: ${errorMessage}`, errorStack);
+      this.logger.error(
+        `Error analyzing conversation: ${errorMessage}`,
+        errorStack,
+      );
       throw error;
     }
   }
@@ -265,33 +313,40 @@ export class ConversationExplorerRunner {
    * @param options Optional parameters for trend analysis
    * @returns Conversation trends including top intents, topics, engagement, and actions
    */
-  async getConversationTrends(brandId: string, options?: TrendOptionsDto): Promise<ConversationTrends> {
+  async getConversationTrends(
+    brandId: string,
+    options?: TrendOptionsDto,
+  ): Promise<ConversationTrends> {
     try {
       this.logger.debug(`Getting conversation trends for brand: ${brandId}`);
       const startTime = Date.now();
-      
+
       const result = await this.service.getConversationTrends(brandId, options);
-      
+
       // Convert to the expected ConversationTrends format
       const trends: ConversationTrends = {
         topIntents: result.topIntents,
         topTopics: result.topTopics,
-        engagementTrends: result.engagementTrend.map(trend => ({
+        _engagementTrends: result.engagementTrend.map(trend => ({
           date: trend.date,
-          averageEngagement: trend.averageEngagement
+          averageEngagement: trend.averageEngagement,
         })),
-        commonActions: result.commonActions
+        commonActions: result.commonActions,
       };
-      
+
       const duration = Date.now() - startTime;
       this.logger.debug(`Trend analysis completed in ${duration}ms`);
-      
+
       return trends;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       const errorStack = error instanceof Error ? error.stack : undefined;
-      this.logger.error(`Error getting conversation trends: ${errorMessage}`, errorStack);
+      this.logger.error(
+        `Error getting conversation trends: ${errorMessage}`,
+        errorStack,
+      );
       throw error;
     }
   }
-} 
+}

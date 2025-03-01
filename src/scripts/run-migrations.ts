@@ -10,17 +10,20 @@ const dataSource = new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432', 10),
-  username: process.env.DB_USERNAME || 'postgres',
-  password: process.env.SUPABASE_PASSWORD || 'postgres',
-  database: process.env.DB_NAME || 'postgres',
-  schema: process.env.DB_SCHEMA || 'public',
+  _username: process.env.DB_USERNAME || 'postgres',
+  _password: process.env.SUPABASE_PASSWORD || 'postgres',
+  _database: process.env.DB_NAME || 'postgres',
+  _schema: process.env.DB_SCHEMA || 'public',
   entities: [path.join(__dirname, '../**/*.entity{.ts,.js}')],
   migrations: [path.join(__dirname, '../migrations/*{.ts,.js}')],
   migrationsTableName: 'migrations',
-  ssl: process.env.DB_SSL === 'true' ? {
-    rejectUnauthorized: false
-  } : false,
-  synchronize: false,
+  ssl:
+    process.env.DB_SSL === 'true'
+      ? {
+          _rejectUnauthorized: false,
+        }
+      : false,
+  _synchronize: false,
   logging: true,
 });
 
@@ -30,15 +33,15 @@ async function runMigrations(): Promise<void> {
     await dataSource.initialize();
     // eslint-disable-next-line no-console
     console.log('Data Source has been initialized');
-    
+
     await dataSource.runMigrations();
     // eslint-disable-next-line no-console
     console.log('Migrations have been run');
-    
+
     await dataSource.destroy();
     // eslint-disable-next-line no-console
     console.log('Data Source has been closed');
-    
+
     process.exit(0);
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -47,4 +50,4 @@ async function runMigrations(): Promise<void> {
   }
 }
 
-runMigrations(); 
+runMigrations();

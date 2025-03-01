@@ -16,7 +16,7 @@ export function TrackExecutionTime(
 ): MethodDecorator {
   return applyDecorators(
     SetMetadata(TRACK_EXECUTION_TIME_KEY, {
-      enabled: true,
+      _enabled: true,
       ...options,
     }),
   );

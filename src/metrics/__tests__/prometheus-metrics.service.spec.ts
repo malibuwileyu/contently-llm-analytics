@@ -15,7 +15,7 @@ describe('PrometheusMetricsService', () => {
             get: jest.fn().mockImplementation((key: string) => {
               if (key === 'metrics') {
                 return {
-                  enabled: true,
+                  _enabled: true,
                   prefix: 'test_',
                   endpoint: '/metrics',
                 };
@@ -35,4 +35,4 @@ describe('PrometheusMetricsService', () => {
   });
 
   // Add more tests as needed
-}); 
+});

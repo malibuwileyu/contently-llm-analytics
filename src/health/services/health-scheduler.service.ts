@@ -34,11 +34,11 @@ interface HealthError {
   error: string;
 }
 
-type HealthHistoryEntry = HealthEntry | HealthError;
+export type HealthHistoryEntry = HealthEntry | HealthError;
 
 @Injectable()
 export class HealthSchedulerService implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(HealthSchedulerService.name);
+  private readonly logger = new Logger('HealthSchedulerService');
   private readonly checkIntervalMs: number;
   private readonly healthHistorySize: number;
   private readonly healthHistoryKey = 'health:history';
@@ -54,13 +54,11 @@ export class HealthSchedulerService implements OnModuleInit, OnModuleDestroy {
     private readonly externalService: ExternalServiceHealthIndicator,
     private readonly memory: MemoryHealthIndicator,
     private readonly disk: DiskHealthIndicator,
-    private readonly metricsService: PrometheusMetricsService,
+    private readonly _metricsService: PrometheusMetricsService,
     private readonly supabaseHealthIndicator: SupabaseHealthIndicator,
   ) {
-    this.checkIntervalMs = this.configService.get(
-      'health.checkInterval',
-      60000,
-    ); // Default: 1 minute
+    this.checkIntervalMs =
+      this.configService.get('health.checkInterval', 60000) || 60000; // Default: 1 minute
     this.healthHistorySize = this.configService.get('health.historySize', 100); // Default: 100 entries
 
     // Use environment-aware self URL
@@ -82,7 +80,7 @@ export class HealthSchedulerService implements OnModuleInit, OnModuleDestroy {
       this.performHealthCheck().catch(error => {
         this.logger.error(
           `Failed to perform scheduled health check: ${error.message}`,
-          error.stack,
+          error._stack,
         );
       });
     }, this.checkIntervalMs);

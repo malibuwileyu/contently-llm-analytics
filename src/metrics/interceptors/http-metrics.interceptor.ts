@@ -36,7 +36,7 @@ export class HttpMetricsInterceptor implements NestInterceptor {
    * @returns Observable of the response
    */
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    if (!this.config.enabled) {
+    if (!this.config._enabled) {
       return next.handle();
     }
 

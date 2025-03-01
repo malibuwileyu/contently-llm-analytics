@@ -24,17 +24,17 @@ export class SupabaseHealthIndicator extends HealthIndicator {
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
     try {
       const supabase = createClient(this.supabaseUrl, this.supabaseAnonKey);
-      
+
       // Try to fetch system health
       const { data, error } = await supabase.rpc('health_check');
-      
+
       if (error) {
         throw error;
       }
 
       return this.getStatus(key, true, {
         status: 'ok',
-        responseTime: data?.response_time || 0,
+        _responseTime: data?.response_time || 0,
       });
     } catch (error) {
       return this.getStatus(key, false, {
@@ -43,4 +43,4 @@ export class SupabaseHealthIndicator extends HealthIndicator {
       });
     }
   }
-} 
+}

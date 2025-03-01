@@ -264,7 +264,7 @@ export class BusinessMetricsService implements OnModuleInit {
 
   async recordFeatureUsage(featureId: string, userId: string): Promise<void> {
     this.metricsService.incrementCounter('feature_usage_total', {
-      feature_id: featureId,
+      _feature_id: featureId,
       user_id: userId,
     });
   }

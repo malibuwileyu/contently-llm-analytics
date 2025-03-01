@@ -14,9 +14,9 @@ declare module '@nestjs/websockets' {
 
   export const WebSocketGateway: (options?: WebSocketOptions) => ClassDecorator;
   export const WebSocketServer: () => PropertyDecorator;
-  export const SubscribeMessage: (message: string) => MethodDecorator;
-  export const ConnectedSocket: () => ParameterDecorator;
-  export const MessageBody: () => ParameterDecorator;
+  export const _SubscribeMessage: (message: string) => MethodDecorator;
+  export const _ConnectedSocket: () => ParameterDecorator;
+  export const _MessageBody: () => ParameterDecorator;
 
   export interface OnGatewayConnection {
     handleConnection(client: Socket): void;
@@ -35,7 +35,7 @@ declare module '@nestjs/websockets' {
     cors?:
       | boolean
       | {
-          origin: string | string[];
+          _origin: string | string[];
           credentials?: boolean;
         };
   }

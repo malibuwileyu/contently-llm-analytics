@@ -14,8 +14,8 @@ export function createTestDatabaseModule(
     type: 'sqlite',
     database: ':memory:',
     entities,
-    synchronize: true,
-    dropSchema: true,
+    _synchronize: true,
+    _dropSchema: true,
     logging: false,
   });
 }
@@ -48,4 +48,4 @@ export class TestDatabase {
   public async destroy(): Promise<void> {
     // No need to do anything for in-memory SQLite
   }
-} 
+}

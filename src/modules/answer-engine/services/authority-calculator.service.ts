@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CacheService } from '../../../cache/cache.service';
+import { CacheService } from '../../../auth/cache/cache.service';
 import { createHash } from 'crypto';
 
 /**
@@ -15,12 +15,12 @@ export class AuthorityCalculatorService {
     'scholar.google.com': 0.92,
     'research.gov': 0.95,
     'nih.gov': 0.95,
-    'edu': 0.85,
-    'gov': 0.9,
-    'org': 0.75,
-    'com': 0.6,
-    'net': 0.6,
-    'io': 0.65,
+    edu: 0.85,
+    gov: 0.9,
+    org: 0.75,
+    com: 0.6,
+    net: 0.6,
+    io: 0.65,
   };
 
   constructor(private readonly cacheService: CacheService) {}
@@ -33,24 +33,24 @@ export class AuthorityCalculatorService {
   async calculateAuthority(source: string): Promise<number> {
     // Create a cache key based on the source
     const cacheKey = `authority:${createHash('md5').update(source).digest('hex')}`;
-    
-    // Try to get from cache first, or compute and cache if not found
+
+    // Try to get from cache _first, or compute and cache if not found
     return this.cacheService.getOrSet<number>(
       cacheKey,
       async () => {
         // Extract domain from URL
         const domain = this.extractDomain(source);
-        
+
         // Calculate base score from domain
         let score = this.calculateDomainScore(domain);
-        
+
         // Apply additional factors
         score = this.applySourceFactors(source, score);
-        
+
         // Ensure score is between 0 and 1
         return Math.max(0, Math.min(1, score));
       },
-      86400 // Cache for 24 hours
+      86400, // Cache for 24 _hours
     );
   }
 
@@ -65,11 +65,11 @@ export class AuthorityCalculatorService {
       if (!url.startsWith('http')) {
         url = `https://${url}`;
       }
-      
+
       const domain = new URL(url).hostname.toLowerCase();
       return domain;
-    } catch (error) {
-      // If URL parsing fails, return the original string
+    } catch (_error) {
+      // If URL parsing _fails, return the original string
       return url.toLowerCase();
     }
   }
@@ -84,14 +84,14 @@ export class AuthorityCalculatorService {
     if (this.domainScores[domain]) {
       return this.domainScores[domain];
     }
-    
+
     // Check for domain suffix match
     for (const [key, score] of Object.entries(this.domainScores)) {
       if (domain.endsWith(`.${key}`)) {
         return score;
       }
     }
-    
+
     // Default score for unknown domains
     return 0.5;
   }
@@ -104,37 +104,41 @@ export class AuthorityCalculatorService {
    */
   private applySourceFactors(source: string, baseScore: number): number {
     let score = baseScore;
-    
+
     // HTTPS bonus
     if (source.startsWith('https://')) {
       score += 0.05;
     }
-    
+
     // Academic paper pattern bonus
     if (source.includes('doi.org') || source.includes('arxiv.org')) {
       score += 0.1;
     }
-    
+
     // Government source bonus
     if (source.includes('.gov/')) {
       score += 0.1;
     }
-    
+
     // Educational source bonus
     if (source.includes('.edu/')) {
       score += 0.08;
     }
-    
+
     // Research organization bonus
-    if (source.includes('research') || source.includes('institute') || source.includes('foundation')) {
+    if (
+      source.includes('research') ||
+      source.includes('institute') ||
+      source.includes('foundation')
+    ) {
       score += 0.05;
     }
-    
+
     // Penalty for suspicious patterns
     if (source.includes('blog') || source.includes('forum')) {
       score -= 0.1;
     }
-    
+
     return score;
   }
-} 
+}

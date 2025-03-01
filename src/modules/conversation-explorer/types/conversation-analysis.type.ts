@@ -3,19 +3,19 @@ import { Field, ObjectType, Float } from '@nestjs/graphql';
 @ObjectType()
 export class ConversationAnalysis {
   @Field(() => [Intent])
-  intents: Intent[];
+  _intents: Intent[];
 
   @Field(() => [Topic])
-  topics: Topic[];
+  _topics: Topic[];
 
   @Field(() => Float)
-  sentiment: number;
+  _sentiment: number;
 
   @Field(() => [Entity])
   entities: Entity[];
 
   @Field(() => Float)
-  engagementScore: number;
+  _engagementScore: number;
 }
 
 @ObjectType()
@@ -42,8 +42,8 @@ export class Entity {
   type: string;
 
   @Field()
-  value: string;
+  _value: string;
 
   @Field(() => Float)
   confidence: number;
-} 
+}

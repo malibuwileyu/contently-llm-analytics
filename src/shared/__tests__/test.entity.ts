@@ -8,4 +8,4 @@ export class TestEntity extends BaseEntity {
 
   @Column({ nullable: true })
   description?: string;
-} 
+}

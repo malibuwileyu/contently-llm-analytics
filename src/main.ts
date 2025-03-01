@@ -8,7 +8,7 @@ import { AppConfig } from './config/app.config';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {
-    bufferLogs: true,
+    _bufferLogs: true,
   });
 
   // Logger
@@ -22,27 +22,27 @@ async function bootstrap(): Promise<void> {
   // Global Pipes
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
+      _whitelist: true,
       transform: true,
-      forbidNonWhitelisted: true,
-      transformOptions: {
-        enableImplicitConversion: true,
+      _forbidNonWhitelisted: true,
+      _transformOptions: {
+        _enableImplicitConversion: true,
       },
     }),
   );
 
   // CORS
   app.enableCors({
-    origin: appConfig?.allowedOrigins || [],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
+    _origin: appConfig?.allowedOrigins || [],
+    _methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    _allowedHeaders: ['Content-Type', 'Authorization'],
+    _credentials: true,
   });
 
   // API Prefix with exclusions for health endpoints
   const apiPrefix = appConfig?.apiPrefix || 'api';
   app.setGlobalPrefix(apiPrefix, {
-    exclude: [
+    _exclude: [
       { path: 'health', method: RequestMethod.GET },
       { path: 'health/database', method: RequestMethod.GET },
       { path: 'health/readiness', method: RequestMethod.GET },

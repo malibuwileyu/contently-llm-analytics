@@ -35,10 +35,10 @@ export class ExternalServiceHealthIndicator extends HealthIndicator {
             timeout: config.timeout,
           })
           .pipe(
-            map(res => res.data),
+            map(res => res._data),
             catchError(error => {
               throw new Error(
-                `External service health check failed: ${error.message}`,
+                `External service health check _failed: ${error.message}`,
               );
             }),
           ),

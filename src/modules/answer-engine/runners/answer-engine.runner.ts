@@ -11,12 +11,12 @@ export interface FeatureRunner {
    * Get the name of the runner
    */
   getName(): string;
-  
+
   /**
    * Check if the feature is enabled
    */
   isEnabled(): Promise<boolean>;
-  
+
   /**
    * Run the feature
    */
@@ -31,7 +31,7 @@ export interface FeatureContext {
    * ID of the brand
    */
   brandId: string;
-  
+
   /**
    * Additional metadata for the feature
    */
@@ -46,12 +46,12 @@ export interface FeatureResult {
    * Whether the feature execution was successful
    */
   success: boolean;
-  
+
   /**
    * Result data
    */
   data?: Record<string, unknown>;
-  
+
   /**
    * Error information if execution failed
    */
@@ -69,7 +69,7 @@ export interface FeatureResult {
 export class AnswerEngineRunner implements FeatureRunner {
   constructor(
     private readonly answerEngineService: AnswerEngineService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -93,6 +93,21 @@ export class AnswerEngineRunner implements FeatureRunner {
    */
   async run(context: FeatureContext): Promise<FeatureResult> {
     try {
+      // Check if content is missing
+      if (!context.metadata?.content) {
+        return {
+          success: false,
+          error: {
+            message: 'Missing content in request',
+            code: 'MISSING_CONTENT',
+            details: {
+              brandId: context.brandId,
+              timestamp: new Date().toISOString(),
+            },
+          },
+        };
+      }
+
       const mention = await this.answerEngineService.analyzeMention({
         brandId: context.brandId,
         content: context.metadata?.content as string,
@@ -103,7 +118,9 @@ export class AnswerEngineRunner implements FeatureRunner {
         }>,
       });
 
-      const health = await this.answerEngineService.getBrandHealth(context.brandId);
+      const health = await this.answerEngineService.getBrandHealth(
+        context.brandId,
+      );
 
       return {
         success: true,
@@ -126,4 +143,4 @@ export class AnswerEngineRunner implements FeatureRunner {
       };
     }
   }
-} 
+}

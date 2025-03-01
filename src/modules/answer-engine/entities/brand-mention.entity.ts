@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  OneToMany,
+} from 'typeorm';
 import { Citation } from './citation.entity';
 
 /**
@@ -45,7 +53,11 @@ export class BrandMention {
   /**
    * When the brand was mentioned
    */
-  @Column({ name: 'mentioned_at', type: 'timestamp with time zone', nullable: true })
+  @Column({
+    name: 'mentioned_at',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
   mentionedAt: Date;
 
   /**
@@ -63,7 +75,11 @@ export class BrandMention {
   /**
    * When the brand mention was deleted
    */
-  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp with time zone', nullable: true })
+  @DeleteDateColumn({
+    name: 'deleted_at',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
   deletedAt: Date;
 
   /**
@@ -71,4 +87,4 @@ export class BrandMention {
    */
   @OneToMany(() => Citation, citation => citation.brandMention)
   citations: Citation[];
-} 
+}

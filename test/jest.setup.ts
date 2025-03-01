@@ -10,14 +10,14 @@ async function databaseExists(dbName: string): Promise<boolean> {
     port: 5432,
     user: 'postgres',
     password: 'postgres',
-    database: 'postgres'
+    database: 'postgres',
   });
 
   try {
     await client.connect();
     const result = await client.query(
       'SELECT 1 FROM pg_database WHERE datname = $1',
-      [dbName]
+      [dbName],
     );
     return (result.rowCount ?? 0) > 0;
   } finally {
@@ -32,7 +32,7 @@ async function dropDatabaseIfExists(dbName: string): Promise<void> {
     port: 5432,
     user: 'postgres',
     password: 'postgres',
-    database: 'postgres'
+    database: 'postgres',
   });
 
   try {
@@ -61,19 +61,19 @@ beforeAll(async () => {
     port: 5432,
     user: 'postgres',
     password: 'postgres',
-    database: 'postgres'
+    database: 'postgres',
   });
 
   try {
     await client.connect();
     const result = await client.query<{ datname: string }>(
-      "SELECT datname FROM pg_database WHERE datname LIKE 'test_%'"
+      "SELECT datname FROM pg_database WHERE datname LIKE 'test_%'",
     );
     const testDbs = result.rows.map(row => row.datname);
     await Promise.all(
-      testDbs.map((dbName: string) => dropDatabaseIfExists(dbName))
+      testDbs.map((dbName: string) => dropDatabaseIfExists(dbName)),
     );
   } finally {
     await client.end();
   }
-}); 
+});

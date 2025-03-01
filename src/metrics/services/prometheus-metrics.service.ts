@@ -12,7 +12,7 @@ import { ConfigService } from '@nestjs/config';
 
 // Create a static registry to be shared across all instances
 // This helps prevent "already registered" errors in tests
-const globalRegistry = new Registry();
+const _globalRegistry = new Registry();
 
 /**
  * Prometheus metrics service implementation
@@ -30,17 +30,19 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
   private static instanceCount = 0;
 
   constructor(private readonly configService: ConfigService) {
-    // Use the global registry
-    this.registry = globalRegistry;
     PrometheusMetricsService.instanceCount++;
-    
-    this.config = {
-      enabled: this.configService.get('metrics.enabled', true),
-      prefix: this.configService.get('metrics.prefix', 'app_'),
-      endpoint: this.configService.get('metrics.endpoint', '/metrics'),
-      defaultLabels: this.configService.get('metrics.defaultLabels', {}),
-      collectDefaultMetrics: this.configService.get('metrics.collectDefaultMetrics', true),
-      defaultMetricsInterval: this.configService.get('metrics.defaultMetricsInterval', 10000),
+
+    // Create a new registry
+    this.registry = new Registry();
+
+    // Get metrics configuration
+    this.config = this.configService.get<MetricsConfig>('metrics') || {
+      enabled: false,
+      prefix: 'app_',
+      endpoint: '/metrics',
+      defaultLabels: {},
+      collectDefaultMetrics: true,
+      defaultMetricsInterval: 10000,
     };
 
     // Set default labels
@@ -59,7 +61,7 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
         require('prom-client').collectDefaultMetrics({
           register: this.registry,
           prefix: this.config.prefix,
-          timeout: this.config.defaultMetricsInterval,
+          _timeout: this.config.defaultMetricsInterval,
         });
       }
 
@@ -191,7 +193,9 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
         this.logger.debug(`Counter metric already registered: ${options.name}`);
         // Try to get the existing metric from the registry
         try {
-          const existingMetric = this.registry.getSingleMetric(options.name) as Counter<string>;
+          const existingMetric = this.registry.getSingleMetric(
+            options.name,
+          ) as Counter<string>;
           if (existingMetric) {
             this.counters.set(options.name, existingMetric);
           }
@@ -272,7 +276,9 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
         this.logger.debug(`Gauge metric already registered: ${options.name}`);
         // Try to get the existing metric from the registry
         try {
-          const existingMetric = this.registry.getSingleMetric(options.name) as Gauge<string>;
+          const existingMetric = this.registry.getSingleMetric(
+            options.name,
+          ) as Gauge<string>;
           if (existingMetric) {
             this.gauges.set(options.name, existingMetric);
           }
@@ -389,7 +395,9 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
       // Check if metric already exists in registry
       const existingMetric = this.registry.getSingleMetric(options.name);
       if (existingMetric) {
-        this.logger.debug(`Histogram metric already registered: ${options.name}`);
+        this.logger.debug(
+          `Histogram metric already registered: ${options.name}`,
+        );
         this.histograms.set(options.name, existingMetric as Histogram<string>);
         return;
       }
@@ -406,10 +414,14 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
       this.logger.debug(`Created histogram metric: ${options.name}`);
     } catch (error) {
       if (error.message && error.message.includes('already registered')) {
-        this.logger.debug(`Histogram metric already registered: ${options.name}`);
+        this.logger.debug(
+          `Histogram metric already registered: ${options.name}`,
+        );
         // Try to get the existing metric from the registry
         try {
-          const existingMetric = this.registry.getSingleMetric(options.name) as Histogram<string>;
+          const existingMetric = this.registry.getSingleMetric(
+            options.name,
+          ) as Histogram<string>;
           if (existingMetric) {
             this.histograms.set(options.name, existingMetric);
           }
@@ -480,7 +492,9 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
         name: options.name,
         help: options.help,
         labelNames: options.labelNames || [],
-        percentiles: options.percentiles || [0.01, 0.05, 0.5, 0.9, 0.95, 0.99, 0.999],
+        percentiles: options.percentiles || [
+          0.01, 0.05, 0.5, 0.9, 0.95, 0.99, 0.999,
+        ],
         registers: [this.registry],
       });
 
@@ -491,7 +505,9 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
         this.logger.debug(`Summary metric already registered: ${options.name}`);
         // Try to get the existing metric from the registry
         try {
-          const existingMetric = this.registry.getSingleMetric(options.name) as Summary<string>;
+          const existingMetric = this.registry.getSingleMetric(
+            options.name,
+          ) as Summary<string>;
           if (existingMetric) {
             this.summaries.set(options.name, existingMetric);
           }
@@ -518,21 +534,27 @@ export class PrometheusMetricsService implements MetricsService, OnModuleInit {
     value: number,
     labels?: Record<string, string | number>,
   ): void {
-    if (!this.config.enabled) return;
+    if (!this.initialized) {
+      this.logger.warn(
+        `Cannot observe summary ${name} - metrics not initialized`,
+      );
+      return;
+    }
 
     const summary = this.summaries.get(name);
     if (!summary) {
-      this.logger.warn(`Summary metric not found: ${name}`);
+      this.logger.warn(`Summary ${name} not found`);
       return;
     }
 
     try {
-      summary.observe(labels || {}, value);
+      if (labels) {
+        summary.observe(labels, value);
+      } else {
+        summary.observe(value);
+      }
     } catch (error) {
-      this.logger.error(
-        `Failed to observe summary metric: ${name}`,
-        error.stack,
-      );
+      this.logger.error(`Error observing summary ${name}`, error);
     }
   }
 

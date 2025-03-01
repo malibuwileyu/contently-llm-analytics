@@ -19,18 +19,18 @@ import { AnalyzeContentDto } from '../dto/analyze-content.dto';
 export class AnswerResolver {
   constructor(
     @Inject('PUB_SUB') private readonly pubSub: PubSub,
-    private readonly answerEngineService: AnswerEngineService
+    private readonly answerEngineService: AnswerEngineService,
   ) {}
 
   @Query(() => [BrandMention])
   @UseGuards(AuthGuard)
   async getRecentMentions(
     @Args('brandId') brandId: string,
-    @Args('limit', { defaultValue: 10 }) limit: number
+    @Args('limit', { defaultValue: 10 }) limit: number,
   ): Promise<BrandMention[]> {
     // Get recent mentions from the service
     const mentions = await this.answerEngineService.getBrandHealth(brandId);
-    
+
     // Map to the GraphQL type
     return mentions.trend.slice(0, limit).map(point => ({
       id: `mention-${point.date.getTime()}`,
@@ -39,35 +39,35 @@ export class AnswerResolver {
       sentiment: point.averageSentiment,
       context: 'Generated from trend data',
       createdAt: point.date,
-      updatedAt: point.date
+      updatedAt: point.date,
     }));
   }
 
   @Query(() => BrandHealth)
   @UseGuards(AuthGuard)
   async getBrandHealth(
-    @Args('input') input: BrandHealthInput
+    @Args('input') input: BrandHealthInput,
   ): Promise<BrandHealth> {
     const health = await this.answerEngineService.getBrandHealth(input.brandId);
-    
+
     // Map to the GraphQL type
     return {
       overallSentiment: health.overallSentiment,
       trend: health.trend.map(point => ({
         date: point.date,
-        sentiment: point.averageSentiment
+        sentiment: point.averageSentiment,
       })),
-      mentionCount: health.mentionCount
+      mentionCount: health.mentionCount,
     };
   }
 
   @Mutation(() => BrandMention)
   @UseGuards(AuthGuard)
   async analyzeContent(
-    @Args('data') data: AnalyzeContentDto
+    @Args('data') data: AnalyzeContentDto,
   ): Promise<BrandMention> {
     const mention = await this.answerEngineService.analyzeMention(data);
-    
+
     // Map to the GraphQL type and publish event
     const result = {
       id: mention.id,
@@ -76,14 +76,14 @@ export class AnswerResolver {
       sentiment: mention.sentiment,
       context: JSON.stringify(mention.context),
       createdAt: mention.createdAt,
-      updatedAt: mention.updatedAt
+      updatedAt: mention.updatedAt,
     };
-    
+
     // Publish the event for subscriptions
     await this.pubSub.publish('brandMentionAdded', {
-      brandMentionAdded: result
+      brandMentionAdded: result,
     });
-    
+
     return result;
   }
 
@@ -95,8 +95,10 @@ export class AnswerResolver {
     resolve: (payload: BrandMentionAddedPayload) => payload.brandMentionAdded,
   })
   brandMentionAdded(
-    @Args('brandId') _brandId: string,
+    @Args('brandId') brandId: string,
   ): AsyncIterator<BrandMentionAddedPayload> {
-    return this.pubSub.asyncIterator<BrandMentionAddedPayload>('brandMentionAdded');
+    return this.pubSub.asyncIterator<BrandMentionAddedPayload>(
+      'brandMentionAdded',
+    );
   }
 }

@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, Repository, FindManyOptions, EntityNotFoundError } from 'typeorm';
+import {
+  DataSource,
+  Repository,
+  FindManyOptions,
+  EntityNotFoundError,
+} from 'typeorm';
 import { BrandMention } from '../entities/brand-mention.entity';
 import { SentimentTrend } from '../interfaces/sentiment-analysis.interface';
 
@@ -20,7 +25,7 @@ export class BrandMentionRepository extends Repository<BrandMention> {
    */
   async findByBrandId(
     brandId: string,
-    options: FindManyOptions<BrandMention>
+    options: FindManyOptions<BrandMention>,
   ): Promise<BrandMention[]> {
     return this.find({
       where: { brandId },
@@ -39,11 +44,11 @@ export class BrandMentionRepository extends Repository<BrandMention> {
       .leftJoinAndSelect('mention.citations', 'citations')
       .where('mention.id = :id', { id })
       .getOne();
-      
+
     if (!mention) {
       throw new EntityNotFoundError(BrandMention, id);
     }
-    
+
     return mention;
   }
 
@@ -57,13 +62,13 @@ export class BrandMentionRepository extends Repository<BrandMention> {
   async getSentimentTrend(
     brandId: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
   ): Promise<SentimentTrend[]> {
     return this.createQueryBuilder('mention')
       .select('DATE(mention.mentionedAt)', 'date')
       .addSelect('AVG(mention.sentiment)', 'averageSentiment')
       .where('mention.brandId = :brandId', { brandId })
-      .andWhere('mention.mentionedAt BETWEEN :startDate AND :endDate', {
+      .andWhere('mention.mentionedAt _BETWEEN :startDate _AND :endDate', {
         startDate,
         endDate,
       })
@@ -71,4 +76,4 @@ export class BrandMentionRepository extends Repository<BrandMention> {
       .orderBy('DATE(mention.mentionedAt)', 'ASC')
       .getRawMany();
   }
-} 
+}

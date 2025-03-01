@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
 import { ConversationInsight } from './conversation-insight.entity';
 
 /**
@@ -32,7 +39,7 @@ export class Conversation {
    * Metadata about the conversation
    */
   @Column('jsonb')
-  metadata: {
+  _metadata: {
     platform: string;
     context: string;
     tags: string[];
@@ -42,19 +49,19 @@ export class Conversation {
    * Insights derived from this conversation
    */
   @OneToMany(() => ConversationInsight, insight => insight.conversation)
-  insights: ConversationInsight[];
+  _insights: ConversationInsight[];
 
   /**
    * Engagement score for the conversation (0-1)
    */
   @Column('float')
-  engagementScore: number;
+  _engagementScore: number;
 
   /**
    * When the conversation was analyzed
    */
   @Column('timestamp with time zone')
-  analyzedAt: Date;
+  _analyzedAt: Date;
 
   /**
    * When the conversation was created
@@ -67,4 +74,4 @@ export class Conversation {
    */
   @UpdateDateColumn()
   updatedAt: Date;
-} 
+}

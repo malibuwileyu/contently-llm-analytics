@@ -1,4 +1,11 @@
-import { Resolver, Query, Mutation, Args, ResolveField, Parent } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { ConversationExplorerService } from '../services/conversation-explorer.service';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
@@ -17,7 +24,7 @@ import { AnalyzeConversationDto } from '../dto/analyze-conversation.dto';
 @Resolver(() => ConversationType)
 export class ConversationExplorerResolver {
   constructor(
-    private readonly conversationExplorerService: ConversationExplorerService
+    private readonly conversationExplorerService: ConversationExplorerService,
   ) {}
 
   /**
@@ -28,7 +35,7 @@ export class ConversationExplorerResolver {
   @Mutation(() => ConversationType)
   @UseGuards(JwtAuthGuard)
   async analyzeConversation(
-    @Args('input') input: AnalyzeConversationInput
+    @Args('input') input: AnalyzeConversationInput,
   ): Promise<Conversation> {
     // Create a DTO that matches what the service expects
     const dto: AnalyzeConversationDto = {
@@ -37,15 +44,15 @@ export class ConversationExplorerResolver {
       messages: input.messages.map(msg => ({
         role: msg.role as 'user' | 'assistant',
         content: msg.content,
-        timestamp: msg.timestamp
+        timestamp: msg.timestamp,
       })),
       metadata: {
         platform: input.metadata?.platform || '',
         context: input.metadata?.context || '',
-        tags: input.metadata?.tags || []
-      }
+        tags: input.metadata?.tags || [],
+      },
     };
-    
+
     return this.conversationExplorerService.analyzeConversation(dto);
   }
 
@@ -59,15 +66,16 @@ export class ConversationExplorerResolver {
   @UseGuards(JwtAuthGuard)
   async conversationTrends(
     @Args('brandId') brandId: string,
-    @Args('options', { nullable: true }) options?: TrendOptionsInput
+    @Args('options', { nullable: true }) options?: TrendOptionsInput,
   ): Promise<ConversationTrendsType> {
-    const startDate = options?.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const startDate =
+      options?.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const endDate = options?.endDate || new Date();
 
-    return this.conversationExplorerService.getConversationTrends(
-      brandId,
-      { startDate, endDate }
-    );
+    return this.conversationExplorerService.getConversationTrends(brandId, {
+      startDate,
+      endDate,
+    });
   }
 
   /**
@@ -77,9 +85,7 @@ export class ConversationExplorerResolver {
    */
   @Query(() => ConversationType)
   @UseGuards(JwtAuthGuard)
-  async conversation(
-    @Args('id') id: string
-  ): Promise<Conversation> {
+  async conversation(@Args('id') id: string): Promise<Conversation> {
     return this.conversationExplorerService.getConversationById(id);
   }
 
@@ -91,7 +97,7 @@ export class ConversationExplorerResolver {
   @Query(() => [ConversationType])
   @UseGuards(JwtAuthGuard)
   async conversationsByBrand(
-    @Args('brandId') brandId: string
+    @Args('brandId') brandId: string,
   ): Promise<Conversation[]> {
     return this.conversationExplorerService.findByBrandId(brandId);
   }
@@ -102,8 +108,13 @@ export class ConversationExplorerResolver {
    * @returns Array of conversation insights
    */
   @ResolveField(() => [ConversationInsightType])
-  async insights(@Parent() conversation: Conversation): Promise<ConversationInsightType[]> {
-    const fullConversation = await this.conversationExplorerService.getConversationById(conversation.id);
+  async insights(
+    @Parent() conversation: Conversation,
+  ): Promise<ConversationInsightType[]> {
+    const fullConversation =
+      await this.conversationExplorerService.getConversationById(
+        conversation.id,
+      );
     // Convert ConversationInsight[] to ConversationInsightType[]
     return fullConversation.insights.map(insight => ({
       id: insight.id,
@@ -112,16 +123,21 @@ export class ConversationExplorerResolver {
       confidence: insight.confidence,
       details: JSON.stringify(insight.details),
       createdAt: insight.createdAt,
-      updatedAt: insight.updatedAt
+      updatedAt: insight.updatedAt,
     }));
   }
 
   @Query(() => [ConversationInsightType], { name: 'conversationInsights' })
   async getConversationInsights(
     @Args('brandId') brandId: string,
-    @Args('options', { nullable: true }) options?: ConversationInsightOptionsInput
+    @Args('options', { nullable: true })
+    options?: ConversationInsightOptionsInput,
   ): Promise<ConversationInsightType[]> {
-    const insights = await this.conversationExplorerService.getConversationInsights(brandId, options);
+    const insights =
+      await this.conversationExplorerService.getConversationInsights(
+        brandId,
+        options,
+      );
     // Convert ConversationInsight[] to ConversationInsightType[]
     return insights.map(insight => ({
       id: insight.id,
@@ -130,7 +146,7 @@ export class ConversationExplorerResolver {
       confidence: insight.confidence,
       details: JSON.stringify(insight.details),
       createdAt: insight.createdAt,
-      updatedAt: insight.updatedAt
+      updatedAt: insight.updatedAt,
     }));
   }
-} 
+}

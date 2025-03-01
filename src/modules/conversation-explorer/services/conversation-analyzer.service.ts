@@ -1,12 +1,12 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { createHash } from 'crypto';
-import { 
-  Message, 
-  ConversationAnalysis as IConversationAnalysis, 
-  Intent, 
-  Sentiment, 
-  Topic, 
-  Action 
+import {
+  Message,
+  ConversationAnalysis as IConversationAnalysis,
+  Intent,
+  Sentiment,
+  Topic,
+  Action,
 } from '../interfaces/conversation-analysis.interface';
 
 /**
@@ -59,7 +59,7 @@ interface NLPAnalysis {
 export class ConversationAnalyzerService {
   constructor(
     @Inject('NLPService') private readonly nlpService: NLPService,
-    @Inject('CacheService') private readonly cache: CacheService
+    @Inject('CacheService') private readonly cache: CacheService,
   ) {}
 
   /**
@@ -67,12 +67,14 @@ export class ConversationAnalyzerService {
    * @param messages The messages in the conversation
    * @returns Analysis results
    */
-  async analyzeConversation(messages: Message[]): Promise<IConversationAnalysis> {
+  async analyzeConversation(
+    messages: Message[],
+  ): Promise<IConversationAnalysis> {
     // Create a cache key based on the messages hash
     const cacheKey = `conversation:${createHash('md5')
       .update(JSON.stringify(messages))
       .digest('hex')}`;
-    
+
     // Try to get from cache first, or compute and cache if not found
     return this.cache.getOrSet<IConversationAnalysis>(
       cacheKey,
@@ -85,7 +87,7 @@ export class ConversationAnalyzerService {
           actions: this.extractActions(analysis),
         };
       },
-      900 // Cache for 15 minutes
+      900, // Cache for 15 minutes
     );
   }
 

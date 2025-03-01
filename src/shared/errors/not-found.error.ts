@@ -6,15 +6,15 @@ export class NotFoundError extends BaseError {
   constructor(
     message: string,
     context?: Record<string, unknown>,
-    code: string = 'NOT_FOUND'
+    code: string = 'NOT_FOUND',
   ) {
     super(
       message,
       code,
       HttpStatus.NOT_FOUND,
       ErrorCategory.RESOURCE_NOT_FOUND,
-      context
+      context,
     );
     this.name = 'NotFoundError';
   }
-} 
+}

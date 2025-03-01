@@ -11,7 +11,7 @@ import { Repository } from 'typeorm';
 
 // Create a mock SearchService
 const mockSearchService = {
-  indexConversation: jest.fn().mockResolvedValue(undefined)
+  indexConversation: jest.fn().mockResolvedValue(undefined),
 };
 
 // Create a custom ConversationIndexerService for testing
@@ -19,61 +19,66 @@ const mockSearchService = {
 class TestConversationIndexerService extends ConversationIndexerService {
   constructor(
     @InjectRepository(ConversationInsight)
-    insightRepo: Repository<ConversationInsight>
+    insightRepo: Repository<ConversationInsight>,
   ) {
     super(insightRepo, mockSearchService);
   }
+}
+
+// Helper function to convert our mock to the expected Conversation type
+function asConversation(mock: any): Conversation {
+  return mock as unknown as Conversation;
 }
 
 describe('ConversationIndexerService', () => {
   let service: ConversationIndexerService;
   let insightRepository: any;
 
-  // Create mock without explicit typing
+  // Create mock with properties matching the entity definition
   const mockConversation = {
     id: 'test-id',
-    brandId: 'brand-id',
+    brandId: 'test-brand-id',
     messages: [],
     metadata: {
-      platform: 'web',
-      context: 'support',
-      tags: ['test']
+      platform: 'test-platform',
+      context: 'test-context',
+      tags: ['test-tag'],
     },
     insights: [],
-    engagementScore: 0.75,
+    engagementScore: 0.5,
     analyzedAt: new Date(),
     createdAt: new Date(),
     updatedAt: new Date(),
-    deletedAt: null as unknown as Date
-  } as Conversation;
+    deletedAt: null as unknown as Date,
+  };
 
   const mockAnalysis: ConversationAnalysis = {
     intents: [
-      { category: 'help', confidence: 0.85, details: { source: 'greeting' } }
+      { category: 'help', confidence: 0.85, details: { source: 'greeting' } },
     ],
     sentiment: {
       overall: 0.8,
       progression: 0.2,
-      aspects: [
-        { aspect: 'service', score: 0.7 }
-      ]
+      aspects: [{ aspect: 'service', score: 0.7 }],
     },
-    topics: [
-      { name: 'account_issue', relevance: 0.9, mentions: 2 }
-    ],
+    topics: [{ name: 'account_issue', relevance: 0.9, mentions: 2 }],
     actions: [
-      { type: 'request_information', confidence: 0.75, context: { target: 'account' } }
-    ]
+      {
+        type: 'request_information',
+        confidence: 0.75,
+        context: { target: 'account' },
+      },
+    ],
   };
 
   beforeEach(async () => {
     // Create mock implementations
     insightRepository = {
-      create: jest.fn().mockImplementation((data) => ({
+      create: jest.fn().mockImplementation(data => ({
         id: uuidv4(),
-        ...data
+        ...data,
       })),
-      save: jest.fn().mockImplementation((entity) => Promise.resolve(entity))
+      save: jest.fn().mockImplementation(entity => Promise.resolve(entity)),
     };
 
     // Reset mock calls
@@ -83,16 +88,18 @@ describe('ConversationIndexerService', () => {
       providers: [
         {
           provide: ConversationIndexerService,
-          useClass: TestConversationIndexerService
+          useClass: TestConversationIndexerService,
         },
         {
           provide: getRepositoryToken(ConversationInsight),
           useValue: insightRepository,
-        }
+        },
       ],
     }).compile();
 
-    service = module.get<ConversationIndexerService>(ConversationIndexerService);
+    service = module.get<ConversationIndexerService>(
+      ConversationIndexerService,
+    );
   });
 
   it('should be defined', () => {
@@ -102,20 +109,23 @@ describe('ConversationIndexerService', () => {
   describe('indexConversation', () => {
     it('should index a conversation and its insights', async () => {
       // Act
-      await service.indexConversation(mockConversation, mockAnalysis);
+      await service.indexConversation(
+        asConversation(mockConversation),
+        mockAnalysis,
+      );
 
       // Assert
       // Check that insights were created for intents, topics, actions, and sentiment
       expect(insightRepository.create).toHaveBeenCalledTimes(5);
       expect(insightRepository.save).toHaveBeenCalledTimes(5);
-      
+
       // Check that the conversation was indexed for search
       expect(mockSearchService.indexConversation).toHaveBeenCalledTimes(1);
       expect(mockSearchService.indexConversation).toHaveBeenCalledWith({
         id: mockConversation.id,
         content: expect.any(String),
-        metadata: expect.any(Object)
+        metadata: expect.any(Object),
       });
     });
   });
-}); 
+});

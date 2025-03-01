@@ -9,10 +9,10 @@ import { ErrorCategory } from '../errors/error-category.enum';
 // Mock winston
 jest.mock('winston', () => {
   const mockFormat = {
-    colorize: jest.fn().mockReturnThis(),
     combine: jest.fn().mockReturnThis(),
     timestamp: jest.fn().mockReturnThis(),
     printf: jest.fn().mockReturnThis(),
+    colorize: jest.fn().mockReturnThis(),
     json: jest.fn().mockReturnThis(),
   };
 
@@ -60,8 +60,6 @@ describe('LoggerService', () => {
                   return 5;
                 case 'logger.maxSize':
                   return '10m';
-                default:
-                  return undefined;
               }
             }),
           },
@@ -259,7 +257,7 @@ describe('LoggerService', () => {
         ErrorCode.VALIDATION_ERROR,
         400,
         ErrorCategory.VALIDATION,
-        { field: 'test' },
+        { _field: 'test' },
       );
 
       service.error(baseError);

@@ -13,7 +13,7 @@ declare module '@supabase/supabase-js' {
   }
 
   export interface User {
-    id: string;
+    _id: string;
     email?: string;
     role?: string;
     [key: string]: unknown;
@@ -58,10 +58,10 @@ declare module '@supabase/supabase-js' {
     T extends Record<string, unknown> = Record<string, unknown>,
   > {
     from<TableName extends keyof T['public']['Tables']>(
-      table: TableName,
+      _table: TableName,
     ): PostgrestResponse<T['public']['Tables'][TableName]>;
     rpc<FunctionName extends keyof T['public']['Functions']>(
-      fn: FunctionName,
+      _fn: FunctionName,
       args?: T['public']['Functions'][FunctionName]['Args'],
     ): Promise<
       PostgrestResponse<T['public']['Functions'][FunctionName]['Returns']>
@@ -85,8 +85,8 @@ declare module '@supabase/supabase-js' {
   export function createClient<
     T extends Record<string, unknown> = Record<string, unknown>,
   >(
-    supabaseUrl: string,
-    supabaseKey: string,
+    _supabaseUrl: string,
+    _supabaseKey: string,
     options?: SupabaseClientOptions,
   ): SupabaseClient<T>;
 }

@@ -112,7 +112,11 @@ export class LoggerService implements NestLoggerService {
    * @param context Optional context override
    * @param meta Optional metadata to include with the log
    */
-  log(message: string | LogMessage, context?: string, meta?: Record<string, unknown>): void {
+  log(
+    message: string | LogMessage,
+    context?: string,
+    meta?: Record<string, unknown>,
+  ): void {
     this.writeLog('info', message, context, undefined, meta);
   }
 
@@ -123,7 +127,12 @@ export class LoggerService implements NestLoggerService {
    * @param context Optional context override
    * @param meta Optional metadata to include with the log
    */
-  error(message: string | Error | LogMessage, trace?: string, context?: string, meta?: Record<string, unknown>): void {
+  error(
+    message: string | Error | LogMessage,
+    trace?: string,
+    context?: string,
+    meta?: Record<string, unknown>,
+  ): void {
     this.writeLog('error', message, context, trace, meta);
   }
 
@@ -133,7 +142,11 @@ export class LoggerService implements NestLoggerService {
    * @param context Optional context override
    * @param meta Optional metadata to include with the log
    */
-  warn(message: string | Error | LogMessage, context?: string, meta?: Record<string, unknown>): void {
+  warn(
+    message: string | Error | LogMessage,
+    context?: string,
+    meta?: Record<string, unknown>,
+  ): void {
     this.writeLog('warn', message, context, undefined, meta);
   }
 
@@ -143,7 +156,11 @@ export class LoggerService implements NestLoggerService {
    * @param context Optional context override
    * @param meta Optional metadata to include with the log
    */
-  debug(message: string | Error | LogMessage, context?: string, meta?: Record<string, unknown>): void {
+  debug(
+    message: string | Error | LogMessage,
+    context?: string,
+    meta?: Record<string, unknown>,
+  ): void {
     this.writeLog('debug', message, context, undefined, meta);
   }
 
@@ -153,7 +170,11 @@ export class LoggerService implements NestLoggerService {
    * @param context Optional context override
    * @param meta Optional metadata to include with the log
    */
-  verbose(message: string | Error | LogMessage, context?: string, meta?: Record<string, unknown>): void {
+  verbose(
+    message: string | Error | LogMessage,
+    context?: string,
+    meta?: Record<string, unknown>,
+  ): void {
     this.writeLog('verbose', message, context, undefined, meta);
   }
 
@@ -187,7 +208,12 @@ export class LoggerService implements NestLoggerService {
       return;
     }
 
-    const { message: msg, error, context: msgContext, meta: messageMeta } = message as LogMessage;
+    const {
+      message: msg,
+      error,
+      context: msgContext,
+      meta: messageMeta,
+    } = message as LogMessage;
     const combinedMeta = {
       ...(meta || {}),
       ...(messageMeta || {}),

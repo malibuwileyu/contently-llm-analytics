@@ -65,7 +65,11 @@ export class DatabaseMetricsService implements OnModuleInit {
     });
 
     // Schedule connection pool metrics collection
-    setInterval(() => this.collectConnectionMetrics(), 30000); // Every 30 seconds
+    setInterval(() => {
+      this.collectConnectionMetrics().catch(error => {
+        this.logger.error('Failed to collect connection metrics', error);
+      });
+    }, 30000);
   }
 
   /**

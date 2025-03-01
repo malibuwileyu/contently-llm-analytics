@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Run lint-staged once to handle staged files
 npx lint-staged
-npx lint-staged
+
+# Run full linting to catch any issues
 npm run lint

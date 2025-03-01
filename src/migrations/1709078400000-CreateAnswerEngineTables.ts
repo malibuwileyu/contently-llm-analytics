@@ -1,15 +1,23 @@
-import { MigrationInterface, QueryRunner, Table, TableIndex, TableForeignKey } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableIndex,
+  TableForeignKey,
+} from 'typeorm';
 
 /**
  * Migration to create Answer Engine tables
  * - brand_mention: Stores mentions of brands in content
  * - citation: Stores citations associated with brand mentions
  */
-export class CreateAnswerEngineTables1709078400000 implements MigrationInterface {
+export class CreateAnswerEngineTables1709078400000
+  implements MigrationInterface
+{
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Ensure the uuid-ossp extension is available for uuid_generate_v4()
     await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
-    
+
     // Create the brand_mention table
     await queryRunner.createTable(
       new Table({
@@ -69,7 +77,7 @@ export class CreateAnswerEngineTables1709078400000 implements MigrationInterface
           },
         ],
       }),
-      true
+      true,
     );
 
     // Create the citation table
@@ -126,7 +134,7 @@ export class CreateAnswerEngineTables1709078400000 implements MigrationInterface
           },
         ],
       }),
-      true
+      true,
     );
 
     // Add foreign key for citation to brand_mention
@@ -134,10 +142,10 @@ export class CreateAnswerEngineTables1709078400000 implements MigrationInterface
       'citation',
       new TableForeignKey({
         columnNames: ['brand_mention_id'],
-        referencedColumnNames: ['id'],
-        referencedTableName: 'brand_mention',
-        onDelete: 'CASCADE',
-      })
+        _referencedColumnNames: ['id'],
+        _referencedTableName: 'brand_mention',
+        _onDelete: 'CASCADE',
+      }),
     );
 
     // Create indexes for brand_mention table
@@ -167,7 +175,7 @@ export class CreateAnswerEngineTables1709078400000 implements MigrationInterface
         columnNames: ['authority'],
       }),
       new TableIndex({
-        name: 'IDX_citation_source',
+        name: 'IDX_citationsource',
         columnNames: ['source'],
       }),
     ]);
@@ -175,19 +183,22 @@ export class CreateAnswerEngineTables1709078400000 implements MigrationInterface
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop indexes
-    await queryRunner.dropIndex('citation', 'IDX_citation_source');
+    await queryRunner.dropIndex('citation', 'IDX_citationsource');
     await queryRunner.dropIndex('citation', 'IDX_citation_authority');
     await queryRunner.dropIndex('citation', 'IDX_citation_brand_mention_id');
-    
+
     await queryRunner.dropIndex('brand_mention', 'IDX_brand_mention_sentiment');
-    await queryRunner.dropIndex('brand_mention', 'IDX_brand_mention_mentioned_at');
+    await queryRunner.dropIndex(
+      'brand_mention',
+      'IDX_brand_mention_mentioned_at',
+    );
     await queryRunner.dropIndex('brand_mention', 'IDX_brand_mention_brand_id');
 
     // Drop foreign key
     const citationTable = await queryRunner.getTable('citation');
     if (citationTable) {
       const foreignKey = citationTable.foreignKeys.find(
-        (fk) => fk.columnNames.indexOf('brand_mention_id') !== -1
+        fk => fk.columnNames.indexOf('brand_mention_id') !== -1,
       );
       if (foreignKey) {
         await queryRunner.dropForeignKey('citation', foreignKey);
@@ -198,4 +209,4 @@ export class CreateAnswerEngineTables1709078400000 implements MigrationInterface
     await queryRunner.dropTable('citation');
     await queryRunner.dropTable('brand_mention');
   }
-} 
+}

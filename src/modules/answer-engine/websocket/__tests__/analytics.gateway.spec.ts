@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { CacheService } from '../../../../cache/cache.service';
+import { CacheService } from '../../../../modules/cache/cache.service';
 
 describe('AnalyticsGateway', () => {
   let gateway: AnalyticsGateway;
@@ -36,7 +36,7 @@ describe('AnalyticsGateway', () => {
           provide: JwtService,
           useValue: {
             sign: jest.fn(),
-            verify: jest.fn().mockResolvedValue({ sub: 'test-user-id' }),
+            _verify: jest.fn().mockResolvedValue({ sub: 'test-user-id' }),
           },
         },
         {
@@ -58,17 +58,17 @@ describe('AnalyticsGateway', () => {
           useValue: {
             get: jest.fn(),
             set: jest.fn(),
-            delete: jest.fn(),
-            getOrSet: jest.fn(),
+            _delete: jest.fn(),
+            _getOrSet: jest.fn(),
           },
         },
       ],
     })
-    .overrideGuard(JwtAuthGuard)
-    .useValue({
-      canActivate: jest.fn().mockResolvedValue(true),
-    })
-    .compile();
+      .overrideGuard(JwtAuthGuard)
+      .useValue({
+        _canActivate: jest.fn().mockResolvedValue(true),
+      })
+      .compile();
 
     gateway = module.get<AnalyticsGateway>(AnalyticsGateway);
     _jwtService = module.get<JwtService>(JwtService);

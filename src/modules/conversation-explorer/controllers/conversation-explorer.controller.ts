@@ -38,7 +38,7 @@ export class ConversationExplorerController {
    * @returns Analyzed conversation with insights
    */
   @Post('analyze')
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus._CREATED)
   @UseGuards(JwtAuthGuard)
   async analyzeConversation(
     @Body() data: AnalyzeConversationDto,

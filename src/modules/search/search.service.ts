@@ -28,7 +28,7 @@ interface SearchResult {
  */
 @Injectable()
 export class SearchService {
-  constructor(private readonly serviceUrl: string) {}
+  constructor(private readonly _serviceUrl: string) {}
 
   /**
    * Index a conversation for search

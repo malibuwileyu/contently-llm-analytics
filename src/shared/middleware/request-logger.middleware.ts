@@ -24,16 +24,17 @@ export class RequestLoggerMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction): void {
     // Generate a unique correlation ID for this request
-    const correlationId = req.headers['x-correlation-id'] as string || uuidv4();
+    const correlationId =
+      (req.headers['x-correlation-id'] as string) || uuidv4();
     req.correlationId = correlationId;
-    
+
     // Add correlation ID to response headers
     res.setHeader('x-correlation-id', correlationId);
-    
+
     // Get request information
     const { method, originalUrl, ip, headers } = req;
     const userAgent = headers['user-agent'] || 'unknown';
-    
+
     // Log the request
     this.logger.info(`Request ${method} ${originalUrl}`, undefined, {
       correlationId,
@@ -42,41 +43,56 @@ export class RequestLoggerMiddleware implements NestMiddleware {
       ip,
       userAgent,
     });
-    
+
     // Get the start time
     const startTime = Date.now();
-    
+
     // Add response listener using the correct type
-    const resStream = res as unknown as { on: (event: string, callback: () => void) => void };
+    const resStream = res as unknown as {
+      on: (event: string, _callback: () => void) => void;
+    };
     resStream.on('finish', () => {
       const duration = Date.now() - startTime;
-      
+
       // Get response information
       const { statusCode } = res;
-      
+
       // Determine log level based on status code
-      if (statusCode >= 500) {
-        this.logger.error(`Response ${statusCode} ${method} ${originalUrl} - ${duration}ms`, undefined, undefined, {
-          correlationId,
-          statusCode,
-          duration,
-        });
-      } else if (statusCode >= 400) {
-        this.logger.warn(`Response ${statusCode} ${method} ${originalUrl} - ${duration}ms`, undefined, {
-          correlationId,
-          statusCode,
-          duration,
-        });
+      if (statusCode >= _500) {
+        this.logger.error(
+          `Response ${statusCode} ${method} ${originalUrl} - ${duration}ms`,
+          undefined,
+          undefined,
+          {
+            correlationId,
+            statusCode,
+            duration,
+          },
+        );
+      } else if (statusCode >= _400) {
+        this.logger.warn(
+          `Response ${statusCode} ${method} ${originalUrl} - ${duration}ms`,
+          undefined,
+          {
+            correlationId,
+            statusCode,
+            duration,
+          },
+        );
       } else {
-        this.logger.info(`Response ${statusCode} ${method} ${originalUrl} - ${duration}ms`, undefined, {
-          correlationId,
-          statusCode,
-          duration,
-        });
+        this.logger.info(
+          `Response ${statusCode} ${method} ${originalUrl} - ${duration}ms`,
+          undefined,
+          {
+            correlationId,
+            statusCode,
+            duration,
+          },
+        );
       }
     });
-    
+
     // Continue to the next middleware or route handler
     next();
   }
-} 
+}

@@ -10,27 +10,27 @@ export enum ErrorCode {
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   INVALID_INPUT = 'INVALID_INPUT',
   MISSING_REQUIRED_FIELD = 'MISSING_REQUIRED_FIELD',
-  
-  // Authentication errors (401, 403 range)
+
+  // Authentication errors (_401, 403 range)
   UNAUTHORIZED = 'UNAUTHORIZED',
   FORBIDDEN = 'FORBIDDEN',
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
   TOKEN_EXPIRED = 'TOKEN_EXPIRED',
-  
-  // Resource errors (404, 409 range)
+
+  // Resource errors (_404, 409 range)
   NOT_FOUND = 'NOT_FOUND',
   ALREADY_EXISTS = 'ALREADY_EXISTS',
   CONFLICT = 'CONFLICT',
-  
+
   // Business logic errors (422 range)
   BUSINESS_RULE_VIOLATION = 'BUSINESS_RULE_VIOLATION',
   OPERATION_NOT_ALLOWED = 'OPERATION_NOT_ALLOWED',
-  
-  // External service errors (502, 503, 504 range)
+
+  // External service errors (_502, _503, 504 range)
   EXTERNAL_SERVICE_ERROR = 'EXTERNAL_SERVICE_ERROR',
   SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
   TIMEOUT = 'TIMEOUT',
-  
+
   // System errors (500 range)
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   DATABASE_ERROR = 'DATABASE_ERROR',
@@ -41,10 +41,7 @@ export enum ErrorCode {
  * Validation error - used when input data fails validation
  */
 export class ValidationError extends BaseError {
-  constructor(
-    message: string,
-    context?: Record<string, unknown>,
-  ) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(
       message,
       ErrorCode.VALIDATION_ERROR,
@@ -59,10 +56,7 @@ export class ValidationError extends BaseError {
  * Not found error - used when a requested resource doesn't exist
  */
 export class NotFoundError extends BaseError {
-  constructor(
-    message: string,
-    context?: Record<string, unknown>,
-  ) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(
       message,
       ErrorCode.NOT_FOUND,
@@ -77,10 +71,7 @@ export class NotFoundError extends BaseError {
  * Unauthorized error - used for authentication failures
  */
 export class UnauthorizedError extends BaseError {
-  constructor(
-    message: string,
-    context?: Record<string, unknown>,
-  ) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(
       message,
       ErrorCode.UNAUTHORIZED,
@@ -95,10 +86,7 @@ export class UnauthorizedError extends BaseError {
  * Forbidden error - used for authorization failures
  */
 export class ForbiddenError extends BaseError {
-  constructor(
-    message: string,
-    context?: Record<string, unknown>,
-  ) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(
       message,
       ErrorCode.FORBIDDEN,
@@ -113,10 +101,7 @@ export class ForbiddenError extends BaseError {
  * Conflict error - used when an operation would create a conflict
  */
 export class ConflictError extends BaseError {
-  constructor(
-    message: string,
-    context?: Record<string, unknown>,
-  ) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(
       message,
       ErrorCode.CONFLICT,
@@ -150,10 +135,7 @@ export class BusinessError extends BaseError {
  * External service error - used when an external service fails
  */
 export class ExternalServiceError extends BaseError {
-  constructor(
-    message: string,
-    context?: Record<string, unknown>,
-  ) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(
       message,
       ErrorCode.EXTERNAL_SERVICE_ERROR,
@@ -168,10 +150,7 @@ export class ExternalServiceError extends BaseError {
  * Database error - used for database-related errors
  */
 export class DatabaseError extends BaseError {
-  constructor(
-    message: string,
-    context?: Record<string, unknown>,
-  ) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(
       message,
       ErrorCode.DATABASE_ERROR,
@@ -186,10 +165,7 @@ export class DatabaseError extends BaseError {
  * Internal error - used for unexpected system errors
  */
 export class InternalError extends BaseError {
-  constructor(
-    message: string,
-    context?: Record<string, unknown>,
-  ) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(
       message,
       ErrorCode.INTERNAL_ERROR,
@@ -204,10 +180,7 @@ export class InternalError extends BaseError {
  * Timeout error - used when an operation times out
  */
 export class TimeoutError extends BaseError {
-  constructor(
-    message: string,
-    context?: Record<string, unknown>,
-  ) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(
       message,
       ErrorCode.TIMEOUT,
@@ -216,4 +189,4 @@ export class TimeoutError extends BaseError {
       context,
     );
   }
-} 
+}

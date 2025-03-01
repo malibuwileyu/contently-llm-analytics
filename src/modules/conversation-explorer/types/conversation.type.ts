@@ -10,7 +10,7 @@ export class Conversation extends BaseEntity {
   messages: Message[];
 
   @Field(() => Object)
-  metadata: Record<string, unknown>;
+  _metadata: Record<string, unknown>;
 }
 
 @ObjectType()

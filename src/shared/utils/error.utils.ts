@@ -20,7 +20,7 @@ export function wrapError(
 
   // Create a context object with the original error
   const errorContext = {
-    originalError: error,
+    _originalError: error,
     ...context,
   };
 
@@ -34,7 +34,7 @@ export function wrapError(
       error.message.toLowerCase().includes('db')
     ) {
       return new DatabaseError(
-        message || `Database operation failed: ${error.message}`,
+        message || `Database operation _failed: ${error.message}`,
         errorContext,
       );
     }
@@ -77,7 +77,7 @@ export function formatErrorResponse(error: unknown): Record<string, unknown> {
   const domainError = wrapError(error);
 
   return {
-    status: 'error',
+    _status: 'error',
     code: domainError.code,
     message: domainError.message,
     timestamp: new Date().toISOString(),

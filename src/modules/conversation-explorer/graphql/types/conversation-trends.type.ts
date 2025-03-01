@@ -4,7 +4,7 @@ import { ObjectType, Field } from '@nestjs/graphql';
  * Type for top intent
  */
 @ObjectType()
-class TopIntent {
+export class TopIntent {
   @Field()
   category: string;
 
@@ -19,7 +19,7 @@ class TopIntent {
  * Type for top topic
  */
 @ObjectType()
-class TopTopic {
+export class TopTopic {
   @Field()
   name: string;
 
@@ -49,7 +49,7 @@ class CommonAction {
  * Type for engagement trend
  */
 @ObjectType()
-class EngagementTrendPoint {
+export class EngagementTrendPoint {
   @Field()
   date: Date;
 
@@ -73,4 +73,4 @@ export class ConversationTrendsType {
 
   @Field(() => [EngagementTrendPoint])
   engagementTrend: EngagementTrendPoint[];
-} 
+}

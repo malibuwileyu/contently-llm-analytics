@@ -2,12 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Conversation } from '../entities/conversation.entity';
-import { ConversationInsight, InsightType } from '../entities/conversation-insight.entity';
-import { 
-  ConversationAnalysis, 
-  Intent, 
-  Topic, 
-  Action 
+import {
+  ConversationInsight,
+  InsightType,
+} from '../entities/conversation-insight.entity';
+import {
+  ConversationAnalysis,
+  Intent,
+  Topic,
+  Action,
 } from '../interfaces/conversation-analysis.interface';
 import { CreateInsightDto } from '../interfaces/insight.interface';
 
@@ -30,7 +33,7 @@ export class ConversationIndexerService {
   constructor(
     @InjectRepository(ConversationInsight)
     private readonly insightRepo: Repository<ConversationInsight>,
-    private readonly searchService: SearchService
+    private readonly searchService: SearchService,
   ) {}
 
   /**
@@ -40,7 +43,7 @@ export class ConversationIndexerService {
    */
   async indexConversation(
     conversation: Conversation,
-    analysis: ConversationAnalysis
+    analysis: ConversationAnalysis,
   ): Promise<void> {
     // Index insights
     await Promise.all([
@@ -50,12 +53,16 @@ export class ConversationIndexerService {
       this.indexSentiment(conversation, analysis.sentiment),
     ]);
 
+    // Get metadata from conversation, handling both naming conventions
+    const metadataObj =
+      (conversation as any)._metadata || (conversation as any).metadata || {};
+
     // Index for search
     await this.searchService.indexConversation({
       id: conversation.id,
       content: this.extractContent(conversation),
       metadata: {
-        ...conversation.metadata,
+        ...metadataObj,
         insights: analysis,
       },
     });
@@ -68,7 +75,7 @@ export class ConversationIndexerService {
    */
   private async indexIntents(
     conversation: Conversation,
-    intents: Intent[]
+    intents: Intent[],
   ): Promise<void> {
     await Promise.all(
       intents.map(intent =>
@@ -78,8 +85,8 @@ export class ConversationIndexerService {
           category: intent.category,
           confidence: intent.confidence,
           details: intent.details,
-        })
-      )
+        }),
+      ),
     );
   }
 
@@ -90,7 +97,7 @@ export class ConversationIndexerService {
    */
   private async indexTopics(
     conversation: Conversation,
-    topics: Topic[]
+    topics: Topic[],
   ): Promise<void> {
     await Promise.all(
       topics.map(topic =>
@@ -102,8 +109,8 @@ export class ConversationIndexerService {
           details: {
             mentions: topic.mentions,
           },
-        })
-      )
+        }),
+      ),
     );
   }
 
@@ -114,7 +121,7 @@ export class ConversationIndexerService {
    */
   private async indexActions(
     conversation: Conversation,
-    actions: Action[]
+    actions: Action[],
   ): Promise<void> {
     await Promise.all(
       actions.map(action =>
@@ -124,8 +131,8 @@ export class ConversationIndexerService {
           category: action.type,
           confidence: action.confidence,
           details: action.context,
-        })
-      )
+        }),
+      ),
     );
   }
 
@@ -136,7 +143,11 @@ export class ConversationIndexerService {
    */
   private async indexSentiment(
     conversation: Conversation,
-    sentiment: { overall: number; progression: number; aspects: { aspect: string; score: number }[] }
+    sentiment: {
+      overall: number;
+      progression: number;
+      aspects: { aspect: string; score: number }[];
+    },
   ): Promise<void> {
     // Index overall sentiment
     await this.createInsight({
@@ -161,8 +172,8 @@ export class ConversationIndexerService {
           details: {
             score: aspect.score,
           },
-        })
-      )
+        }),
+      ),
     );
   }
 
@@ -171,7 +182,9 @@ export class ConversationIndexerService {
    * @param data Insight data
    * @returns Created insight
    */
-  private async createInsight(data: CreateInsightDto): Promise<ConversationInsight> {
+  private async createInsight(
+    data: CreateInsightDto,
+  ): Promise<ConversationInsight> {
     const insight = this.insightRepo.create({
       conversationId: data.conversation.id,
       type: data.type as InsightType,
@@ -192,8 +205,12 @@ export class ConversationIndexerService {
    * @returns Formatted content string
    */
   private extractContent(conversation: Conversation): string {
-    return conversation.messages
-      .map(msg => `${msg.role}: ${msg.content}`)
+    const messages = (conversation as any).messages || [];
+    return messages
+      .map(
+        (msg: { role: string; content: string }) =>
+          `${msg.role}: ${msg.content}`,
+      )
       .join('\n');
   }
 }

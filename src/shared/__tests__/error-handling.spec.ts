@@ -54,8 +54,10 @@ const createMockLoggerService = () => ({
   log: jest.fn(),
   debug: jest.fn(),
   info: jest.fn(),
+  verbose: jest.fn(),
 });
 
+// Create mock Sentry service
 const createMockSentryService = () => ({
   captureException: jest.fn(),
   captureMessage: jest.fn(),
@@ -191,7 +193,7 @@ describe('Error Handling System', () => {
       expect(sentryService.captureException).toHaveBeenCalled();
     });
 
-    it('should not capture 4xx errors in Sentry (except 401/403)', async () => {
+    it('should not capture 4xx errors in Sentry (except 401/_403)', async () => {
       await request(app.getHttpServer())
         .get('/test-errors/validation')
         .expect(HttpStatus.BAD_REQUEST);

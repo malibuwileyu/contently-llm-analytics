@@ -1,7 +1,7 @@
 export type Database = {
-  public: {
-    Tables: {
-      users: {
+  _public: {
+    _Tables: {
+      _users: {
         Row: {
           id: string;
           email: string;
@@ -24,15 +24,15 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
-          display_name: string;
-          avatar_url: string;
+          displayname: string;
+          avatarurl: string;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
-          display_name: string;
+          displayname: string;
           avatar_url?: string;
           created_at?: string;
           updated_at?: string;
@@ -40,7 +40,7 @@ export type Database = {
         Update: {
           id?: string;
           user_id?: string;
-          display_name?: string;
+          displayname?: string;
           avatar_url?: string;
           updated_at?: string;
         };
@@ -53,4 +53,4 @@ export type Database = {
       };
     };
   };
-}; 
+};

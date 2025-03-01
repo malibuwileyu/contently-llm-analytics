@@ -25,7 +25,7 @@ export class AnswerEngineService {
     private readonly brandMentionRepo: BrandMentionRepository,
     private readonly sentimentAnalyzer: SentimentAnalyzerService,
     private readonly citationTracker: CitationTrackerService,
-    private readonly metrics: MetricsService
+    private readonly metrics: MetricsService,
   ) {}
 
   /**
@@ -38,7 +38,9 @@ export class AnswerEngineService {
 
     try {
       // Analyze sentiment of the content
-      const sentiment = await this.sentimentAnalyzer.analyzeSentiment(data.content);
+      const sentiment = await this.sentimentAnalyzer.analyzeSentiment(
+        data.content,
+      );
 
       // Create the brand mention
       const mention = await this.brandMentionRepo.save({
@@ -56,8 +58,8 @@ export class AnswerEngineService {
               source: citation.source,
               brandMention: mention,
               metadata: citation.metadata,
-            })
-          )
+            }),
+          ),
         );
       }
 
@@ -89,7 +91,7 @@ export class AnswerEngineService {
       this.brandMentionRepo.getSentimentTrend(
         brandId,
         subDays(new Date(), 30), // Last 30 days
-        new Date()
+        new Date(),
       ),
     ]);
 
@@ -109,7 +111,10 @@ export class AnswerEngineService {
    */
   private calculateOverallSentiment(mentions: BrandMention[]): number {
     if (!mentions.length) return 0;
-    return mentions.reduce((sum, mention) => sum + mention.sentiment, 0) / mentions.length;
+    return (
+      mentions.reduce((sum, mention) => sum + mention.sentiment, 0) /
+      mentions.length
+    );
   }
 
   /**
@@ -117,11 +122,15 @@ export class AnswerEngineService {
    * @param mentions Array of brand mentions
    * @returns Array of top citations
    */
-  private async getTopCitations(mentions: BrandMention[]): Promise<Pick<Citation, 'source' | 'authority'>[]> {
+  private async getTopCitations(
+    mentions: BrandMention[],
+  ): Promise<Pick<Citation, 'source' | 'authority'>[]> {
     // Get all citations from the mentions
     const mentionIds = mentions.map(mention => mention.id);
-    const citations = await this.citationTracker.getCitationsByBrandMention(mentionIds[0]);
-    
+    const citations = await this.citationTracker.getCitationsByBrandMention(
+      mentionIds[0],
+    );
+
     // Sort by authority and take top 10
     return citations
       .sort((a, b) => b.authority - a.authority)
@@ -131,4 +140,4 @@ export class AnswerEngineService {
         authority: citation.authority,
       }));
   }
-} 
+}

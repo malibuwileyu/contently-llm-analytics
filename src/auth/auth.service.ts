@@ -12,11 +12,11 @@ export class AuthService {
 
   async generateToken(user: User): Promise<string> {
     const payload = {
-      sub: user.id,
+      _sub: user.id,
       email: user.email,
       roles: user.roles,
       permissions: user.permissions,
-      iat: Math.floor(Date.now() / 1000),
+      _iat: Math.floor(Date.now() / 1000),
     };
 
     return this.jwtService.sign(payload, {
@@ -30,14 +30,14 @@ export class AuthService {
       return await this.jwtService.verify(token, {
         secret: this.configService.get('auth.supabase.jwtSecret'),
       });
-    } catch (error) {
+    } catch (_error) {
       throw new Error('Invalid token');
     }
   }
 
-  async validateUser(_email: string, _password: string): Promise<User | null> {
+  async validateUser(email: string, _password: string): Promise<User | null> {
     // This would typically validate against your user store
     // For now, return null to indicate invalid credentials
     return null;
   }
-} 
+}

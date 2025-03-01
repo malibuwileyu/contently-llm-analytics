@@ -17,7 +17,7 @@ describe('NLPService', () => {
           useValue: {
             get: jest.fn((key: string, defaultValue: string) => {
               if (key === 'NLP_API_KEY') return 'test-api-key';
-              if (key === 'NLP_API_ENDPOINT') return 'https://test-api.com';
+              if (key === 'NLP_API_ENDPOINT') return '_https://test-api.com';
               return defaultValue;
             }),
           },
@@ -97,7 +97,7 @@ describe('NLPService', () => {
       const valueAspect = result.aspects.find(a => a.topic === 'value');
       expect(valueAspect).toBeDefined();
       if (valueAspect) {
-        // Just check that it exists, don't make assumptions about the score
+        // Just check that it _exists, don't make assumptions about the score
         // as it depends on the exact implementation of the sentiment analysis
         expect(valueAspect.score).toBeDefined();
       }

@@ -9,7 +9,7 @@ import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
 import { LoggerModule } from './logger/logger.module';
 import { AuthModule } from './auth/auth.module';
-import { CacheModule } from './cache/cache.module';
+import { CacheModule } from './auth/cache/cache.module';
 import { RealTimeModule } from './modules/real-time/real-time.module';
 import { ErrorHandlingModule } from './shared/error-handling.module';
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
@@ -18,6 +18,7 @@ import { SentryService } from './shared/services/sentry.service';
 import { MetricsModule } from './metrics/metrics.module';
 import { RunnersModule } from './shared/runners/runners.module';
 import { AnswerEngineModule } from './modules/answer-engine/answer-engine.module';
+import { AIProviderModule } from './modules/ai-provider/ai-provider.module';
 import appConfig from './config/app.config';
 import authConfig from './config/auth.config';
 import sentryConfig from './config/sentry.config';
@@ -32,7 +33,14 @@ import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
     // Configuration
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, authConfig, sentryConfig, redisConfig, healthConfig, createMetricsConfig],
+      load: [
+        appConfig,
+        authConfig,
+        sentryConfig,
+        redisConfig,
+        healthConfig,
+        createMetricsConfig,
+      ],
     }),
 
     // GraphQL
@@ -59,7 +67,7 @@ import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
           database: dbConfig.database,
           schema: dbConfig.schema,
           ssl: {
-            rejectUnauthorized: false // Required for Supabase pooler connection
+            rejectUnauthorized: false, // Required for Supabase pooler connection
           },
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
           migrations: [__dirname + '/migrations/*{.ts,.js}'],
@@ -74,7 +82,7 @@ import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
             min: dbConfig.pooling.min,
             idleTimeoutMillis: dbConfig.pooling.idleTimeoutMillis,
             connectionTimeoutMillis: dbConfig.pooling.connectionTimeoutMillis,
-          }
+          },
         };
       },
     }),
@@ -86,7 +94,7 @@ import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
     AuthModule,
     CacheModule,
     RealTimeModule,
-    
+
     // Metrics Module
     MetricsModule.register({
       isGlobal: true,
@@ -97,12 +105,15 @@ import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
         endpoint: process.env.METRICS_ENDPOINT || '/metrics',
       },
     }),
-    
+
     // Runners Module
     RunnersModule,
-    
+
     // Feature Modules
     AnswerEngineModule,
+
+    // AI Provider Module
+    AIProviderModule,
   ],
   controllers: [AppController],
   providers: [

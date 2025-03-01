@@ -1,12 +1,12 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
-  DeleteDateColumn, 
-  ManyToOne, 
-  JoinColumn 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Conversation } from './conversation.entity';
 
@@ -35,7 +35,7 @@ export class ConversationInsight {
   /**
    * The conversation this insight belongs to
    */
-  @ManyToOne(() => Conversation, conversation => conversation.insights)
+  @ManyToOne(() => Conversation, (conversation: any) => conversation._insights)
   @JoinColumn({ name: 'conversation_id' })
   conversation: Conversation;
 
@@ -78,6 +78,10 @@ export class ConversationInsight {
   /**
    * When the insight was deleted (for soft delete)
    */
-  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp with time zone', nullable: true })
+  @DeleteDateColumn({
+    name: 'deleted_at',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
   deletedAt: Date;
-} 
+}

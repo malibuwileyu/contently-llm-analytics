@@ -10,4 +10,4 @@ export class ConversationInsightOptionsInput {
 
   @Field(() => Date, { nullable: true })
   endDate?: Date;
-} 
+}

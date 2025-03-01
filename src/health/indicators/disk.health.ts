@@ -20,4 +20,4 @@ export class DiskHealthIndicator extends HealthIndicator {
       return this.getStatus(key, false, { message: error.message });
     }
   }
-} 
+}

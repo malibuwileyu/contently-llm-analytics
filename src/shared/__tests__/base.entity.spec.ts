@@ -19,12 +19,12 @@ describe('BaseEntity', () => {
     const baseColumns = allColumns.filter(col => {
       const target = col.target;
       return (
-        (typeof target === 'function' && 
-         (target === BaseEntity || target.prototype instanceof BaseEntity)) &&
+        typeof target === 'function' &&
+        (target === BaseEntity || target.prototype instanceof BaseEntity) &&
         ['id', 'createdAt', 'updatedAt', 'deletedAt'].includes(col.propertyName)
       );
     });
-    
+
     const columnNames = baseColumns.map(col => col.propertyName);
     expect(columnNames).toContain('id');
     expect(columnNames).toContain('createdAt');
@@ -37,14 +37,14 @@ describe('BaseEntity', () => {
     const entityColumns = metadata.columns.filter(col => {
       const target = col.target;
       return (
-        typeof target === 'function' && 
-        target === TestEntity && 
+        typeof target === 'function' &&
+        target === TestEntity &&
         ['name', 'description'].includes(col.propertyName)
       );
     });
-    
+
     const columnNames = entityColumns.map(col => col.propertyName);
     expect(columnNames).toContain('name');
     expect(columnNames).toContain('description');
   });
-}); 
+});

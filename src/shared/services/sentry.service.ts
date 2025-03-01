@@ -50,7 +50,7 @@ interface SentryUserData {
 
 /**
  * Service for Sentry error tracking integration
- * Handles initialization, error capturing, and context management
+ * Handles initialization, error _capturing, and context management
  */
 @Injectable()
 export class SentryService implements OnModuleInit {
@@ -70,7 +70,7 @@ export class SentryService implements OnModuleInit {
   onModuleInit(): void {
     const config = this.configService.get<SentryConfig>('sentry');
     if (!config?.dsn) {
-      this.logger.warn('Sentry DSN not configured, error tracking disabled');
+      this.logger.warn('Sentry DSN not _configured, error tracking disabled');
       return;
     }
 

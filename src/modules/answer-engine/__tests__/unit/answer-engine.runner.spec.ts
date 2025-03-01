@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { AnswerEngineRunner, FeatureContext } from '../../runners/answer-engine.runner';
+import {
+  AnswerEngineRunner,
+  FeatureContext,
+} from '../../runners/answer-engine.runner';
 import { AnswerEngineService } from '../../services/answer-engine.service';
 import { BrandMention } from '../../entities/brand-mention.entity';
 import { BrandHealth } from '../../interfaces/sentiment-analysis.interface';
@@ -58,7 +61,10 @@ describe('AnswerEngineRunner', () => {
 
       // Assert
       expect(result).toBe(true);
-      expect(configService.get).toHaveBeenCalledWith('features.answerEngine.enabled', true);
+      expect(configService.get).toHaveBeenCalledWith(
+        'features.answerEngine.enabled',
+        true,
+      );
     });
 
     it('should return false when feature is disabled', async () => {
@@ -70,7 +76,10 @@ describe('AnswerEngineRunner', () => {
 
       // Assert
       expect(result).toBe(false);
-      expect(configService.get).toHaveBeenCalledWith('features.answerEngine.enabled', true);
+      expect(configService.get).toHaveBeenCalledWith(
+        'features.answerEngine.enabled',
+        true,
+      );
     });
   });
 
@@ -86,9 +95,7 @@ describe('AnswerEngineRunner', () => {
             response: 'test response',
             platform: 'test platform',
           },
-          citations: [
-            { source: 'https://example.com', metadata: { page: 1 } },
-          ],
+          citations: [{ source: 'https://example.com', metadata: { page: 1 } }],
         },
       };
 
@@ -99,8 +106,12 @@ describe('AnswerEngineRunner', () => {
         mentionCount: 1,
       };
 
-      (answerEngineService.analyzeMention as jest.Mock).mockResolvedValue(mention);
-      (answerEngineService.getBrandHealth as jest.Mock).mockResolvedValue(health);
+      (answerEngineService.analyzeMention as jest.Mock).mockResolvedValue(
+        mention,
+      );
+      (answerEngineService.getBrandHealth as jest.Mock).mockResolvedValue(
+        health,
+      );
 
       // Act
       const result = await runner.run(context);
@@ -121,7 +132,9 @@ describe('AnswerEngineRunner', () => {
         citations: context.metadata?.citations,
       });
 
-      expect(answerEngineService.getBrandHealth).toHaveBeenCalledWith(context.brandId);
+      expect(answerEngineService.getBrandHealth).toHaveBeenCalledWith(
+        context.brandId,
+      );
     });
 
     it('should handle errors during execution', async () => {
@@ -134,7 +147,9 @@ describe('AnswerEngineRunner', () => {
       };
 
       const error = new Error('Test error');
-      (answerEngineService.analyzeMention as jest.Mock).mockRejectedValue(error);
+      (answerEngineService.analyzeMention as jest.Mock).mockRejectedValue(
+        error,
+      );
 
       // Act
       const result = await runner.run(context);
@@ -156,4 +171,4 @@ describe('AnswerEngineRunner', () => {
       expect(answerEngineService.getBrandHealth).not.toHaveBeenCalled();
     });
   });
-}); 
+});

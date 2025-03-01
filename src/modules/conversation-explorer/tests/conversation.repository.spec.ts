@@ -32,14 +32,14 @@ class ConversationRepository extends Repository<Conversation> {
   }
 
   findByBrandId(
-    _brandId: string,
+    brandId: string,
     _options?: FindManyOptions<Conversation>,
   ): Promise<Conversation[]> {
     return Promise.resolve([]);
   }
 
   getEngagementTrend(
-    _brandId: string,
+    brandId: string,
     _startDate: Date,
     _endDate: Date,
   ): Promise<any[]> {
@@ -84,29 +84,29 @@ describe('ConversationRepository', () => {
   beforeEach(async () => {
     // Create mock query builder
     queryBuilder = {
-      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      _leftJoinAndSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
+      _andWhere: jest.fn().mockReturnThis(),
+      _orderBy: jest.fn().mockReturnThis(),
       take: jest.fn().mockReturnThis(),
       skip: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      addSelect: jest.fn().mockReturnThis(),
-      groupBy: jest.fn().mockReturnThis(),
-      getOne: jest.fn(),
-      getMany: jest.fn(),
-      getRawMany: jest.fn(),
+      _select: jest.fn().mockReturnThis(),
+      _addSelect: jest.fn().mockReturnThis(),
+      _groupBy: jest.fn().mockReturnThis(),
+      _getOne: jest.fn(),
+      _getMany: jest.fn(),
+      _getRawMany: jest.fn(),
     };
 
     // Create mock data source
     dataSource = {
-      createEntityManager: jest.fn(),
-      createQueryRunner: jest.fn().mockReturnValue({
-        connect: jest.fn(),
-        startTransaction: jest.fn(),
-        commitTransaction: jest.fn(),
-        rollbackTransaction: jest.fn(),
-        release: jest.fn(),
+      _createEntityManager: jest.fn(),
+      _createQueryRunner: jest.fn().mockReturnValue({
+        _connect: jest.fn(),
+        _startTransaction: jest.fn(),
+        _commitTransaction: jest.fn(),
+        _rollbackTransaction: jest.fn(),
+        _release: jest.fn(),
       }),
     };
 
@@ -116,9 +116,9 @@ describe('ConversationRepository', () => {
           provide: ConversationRepository,
           useValue: {
             find: jest.fn(),
-            findOne: jest.fn(),
-            save: jest.fn(),
-            createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+            _findOne: jest.fn(),
+            _save: jest.fn(),
+            _createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
             findWithInsights: jest.fn(),
             findByBrandId: jest.fn(),
             getEngagementTrend: jest.fn(),

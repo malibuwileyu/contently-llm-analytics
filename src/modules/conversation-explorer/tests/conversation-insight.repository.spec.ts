@@ -53,8 +53,8 @@ class ConversationInsightRepository extends Repository<ConversationInsight> {
   }
 
   getTopInsightsByType(
-    _brandId: string,
-    _type: string,
+    brandId: string,
+    type: string,
     _limit: number,
   ): Promise<unknown[]> {
     return Promise.resolve([]);
@@ -92,13 +92,13 @@ describe('ConversationInsightRepository', () => {
   beforeEach(async () => {
     // Create mock query builder
     queryBuilder = {
-      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      _leftJoinAndSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
+      _andWhere: jest.fn().mockReturnThis(),
+      _orderBy: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
-      getMany: jest.fn().mockResolvedValue([]),
-      getOne: jest.fn().mockResolvedValue(null),
+      _getMany: jest.fn().mockResolvedValue([]),
+      _getOne: jest.fn().mockResolvedValue(null),
     };
 
     // Create a spy on the original repository methods

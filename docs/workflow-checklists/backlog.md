@@ -27,6 +27,7 @@ This document tracks features, improvements, and tasks that have been deferred f
 - Database backup system
 - Complex transaction patterns
 - Advanced query optimization
+- Design indexing strategy for performance optimization (defer until after query patterns are established in production)
 
 ### Caching Improvements
 - Create cache eviction policies
@@ -51,6 +52,7 @@ This document tracks features, improvements, and tasks that have been deferred f
 ### Advanced Security Features
 - SSL/TLS configuration for all environments
 - Advanced audit logging for security events
+- Create audit and logging schema (defer until security implementation phase)
 - Complex RBAC patterns
 - Advanced rate limiting for all public endpoints
 - Security event monitoring
@@ -66,6 +68,10 @@ This document tracks features, improvements, and tasks that have been deferred f
 - Load testing infrastructure
 - Stress testing scenarios
 - Advanced E2E test coverage
+- Implement A/B testing for query templates (defer until after frontend implementation)
+- Add human evaluation for query quality (defer until after initial production deployment)
+- Create automated testing pipeline (implement as part of CI/CD setup)
+- Implement continuous monitoring and improvement (implement as part of monitoring setup)
 
 ## Logging & Error Handling
 
@@ -121,6 +127,16 @@ This document tracks features, improvements, and tasks that have been deferred f
 - Offline mode support
 - Progressive enhancement for core functionality
 - Accessibility compliance (WCAG 2.1 AA)
+
+### Query Management Interface
+- Design query management dashboard (defer until frontend implementation phase)
+- Implement query browsing and filtering (defer until frontend implementation phase)
+- Create manual query creation interface (defer until frontend implementation phase)
+- Add query editing functionality (defer until frontend implementation phase)
+- Implement query approval workflow (defer until frontend implementation phase)
+- Create query export functionality (defer until frontend implementation phase)
+- Add query analytics and statistics (defer until frontend implementation phase)
+- Implement query archiving and deletion (defer until frontend implementation phase)
 
 ## Implementation Notes
 

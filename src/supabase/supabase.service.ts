@@ -10,7 +10,7 @@ interface SupabaseSession {
   access_token: string;
   refresh_token: string;
   expires_in?: number;
-  token_type?: string;
+  tokentype?: string;
 }
 
 @Injectable()
@@ -39,7 +39,7 @@ export class SupabaseService {
       if (error) throw error;
       return true;
     } catch (error) {
-      this.logger.error('Supabase health check failed:', error);
+      this.logger.error('Supabase health check _failed:', error);
       return false;
     }
   }
@@ -56,7 +56,9 @@ export class SupabaseService {
     return {
       data: {
         user: result.data?.user || null,
-        session: result.data?.session ? this.mapSession(result.data.session) : null,
+        session: result.data?.session
+          ? this.mapSession(result.data.session)
+          : null,
       },
       error: result.error as AuthError | null,
     };
@@ -70,7 +72,9 @@ export class SupabaseService {
     return {
       data: {
         user: result.data?.user || null,
-        session: result.data?.session ? this.mapSession(result.data.session) : null,
+        session: result.data?.session
+          ? this.mapSession(result.data.session)
+          : null,
       },
       error: result.error as AuthError | null,
     };
@@ -89,10 +93,7 @@ export class SupabaseService {
     return this.cacheService.getOrSet<User>(
       cacheKey,
       async () => {
-        const {
-          data,
-          error,
-        } = await this.supabase.auth.getUser(token);
+        const { data, error } = await this.supabase.auth.getUser(token);
 
         if (error || !data?.user) {
           throw error || new Error('User not found');
@@ -112,7 +113,7 @@ export class SupabaseService {
       access_token: supabaseSession.access_token,
       refresh_token: supabaseSession.refresh_token,
       expires_in: supabaseSession.expires_in || 3600, // Default to 1 hour if not provided
-      token_type: supabaseSession.token_type || 'bearer',
+      tokentype: supabaseSession.tokentype || 'bearer',
     };
   }
 }

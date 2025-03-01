@@ -1,4 +1,11 @@
-import { IsString, IsNotEmpty, IsOptional, IsArray, ValidateNested, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsArray,
+  ValidateNested,
+  IsObject,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { InputType, Field } from '@nestjs/graphql';
 import { JSONScalar } from '../graphql/answer.types';
@@ -95,4 +102,4 @@ export class AnalyzeContentDto {
   @Type(() => CitationDto)
   @IsOptional()
   citations?: CitationDto[];
-} 
+}

@@ -51,8 +51,7 @@ describe('ConversationAnalyzerService', () => {
       getOrSet: jest
         .fn()
         .mockImplementation(
-          (key: string, factory: () => Promise<any>, _ttl?: number) =>
-            factory(),
+          (key: string, factory: () => Promise<any>, ttl?: number) => factory(),
         ),
     };
 

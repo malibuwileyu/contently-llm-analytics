@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Repository, DataSource } from 'typeorm';
-import { ConversationInsight, InsightType } from '../entities/conversation-insight.entity';
+import {
+  ConversationInsight,
+  InsightType,
+} from '../entities/conversation-insight.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 
 /**
@@ -13,7 +16,7 @@ export class ConversationInsightRepository {
   constructor(
     @InjectRepository(ConversationInsight)
     repository: Repository<ConversationInsight>,
-    private dataSource: DataSource
+    private _dataSource: DataSource,
   ) {
     this.repository = repository;
   }
@@ -35,10 +38,12 @@ export class ConversationInsightRepository {
   /**
    * Find insights by conversation ID
    */
-  async findByConversationId(conversationId: string): Promise<ConversationInsight[]> {
+  async findByConversationId(
+    conversationId: string,
+  ): Promise<ConversationInsight[]> {
     return this.repository.find({
       where: { conversation: { id: conversationId } },
-      relations: ['conversation']
+      relations: ['conversation'],
     });
   }
 
@@ -48,7 +53,7 @@ export class ConversationInsightRepository {
   async findByBrandId(brandId: string): Promise<ConversationInsight[]> {
     return this.repository.find({
       where: { conversation: { brandId } },
-      relations: ['conversation']
+      relations: ['conversation'],
     });
   }
 
@@ -58,7 +63,7 @@ export class ConversationInsightRepository {
   async findByType(type: InsightType): Promise<ConversationInsight[]> {
     return this.repository.find({
       where: { type },
-      relations: ['conversation']
+      relations: ['conversation'],
     });
   }
 
@@ -68,4 +73,4 @@ export class ConversationInsightRepository {
   async deleteByConversationId(conversationId: string): Promise<void> {
     await this.repository.delete({ conversation: { id: conversationId } });
   }
-} 
+}
