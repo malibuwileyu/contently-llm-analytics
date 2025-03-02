@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../types/supabase';
 import { AuthResult, AuthError, User, Session } from '../auth/types/auth.types';
-import { CacheService } from '../cache/cache.service';
+import { CacheService } from '../auth/cache/cache.service';
 import { Logger } from '@nestjs/common';
 
 interface SupabaseSession {
@@ -35,7 +35,9 @@ export class SupabaseService {
 
   async checkHealth(): Promise<boolean> {
     try {
-      const { error } = await this.supabase.rpc('health_check');
+      // Type assertion to bypass type checking for RPC call
+      // The Database type defines health_check in _public.Functions
+      const { error } = await (this.supabase.rpc as any)('health_check');
       if (error) throw error;
       return true;
     } catch (error) {
@@ -55,7 +57,7 @@ export class SupabaseService {
     });
     return {
       data: {
-        user: result.data?.user || null,
+        user: result.data?.user ? this.mapUser(result.data.user) : null,
         session: result.data?.session
           ? this.mapSession(result.data.session)
           : null,
@@ -71,7 +73,7 @@ export class SupabaseService {
     });
     return {
       data: {
-        user: result.data?.user || null,
+        user: result.data?.user ? this.mapUser(result.data.user) : null,
         session: result.data?.session
           ? this.mapSession(result.data.session)
           : null,
@@ -99,10 +101,24 @@ export class SupabaseService {
           throw error || new Error('User not found');
         }
 
-        return data.user as User;
+        return this.mapUser(data.user);
       },
       this.USER_CACHE_TTL,
     );
+  }
+
+  /**
+   * Maps Supabase User to our custom User type
+   */
+  private mapUser(supabaseUser: any): User {
+    return {
+      id: supabaseUser.id,
+      email: supabaseUser.email,
+      created_at: supabaseUser.created_at,
+      updated_at: supabaseUser.updated_at,
+      roles: supabaseUser.user_metadata?.roles || [],
+      permissions: supabaseUser.user_metadata?.permissions || [],
+    };
   }
 
   /**

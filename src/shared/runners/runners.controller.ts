@@ -1,9 +1,15 @@
 import { Controller, Post, Body, Get, Param, UseGuards } from '@nestjs/common';
 import { MainRunnerService } from './main-runner.service';
 import { FeatureRegistryService } from './feature-registry.service';
-import { FeatureContext, FeatureResult } from '../../modules/answer-engine/runners/answer-engine.runner';
+import { FeatureContext, FeatureResult } from './feature-runner.interface';
 import { AuthGuard } from '../../auth/guards/auth.guard';
-import { ApiTags, ApiOperation, ApiBody, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBody,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 /**
  * Controller for feature runners
@@ -15,7 +21,7 @@ import { ApiTags, ApiOperation, ApiBody, ApiParam, ApiBearerAuth } from '@nestjs
 export class RunnersController {
   constructor(
     private readonly mainRunnerService: MainRunnerService,
-    private readonly featureRegistry: FeatureRegistryService
+    private readonly featureRegistry: FeatureRegistryService,
   ) {}
 
   /**
@@ -26,7 +32,7 @@ export class RunnersController {
   async getAllRunners(): Promise<{ runners: string[] }> {
     const runners = this.featureRegistry.getAllRunners();
     return {
-      runners: runners.map(runner => runner.getName())
+      runners: runners.map(runner => runner.getName()),
     };
   }
 
@@ -38,7 +44,7 @@ export class RunnersController {
   async getEnabledRunners(): Promise<{ runners: string[] }> {
     const runners = await this.featureRegistry.getEnabledRunners();
     return {
-      runners: runners.map(runner => runner.getName())
+      runners: runners.map(runner => runner.getName()),
     };
   }
 
@@ -48,14 +54,16 @@ export class RunnersController {
   @Post('run-all')
   @ApiOperation({ summary: 'Run all enabled features' })
   @ApiBody({ description: 'Feature context' })
-  async runAll(@Body() context: FeatureContext): Promise<{ results: Record<string, FeatureResult> }> {
+  async runAll(
+    @Body() context: FeatureContext,
+  ): Promise<{ results: Record<string, FeatureResult> }> {
     const resultsMap = await this.mainRunnerService.runAll(context);
     const results: Record<string, FeatureResult> = {};
-    
+
     for (const [name, result] of resultsMap.entries()) {
       results[name] = result;
     }
-    
+
     return { results };
   }
 
@@ -68,9 +76,9 @@ export class RunnersController {
   @ApiBody({ description: 'Feature context' })
   async runOne(
     @Param('name') name: string,
-    @Body() context: FeatureContext
+    @Body() context: FeatureContext,
   ): Promise<{ result: FeatureResult }> {
     const result = await this.mainRunnerService.runOne(name, context);
     return { result };
   }
-} 
+}

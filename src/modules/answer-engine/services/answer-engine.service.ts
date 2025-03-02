@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { subDays } from 'date-fns';
 import { BrandMentionRepository } from '../repositories/brand-mention.repository';
 import { SentimentAnalyzerService } from './sentiment-analyzer.service';
@@ -25,7 +25,7 @@ export class AnswerEngineService {
     private readonly brandMentionRepo: BrandMentionRepository,
     private readonly sentimentAnalyzer: SentimentAnalyzerService,
     private readonly citationTracker: CitationTrackerService,
-    private readonly metrics: MetricsService,
+    @Inject('MetricsService') private readonly metrics: MetricsService,
   ) {}
 
   /**

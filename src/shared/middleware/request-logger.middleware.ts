@@ -3,6 +3,12 @@ import { Request, Response, NextFunction } from 'express';
 import { LoggerService } from '../services/logger.service';
 import { v4 as uuidv4 } from 'uuid';
 
+// Define HTTP status code constants
+const HTTP_STATUS = {
+  BAD_REQUEST: 400,
+  INTERNAL_SERVER_ERROR: 500,
+};
+
 // Extend the Express Request interface to include correlationId
 declare global {
   namespace Express {
@@ -36,13 +42,7 @@ export class RequestLoggerMiddleware implements NestMiddleware {
     const userAgent = headers['user-agent'] || 'unknown';
 
     // Log the request
-    this.logger.info(`Request ${method} ${originalUrl}`, undefined, {
-      correlationId,
-      method,
-      url: originalUrl,
-      ip,
-      userAgent,
-    });
+    this.logger.log(`Request ${method} ${originalUrl}`);
 
     // Get the start time
     const startTime = Date.now();
@@ -58,36 +58,17 @@ export class RequestLoggerMiddleware implements NestMiddleware {
       const { statusCode } = res;
 
       // Determine log level based on status code
-      if (statusCode >= _500) {
+      if (statusCode >= HTTP_STATUS.INTERNAL_SERVER_ERROR) {
         this.logger.error(
           `Response ${statusCode} ${method} ${originalUrl} - ${duration}ms`,
-          undefined,
-          undefined,
-          {
-            correlationId,
-            statusCode,
-            duration,
-          },
         );
-      } else if (statusCode >= _400) {
+      } else if (statusCode >= HTTP_STATUS.BAD_REQUEST) {
         this.logger.warn(
           `Response ${statusCode} ${method} ${originalUrl} - ${duration}ms`,
-          undefined,
-          {
-            correlationId,
-            statusCode,
-            duration,
-          },
         );
       } else {
-        this.logger.info(
+        this.logger.log(
           `Response ${statusCode} ${method} ${originalUrl} - ${duration}ms`,
-          undefined,
-          {
-            correlationId,
-            statusCode,
-            duration,
-          },
         );
       }
     });

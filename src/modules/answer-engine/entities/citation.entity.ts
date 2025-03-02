@@ -13,7 +13,7 @@ import { BrandMention } from './brand-mention.entity';
 /**
  * Entity representing a citation in AI-generated content
  */
-@Entity('citation')
+@Entity('citations')
 export class Citation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -45,15 +45,15 @@ export class Citation {
   @Column({ type: 'json', nullable: true })
   metadata: Record<string, unknown>;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
+  @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'datetime' })
   updatedAt: Date;
 
   @DeleteDateColumn({
     name: 'deleted_at',
-    type: 'timestamp with time zone',
+    type: 'datetime',
     nullable: true,
   })
   deletedAt: Date;

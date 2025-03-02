@@ -9,9 +9,10 @@ export class MemoryHealthIndicator extends HealthIndicator {
 
   constructor(private readonly configService: ConfigService) {
     super();
-    this.thresholdPercent = this.configService.get(
+    // Default threshold is 90% memory usage
+    this.thresholdPercent = this.configService.get<number>(
       'health.memory.thresholdPercent',
-      _90,
+      90,
     );
   }
 

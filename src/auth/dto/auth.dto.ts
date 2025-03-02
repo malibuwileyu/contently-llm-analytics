@@ -5,6 +5,6 @@ export class AuthDto {
   email: string;
 
   @IsString()
-  @MinLength(_6)
+  @MinLength(6)
   password: string;
 }

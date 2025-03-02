@@ -14,7 +14,7 @@ export class DatabaseHealthIndicator extends HealthIndicator {
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
     try {
       // Check if the database connection is established
-      if (!this.connection._isConnected) {
+      if (!this.connection.isConnected) {
         this.logger.warn(
           'Database connection is not established, attempting to connect...',
         );

@@ -51,7 +51,7 @@ export class AuthController {
     );
 
     if (error) {
-      throw new HttpException(error.message, HttpStatus._UNAUTHORIZED);
+      throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
     }
 
     return data;
@@ -63,7 +63,7 @@ export class AuthController {
     const { error } = await this.supabaseService.signOut();
 
     if (error) {
-      throw new HttpException(error.message, HttpStatus._INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     return { message: 'Signed out successfully' };
@@ -95,8 +95,8 @@ export class AuthController {
 
     const token = await this.authService.generateToken(user as User);
     res.cookie('token', token, {
-      _httpOnly: true,
-      _secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
     });
 
     res.redirect('/');

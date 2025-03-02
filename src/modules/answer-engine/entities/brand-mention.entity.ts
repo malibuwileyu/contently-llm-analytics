@@ -12,7 +12,7 @@ import { Citation } from './citation.entity';
 /**
  * Entity representing a brand mention in AI-generated content
  */
-@Entity('brand_mention')
+@Entity('brand_mentions')
 export class BrandMention {
   /**
    * The ID of the brand mention
@@ -55,7 +55,7 @@ export class BrandMention {
    */
   @Column({
     name: 'mentioned_at',
-    type: 'timestamp with time zone',
+    type: 'datetime',
     nullable: true,
   })
   mentionedAt: Date;
@@ -63,13 +63,13 @@ export class BrandMention {
   /**
    * When the brand mention was created
    */
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
+  @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
 
   /**
    * When the brand mention was last updated
    */
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'datetime' })
   updatedAt: Date;
 
   /**
@@ -77,7 +77,7 @@ export class BrandMention {
    */
   @DeleteDateColumn({
     name: 'deleted_at',
-    type: 'timestamp with time zone',
+    type: 'datetime',
     nullable: true,
   })
   deletedAt: Date;

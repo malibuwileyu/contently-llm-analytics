@@ -10,6 +10,7 @@ import { PermissionsGuard } from './guards/permissions.guard';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { AuthService } from './auth.service';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { GoogleAuthGuard } from './guards/google-auth.guard';
     PermissionsGuard,
     GoogleStrategy,
     GoogleAuthGuard,
+    AuthService,
   ],
   exports: [
     JwtService,
@@ -45,6 +47,7 @@ import { GoogleAuthGuard } from './guards/google-auth.guard';
     PermissionsGuard,
     GoogleAuthGuard,
     GoogleStrategy,
+    AuthService,
   ],
 })
 export class AuthModule {}

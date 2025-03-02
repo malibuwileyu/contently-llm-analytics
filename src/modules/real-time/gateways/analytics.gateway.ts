@@ -1,7 +1,6 @@
 import {
   WebSocketGateway,
   WebSocketServer,
-  SubscribeMessage,
   OnGatewayConnection,
   OnGatewayDisconnect,
   WsException,
@@ -10,16 +9,28 @@ import { Server, Socket } from 'socket.io';
 import { SupabaseService } from '../../../supabase/supabase.service';
 import { Logger } from '@nestjs/common';
 
+// Create a custom decorator to replace SubscribeMessage
+function SubscribeMessage(message: string): MethodDecorator {
+  return (
+    target: object,
+    propertyKey: string | symbol,
+    descriptor: PropertyDescriptor,
+  ) => {
+    Reflect.defineMetadata('socket_message', message, descriptor.value);
+    return descriptor;
+  };
+}
+
 interface AnalyticsSubscription {
   brandId: string;
 }
 
 @WebSocketGateway({
   cors: {
-    origin: process.env.CLIENT_URL,
-    _credentials: true,
+    _origin: process.env.CLIENT_URL || '*',
+    credentials: true,
   },
-  _namespace: 'analytics',
+  namespace: 'analytics',
 })
 export class AnalyticsGateway
   implements OnGatewayConnection, OnGatewayDisconnect

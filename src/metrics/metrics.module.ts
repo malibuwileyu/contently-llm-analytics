@@ -88,7 +88,7 @@ export class MetricsModule {
       providers,
       exports,
       controllers,
-      _global: options.isGlobal === true,
+      global: options.isGlobal === true,
     };
   }
 }

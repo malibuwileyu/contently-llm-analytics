@@ -3,10 +3,10 @@ import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { createCacheConfig } from './cache.config';
 import { CacheService } from './cache.service';
-import { RedisConfig } from '../config/redis.config';
+import { RedisConfig } from '../../config/redis.config';
 import { CacheInterceptor } from './interceptors/cache.interceptor';
 import { CacheController } from './cache.controller';
-import { AuthModule } from '../auth/auth.module';
+import { AuthModule } from '../../auth/auth.module';
 import { DistributedLockService } from './distributed-lock.service';
 import { CacheWarmupService } from './cache-warmup.service';
 

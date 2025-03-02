@@ -13,67 +13,60 @@ import { PrometheusMetricsService } from '../../metrics/services/prometheus-metr
 import { NLPService } from './services/nlp.service';
 import { AuthorityCalculatorService } from './services/authority-calculator.service';
 import { PubSub } from 'graphql-subscriptions';
+import { CacheModule } from '../../auth/cache/cache.module';
 
 /**
  * Module for the Answer Engine feature
  * Provides sentiment analysis and brand mention tracking
  */
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      BrandMention,
-      Citation
-    ])
-  ],
+  imports: [TypeOrmModule.forFeature([BrandMention, Citation]), CacheModule],
   providers: [
     // Repositories
     BrandMentionRepository,
-    
+
     // Services
     SentimentAnalyzerService,
     CitationTrackerService,
     AnswerEngineService,
-    
+
     // GraphQL Resolver
     AnswerResolver,
-    
+
     // WebSocket Gateway
     AnalyticsGateway,
-    
+
     // Runner
     AnswerEngineRunner,
-    
+
     // NLP Service implementation
     NLPService,
     {
       provide: 'NLPService',
-      useExisting: NLPService
+      useExisting: NLPService,
     },
-    
+
     // Authority Calculator implementation
     AuthorityCalculatorService,
     {
       provide: 'AuthorityCalculatorService',
-      useExisting: AuthorityCalculatorService
+      useExisting: AuthorityCalculatorService,
     },
-    
+
     // Metrics Service implementation
     {
       provide: 'MetricsService',
-      useExisting: PrometheusMetricsService
+      useExisting: PrometheusMetricsService,
     },
-    
+
     // PubSub for GraphQL subscriptions
     {
       provide: 'PUB_SUB',
       useFactory: (): PubSub => {
         return new PubSub();
-      }
-    }
+      },
+    },
   ],
-  exports: [
-    AnswerEngineService,
-    AnswerEngineRunner
-  ]
+  exports: [AnswerEngineService, AnswerEngineRunner],
 })
-export class AnswerEngineModule {} 
+export class AnswerEngineModule {}

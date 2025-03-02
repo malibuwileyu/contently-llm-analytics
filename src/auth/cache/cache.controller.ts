@@ -14,10 +14,10 @@ import {
 import { CacheService } from './cache.service';
 import { DistributedLockService } from './distributed-lock.service';
 import { CacheWarmupService } from './cache-warmup.service';
-import { AuthGuard } from '../auth/guards/auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from '../auth/enums/role.enum';
+import { AuthGuard } from '../../auth/guards/auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { Role } from '../../auth/enums/role.enum';
 import {
   ApiTags,
   ApiOperation,
@@ -26,7 +26,7 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
-import { CacheValue } from '../types/common';
+import { CacheValue } from '../../types/common';
 
 @ApiTags('cache')
 @Controller('cache')
@@ -49,7 +49,7 @@ export class CacheController {
     if (!isHealthy) {
       throw new HttpException(
         'Cache is unhealthy',
-        HttpStatus._SERVICE_UNAVAILABLE,
+        HttpStatus.SERVICE_UNAVAILABLE,
       );
     }
     return { status: 'ok', message: 'Cache is healthy' };
@@ -73,7 +73,7 @@ export class CacheController {
     if (!success) {
       throw new HttpException(
         'Failed to flush cache',
-        HttpStatus._INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
     return { status: 'ok', message: 'Cache flushed successfully' };
@@ -155,7 +155,7 @@ export class CacheController {
   ): Promise<{ status: string; message: string; token: string; key: string }> {
     const token = await this.lockService.acquireLock(key, options);
     if (!token) {
-      throw new HttpException('Failed to acquire lock', HttpStatus._CONFLICT);
+      throw new HttpException('Failed to acquire lock', HttpStatus.CONFLICT);
     }
     return {
       status: 'ok',

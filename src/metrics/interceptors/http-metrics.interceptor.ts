@@ -11,11 +11,13 @@ import { tap, finalize } from 'rxjs/operators';
 import { PrometheusMetricsService } from '../services/prometheus-metrics.service';
 import { MetricsConfig } from '../../config/metrics.config';
 
-interface HttpMetricsLabels {
+// Define a type that satisfies the Record<string, string | number> constraint
+type HttpMetricsLabels = {
   method: string;
   path: string;
-  status?: string | number;
-}
+  status: string | number; // Make it required
+  [key: string]: string | number; // Index signature
+};
 
 /**
  * Interceptor for tracking HTTP request metrics
@@ -36,7 +38,7 @@ export class HttpMetricsInterceptor implements NestInterceptor {
    * @returns Observable of the response
    */
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    if (!this.config._enabled) {
+    if (!this.config.enabled) {
       return next.handle();
     }
 
@@ -51,7 +53,7 @@ export class HttpMetricsInterceptor implements NestInterceptor {
     // Start timer for request duration
     const endTimer = this.metricsService.startTimer(
       `${this.config.prefix}http_request_duration_seconds`,
-      { method, path } as HttpMetricsLabels,
+      { method, path, status: 0 }, // Add default status
     );
 
     return next.handle().pipe(
@@ -60,7 +62,7 @@ export class HttpMetricsInterceptor implements NestInterceptor {
         const labels: HttpMetricsLabels = {
           method,
           path,
-          status: context.switchToHttp().getResponse().statusCode,
+          status: context.switchToHttp().getResponse().statusCode || 0, // Add status
         };
         this.metricsService.incrementCounter(
           `${this.config.prefix}http_requests_total`,

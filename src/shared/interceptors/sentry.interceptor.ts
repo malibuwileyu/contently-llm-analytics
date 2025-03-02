@@ -101,7 +101,8 @@ export class SentryInterceptor implements NestInterceptor {
     const { method, url, headers, query, params, body } = request;
 
     // Get user ID if available
-    const userId = request.user?.id;
+    const userId =
+      request.user && 'id' in request.user ? request.user.id : undefined;
 
     // Sanitize headers to remove sensitive information
     const sanitizedHeaders = { ...headers };

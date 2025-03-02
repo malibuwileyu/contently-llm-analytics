@@ -3,6 +3,10 @@ import { HealthIndicator, HealthIndicatorResult } from '@nestjs/terminus';
 import { ConfigService } from '@nestjs/config';
 import { createClient } from '@supabase/supabase-js';
 
+interface HealthCheckResponse {
+  response_time?: number;
+}
+
 @Injectable()
 export class SupabaseHealthIndicator extends HealthIndicator {
   private readonly supabaseUrl: string;
@@ -25,16 +29,19 @@ export class SupabaseHealthIndicator extends HealthIndicator {
     try {
       const supabase = createClient(this.supabaseUrl, this.supabaseAnonKey);
 
-      // Try to fetch system health
-      const { data, error } = await supabase.rpc('health_check');
+      // Try to fetch system health with type assertion
+      const { data, error } = await (supabase.rpc as any)('health_check');
 
       if (error) {
         throw error;
       }
 
+      // Cast data to the expected type
+      const healthData = data as HealthCheckResponse;
+
       return this.getStatus(key, true, {
         status: 'ok',
-        _responseTime: data?.response_time || 0,
+        _responseTime: healthData?.response_time || 0,
       });
     } catch (error) {
       return this.getStatus(key, false, {

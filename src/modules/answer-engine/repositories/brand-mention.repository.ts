@@ -68,7 +68,7 @@ export class BrandMentionRepository extends Repository<BrandMention> {
       .select('DATE(mention.mentionedAt)', 'date')
       .addSelect('AVG(mention.sentiment)', 'averageSentiment')
       .where('mention.brandId = :brandId', { brandId })
-      .andWhere('mention.mentionedAt _BETWEEN :startDate _AND :endDate', {
+      .andWhere('mention.mentionedAt BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })

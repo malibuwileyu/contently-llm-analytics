@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Citation } from '../entities/citation.entity';
@@ -20,6 +20,7 @@ export class CitationTrackerService {
   constructor(
     @InjectRepository(Citation)
     private readonly citationRepo: Repository<Citation>,
+    @Inject('AuthorityCalculatorService')
     private readonly authorityCalculator: AuthorityCalculatorService,
   ) {}
 

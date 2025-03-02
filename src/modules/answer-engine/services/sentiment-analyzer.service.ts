@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { SentimentAnalysis } from '../interfaces/sentiment-analysis.interface';
 import { CacheService } from '../../../auth/cache/cache.service';
@@ -16,7 +16,7 @@ interface NLPService {
 @Injectable()
 export class SentimentAnalyzerService {
   constructor(
-    private readonly nlpService: NLPService,
+    @Inject('NLPService') private readonly nlpService: NLPService,
     private readonly cache: CacheService,
   ) {}
 

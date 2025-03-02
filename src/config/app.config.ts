@@ -16,7 +16,7 @@ export default registerAs(
     apiPrefix: process.env.API_PREFIX || 'api',
     allowedOrigins: (process.env.ALLOWED_ORIGINS || '')
       .split(',')
-      .filter(_Boolean),
+      .filter(origin => Boolean(origin)),
     clientUrl: process.env.CLIENT_URL || 'http://localhost:3000',
   }),
 );
