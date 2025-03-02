@@ -1,7 +1,7 @@
 import { Conversation } from '../entities/conversation.entity';
 
 /**
- * DTO for creating a conversation insight
+ * Interface for creating a conversation insight
  */
 export interface CreateInsightDto {
   /**
@@ -10,17 +10,17 @@ export interface CreateInsightDto {
   conversation: Conversation;
 
   /**
-   * The type of insight (intent, sentiment, topic, action)
+   * The type of insight
    */
-  type: string;
+  type: 'intent' | 'sentiment' | 'topic' | 'action';
 
   /**
-   * The category within the type
+   * The category of the insight
    */
   category: string;
 
   /**
-   * The confidence score for this insight
+   * The confidence score for this insight (0-1)
    */
   confidence: number;
 

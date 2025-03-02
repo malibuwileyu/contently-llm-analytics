@@ -1,9 +1,10 @@
 import {
   Entity,
-  Column,
   PrimaryGeneratedColumn,
+  Column,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   OneToMany,
 } from 'typeorm';
 import { ConversationInsight } from './conversation-insight.entity';
@@ -11,7 +12,7 @@ import { ConversationInsight } from './conversation-insight.entity';
 /**
  * Entity representing a conversation between a user and an AI assistant
  */
-@Entity('conversations')
+@Entity('conversation')
 export class Conversation {
   /**
    * The ID of the conversation
@@ -22,24 +23,24 @@ export class Conversation {
   /**
    * The ID of the brand associated with this conversation
    */
-  @Column('uuid')
+  @Column({ name: 'brand_id', type: 'uuid' })
   brandId: string;
 
   /**
    * The messages in the conversation
    */
-  @Column('jsonb')
-  messages: Array<{
+  @Column({ type: 'jsonb' })
+  messages: {
     role: 'user' | 'assistant';
     content: string;
     timestamp: Date;
-  }>;
+  }[];
 
   /**
    * Metadata about the conversation
    */
-  @Column('jsonb')
-  _metadata: {
+  @Column({ type: 'jsonb' })
+  metadata: {
     platform: string;
     context: string;
     tags: string[];
@@ -49,29 +50,39 @@ export class Conversation {
    * Insights derived from this conversation
    */
   @OneToMany(() => ConversationInsight, insight => insight.conversation)
-  _insights: ConversationInsight[];
+  insights: ConversationInsight[];
 
   /**
    * Engagement score for the conversation (0-1)
    */
-  @Column('float')
-  _engagementScore: number;
+  @Column({ name: 'engagement_score', type: 'float' })
+  engagementScore: number;
 
   /**
    * When the conversation was analyzed
    */
-  @Column('timestamp with time zone')
-  _analyzedAt: Date;
+  @Column({ name: 'analyzed_at', type: 'timestamp with time zone' })
+  analyzedAt: Date;
 
   /**
    * When the conversation was created
    */
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
 
   /**
    * When the conversation was last updated
    */
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
+
+  /**
+   * When the conversation was deleted (for soft delete)
+   */
+  @DeleteDateColumn({
+    name: 'deleted_at',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  deletedAt: Date;
 }
