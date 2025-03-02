@@ -1,9 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import {
-  AnswerEngineRunner,
-  FeatureContext,
-} from '../../runners/answer-engine.runner';
+import { AnswerEngineRunner } from '../../runners/answer-engine.runner';
+import { FeatureContext } from '../../../../shared/runners/feature-runner.interface';
 import { AnswerEngineService } from '../../services/answer-engine.service';
 import { BrandMention } from '../../entities/brand-mention.entity';
 import { BrandHealth } from '../../interfaces/sentiment-analysis.interface';

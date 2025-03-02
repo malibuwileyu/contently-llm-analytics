@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { FeatureRunner } from '../../modules/answer-engine/runners/answer-engine.runner';
+import { FeatureRunner } from './feature-runner.interface';
 import { AnswerEngineRunner } from '../../modules/answer-engine/runners/answer-engine.runner';
 
 /**
@@ -31,7 +31,7 @@ export class FeatureRegistryService implements OnModuleInit {
         AnswerEngineRunner,
         // Add other runner implementations here
       ];
-      
+
       for (const RunnerClass of knownRunners) {
         try {
           const runner = await this.moduleRef.resolve(RunnerClass);
@@ -40,14 +40,14 @@ export class FeatureRegistryService implements OnModuleInit {
           }
         } catch (error) {
           this.logger.warn(
-            `Could not resolve runner ${RunnerClass.name}: ${error instanceof Error ? error.message : 'Unknown error'}`
+            `Could not resolve runner ${RunnerClass.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
           );
         }
       }
     } catch (error) {
       this.logger.error(
         `Error discovering runners: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        error instanceof Error ? error.stack : undefined
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -58,11 +58,13 @@ export class FeatureRegistryService implements OnModuleInit {
    */
   registerRunner(runner: FeatureRunner): void {
     const name = runner.getName();
-    
+
     if (this.runners.has(name)) {
-      this.logger.warn(`Runner with name ${name} already registered, overwriting`);
+      this.logger.warn(
+        `Runner with name ${name} already registered, overwriting`,
+      );
     }
-    
+
     this.runners.set(name, runner);
     this.logger.log(`Registered runner: ${name}`);
   }
@@ -90,7 +92,7 @@ export class FeatureRegistryService implements OnModuleInit {
    */
   async getEnabledRunners(): Promise<FeatureRunner[]> {
     const enabledRunners: FeatureRunner[] = [];
-    
+
     for (const runner of this.runners.values()) {
       try {
         const isEnabled = await runner.isEnabled();
@@ -100,11 +102,11 @@ export class FeatureRegistryService implements OnModuleInit {
       } catch (error) {
         this.logger.error(
           `Error checking if runner ${runner.getName()} is enabled: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          error instanceof Error ? error.stack : undefined
+          error instanceof Error ? error.stack : undefined,
         );
       }
     }
-    
+
     return enabledRunners;
   }
 
@@ -133,4 +135,4 @@ export class FeatureRegistryService implements OnModuleInit {
     this.runners.clear();
     this.logger.log('Cleared all registered runners');
   }
-} 
+}

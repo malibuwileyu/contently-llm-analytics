@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { FeatureRunner, FeatureContext, FeatureResult } from '../../modules/answer-engine/runners/answer-engine.runner';
+import {
+  FeatureRunner,
+  FeatureContext,
+  FeatureResult,
+} from './feature-runner.interface';
 
 /**
  * Service for managing and executing feature runners
@@ -32,7 +36,7 @@ export class MainRunnerService {
    */
   async getEnabledRunners(): Promise<FeatureRunner[]> {
     const enabledRunners: FeatureRunner[] = [];
-    
+
     for (const runner of this.runners) {
       try {
         const isEnabled = await runner.isEnabled();
@@ -42,11 +46,11 @@ export class MainRunnerService {
       } catch (error) {
         this.logger.error(
           `Error checking if runner ${runner.getName()} is enabled: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          error instanceof Error ? error.stack : undefined
+          error instanceof Error ? error.stack : undefined,
         );
       }
     }
-    
+
     return enabledRunners;
   }
 
@@ -58,27 +62,27 @@ export class MainRunnerService {
   async runAll(context: FeatureContext): Promise<Map<string, FeatureResult>> {
     const enabledRunners = await this.getEnabledRunners();
     const results = new Map<string, FeatureResult>();
-    
+
     this.logger.log(`Running ${enabledRunners.length} enabled runners`);
-    
+
     await Promise.all(
-      enabledRunners.map(async (runner) => {
+      enabledRunners.map(async runner => {
         try {
           const startTime = Date.now();
           const result = await runner.run(context);
           const duration = Date.now() - startTime;
-          
+
           results.set(runner.getName(), result);
-          
+
           this.logger.debug(
-            `Runner ${runner.getName()} completed in ${duration}ms with success=${result.success}`
+            `Runner ${runner.getName()} completed in ${duration}ms with success=${result.success}`,
           );
         } catch (error) {
           this.logger.error(
             `Error running ${runner.getName()}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            error instanceof Error ? error.stack : undefined
+            error instanceof Error ? error.stack : undefined,
           );
-          
+
           results.set(runner.getName(), {
             success: false,
             error: {
@@ -91,9 +95,9 @@ export class MainRunnerService {
             },
           });
         }
-      })
+      }),
     );
-    
+
     return results;
   }
 
@@ -105,7 +109,7 @@ export class MainRunnerService {
    */
   async runOne(name: string, context: FeatureContext): Promise<FeatureResult> {
     const runner = this.runners.find(r => r.getName() === name);
-    
+
     if (!runner) {
       return {
         success: false,
@@ -115,10 +119,10 @@ export class MainRunnerService {
         },
       };
     }
-    
+
     try {
       const isEnabled = await runner.isEnabled();
-      
+
       if (!isEnabled) {
         return {
           success: false,
@@ -128,22 +132,22 @@ export class MainRunnerService {
           },
         };
       }
-      
+
       const startTime = Date.now();
       const result = await runner.run(context);
       const duration = Date.now() - startTime;
-      
+
       this.logger.debug(
-        `Runner ${name} completed in ${duration}ms with success=${result.success}`
+        `Runner ${name} completed in ${duration}ms with success=${result.success}`,
       );
-      
+
       return result;
     } catch (error) {
       this.logger.error(
         `Error running ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        error instanceof Error ? error.stack : undefined
+        error instanceof Error ? error.stack : undefined,
       );
-      
+
       return {
         success: false,
         error: {
@@ -157,4 +161,4 @@ export class MainRunnerService {
       };
     }
   }
-} 
+}

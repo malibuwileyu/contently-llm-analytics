@@ -14,8 +14,8 @@ export function createTestDatabaseModule(
     type: 'sqlite',
     database: ':memory:',
     entities,
-    _synchronize: true,
-    _dropSchema: true,
+    synchronize: true,
+    dropSchema: true,
     logging: false,
   });
 }

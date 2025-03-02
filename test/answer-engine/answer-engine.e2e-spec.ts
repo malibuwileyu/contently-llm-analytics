@@ -3,25 +3,10 @@ import { MainRunnerService } from '../../src/shared/runners/main-runner.service'
 import { AnswerEngineRunner } from '../../src/modules/answer-engine/runners/answer-engine.runner';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { AnswerEngineService } from '../../src/modules/answer-engine/services/answer-engine.service';
-
-// Define interfaces for testing
-interface FeatureContext {
-  brandId: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata?: Record<string, any>;
-}
-
-interface FeatureResult {
-  success: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data?: Record<string, any>;
-  error?: {
-    message: string;
-    code?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    details?: Record<string, any>;
-  };
-}
+import {
+  FeatureContext,
+  FeatureResult,
+} from '../../src/shared/runners/feature-runner.interface';
 
 /**
  * End-to-end test for the Answer Engine
@@ -53,13 +38,13 @@ describe('Answer Engine E2E', () => {
     answerEngineService = {
       analyzeMention: jest.fn().mockImplementation(data =>
         Promise.resolve({
-          _id: 'mention-123',
+          id: 'mention-123',
           brandId: data.brandId,
           content: data.content,
           sentiment: 0.8,
-          _magnitude: 0.5,
+          magnitude: 0.5,
           context: data.context,
-          _mentionedAt: new Date(),
+          mentionedAt: new Date(),
           createdAt: new Date(),
           updatedAt: new Date(),
           citations: [],
@@ -68,7 +53,7 @@ describe('Answer Engine E2E', () => {
       getBrandHealth: jest.fn().mockImplementation(brandId =>
         Promise.resolve({
           overallSentiment: 0.75,
-          _trend: [{ date: new Date(), _averageSentiment: 0.75 }],
+          trend: [{ date: new Date(), averageSentiment: 0.75 }],
           mentionCount: 1,
           topCitations: [{ source: 'trusted-source.com', authority: 0.85 }],
         }),
@@ -77,8 +62,8 @@ describe('Answer Engine E2E', () => {
 
     // Create mock runner
     answerEngineRunner = {
-      _getName: jest.fn().mockReturnValue('answer-engine'),
-      _isEnabled: jest.fn().mockResolvedValue(true),
+      getName: jest.fn().mockReturnValue('answer-engine'),
+      isEnabled: jest.fn().mockResolvedValue(true),
       run: jest
         .fn()
         .mockImplementation(

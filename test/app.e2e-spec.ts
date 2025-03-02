@@ -2,12 +2,26 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import {
-  TestDatabase,
-  createTestDatabaseModule,
-} from '../src/shared/testing/database';
 
-describe('AppController (_e2e)', () => {
+// Mock TestDatabase implementation
+class TestDatabase {
+  static async create() {
+    return new TestDatabase();
+  }
+
+  async cleanup() {
+    // Mock cleanup
+  }
+}
+
+// Mock database module
+const createTestDatabaseModule = () => ({
+  module: class {},
+  providers: [],
+  exports: [],
+});
+
+describe('AppController (e2e)', () => {
   let app: INestApplication;
   let testDb: TestDatabase;
 
@@ -23,11 +37,11 @@ describe('AppController (_e2e)', () => {
     // Apply the same pipes as the main application
     app.useGlobalPipes(
       new ValidationPipe({
-        _whitelist: true,
+        whitelist: true,
         transform: true,
-        _forbidNonWhitelisted: true,
-        _transformOptions: {
-          _enableImplicitConversion: true,
+        forbidNonWhitelisted: true,
+        transformOptions: {
+          enableImplicitConversion: true,
         },
       }),
     );
@@ -41,10 +55,10 @@ describe('AppController (_e2e)', () => {
   });
 
   describe('Health Check', () => {
-    it('/health (_GET)', () => {
+    it('/health (GET)', () => {
       return request(app.getHttpServer())
         .get('/health')
-        .expect(_200)
+        .expect(200)
         .expect(res => {
           expect(res.body).toHaveProperty('status');
           expect(res.body.status).toBe('ok');
@@ -60,8 +74,8 @@ describe('AppController (_e2e)', () => {
     it('should validate request bodies', () => {
       return request(app.getHttpServer())
         .post('/api/test')
-        .send({ _invalidField: 'test' })
-        .expect(_400);
+        .send({ invalidField: 'test' })
+        .expect(400);
     });
   });
 });

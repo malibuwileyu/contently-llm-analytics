@@ -1,13 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import {
-  ConfigModule,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _ConfigService,
-} from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as request from 'supertest';
 
@@ -15,16 +11,16 @@ import * as request from 'supertest';
 import { AppModule } from '../../../../app.module';
 import { MainRunnerService } from '../../../../shared/runners/main-runner.service';
 import { FeatureRegistryService } from '../../../../shared/runners/feature-registry.service';
-import {
-  AnswerEngineRunner,
-  FeatureContext,
-} from '../../runners/answer-engine.runner';
+import { FeatureContext } from '../../../../shared/runners/feature-runner.interface';
+import { AnswerEngineRunner } from '../../runners/answer-engine.runner';
 import { AnswerEngineService } from '../../services/answer-engine.service';
 import { BrandMention } from '../../entities/brand-mention.entity';
 import { Citation } from '../../entities/citation.entity';
 import { SentimentAnalyzerService } from '../../services/sentiment-analyzer.service';
 import { AuthorityCalculatorService } from '../../services/authority-calculator.service';
 import { createTestDatabaseModule } from '../../../../shared/test-utils/database/test-database';
+import { BrandMentionRepository } from '../../repositories/brand-mention.repository';
+import { CitationTrackerService } from '../../services/citation-tracker.service';
 
 /**
  * End-to-end test for the Answer Engine
@@ -43,6 +39,7 @@ describe('Answer Engine E2E', () => {
   let answerEngineService: AnswerEngineService;
   let brandMentionRepository: Repository<BrandMention>;
   let citationRepository: Repository<Citation>;
+  let dataSource: DataSource;
 
   // Test data
   const testBrandId = 'test-brand-123';
@@ -52,12 +49,12 @@ describe('Answer Engine E2E', () => {
     {
       source: 'https://example.com/review1',
       text: 'Great product',
-      _metadata: { page: 1 },
+      metadata: { page: 1 },
     },
     {
       source: 'https://academic.edu/paper',
       text: 'Scientific analysis',
-      _metadata: { section: 'Results' },
+      metadata: { section: 'Results' },
     },
   ];
 
@@ -76,7 +73,7 @@ describe('Answer Engine E2E', () => {
           // Add test-specific configuration
           load: [
             () => ({
-              _features: {
+              features: {
                 answerEngine: {
                   enabled: true,
                 },
@@ -96,6 +93,16 @@ describe('Answer Engine E2E', () => {
         AnswerEngineService,
         SentimentAnalyzerService,
         AuthorityCalculatorService,
+        CitationTrackerService,
+
+        // Provide BrandMentionRepository
+        {
+          provide: BrandMentionRepository,
+          useFactory: (dataSource: DataSource) => {
+            return new BrandMentionRepository(dataSource);
+          },
+          inject: [DataSource],
+        },
 
         // Mock services that are not directly tested
         {
@@ -103,8 +110,8 @@ describe('Answer Engine E2E', () => {
           useValue: {
             analyzeSentiment: jest.fn().mockResolvedValue({
               score: 0.8,
-              _magnitude: 0.6,
-              _aspects: [
+              magnitude: 0.6,
+              aspects: [
                 { topic: 'product', score: 0.9 },
                 { topic: 'performance', score: 0.7 },
               ],
@@ -115,14 +122,14 @@ describe('Answer Engine E2E', () => {
           provide: 'MetricsService',
           useValue: {
             recordAnalysisDuration: jest.fn(),
-            _incrementErrorCount: jest.fn(),
+            incrementErrorCount: jest.fn(),
           },
         },
         {
           provide: 'PUB_SUB',
           useValue: {
             publish: jest.fn(),
-            _asyncIterator: jest.fn(),
+            asyncIterator: jest.fn(),
           },
         },
       ],
@@ -143,6 +150,7 @@ describe('Answer Engine E2E', () => {
     citationRepository = moduleRef.get<Repository<Citation>>(
       getRepositoryToken(Citation),
     );
+    dataSource = moduleRef.get<DataSource>(DataSource);
 
     // Register the Answer Engine runner with the MainRunnerService
     mainRunnerService.registerRunner(answerEngineRunner);
@@ -164,7 +172,7 @@ describe('Answer Engine E2E', () => {
       // Create a feature context with test data
       const context: FeatureContext = {
         brandId: testBrandId,
-        _metadata: {
+        metadata: {
           content: testContent,
           context: {
             query: 'product review',
@@ -239,7 +247,7 @@ describe('Answer Engine E2E', () => {
       const contexts = [
         {
           brandId: testBrandId,
-          _metadata: {
+          metadata: {
             content: 'This is a positive review. The product is excellent!',
             context: {
               query: 'review 1',
@@ -253,7 +261,7 @@ describe('Answer Engine E2E', () => {
         },
         {
           brandId: testBrandId,
-          _metadata: {
+          metadata: {
             content: 'This is a neutral review. The product works as expected.',
             context: {
               query: 'review 2',
@@ -267,7 +275,7 @@ describe('Answer Engine E2E', () => {
         },
         {
           brandId: testBrandId,
-          _metadata: {
+          metadata: {
             content:
               'This is a negative review. The product did not meet expectations.',
             context: {
@@ -305,10 +313,10 @@ describe('Answer Engine E2E', () => {
     });
 
     it('should handle errors gracefully', async () => {
-      // Create an invalid context (missing required _fields)
+      // Create an invalid context (missing required fields)
       const invalidContext: FeatureContext = {
         brandId: testBrandId,
-        _metadata: {
+        metadata: {
           // Missing content field
           context: {
             query: 'invalid query',
@@ -328,7 +336,7 @@ describe('Answer Engine E2E', () => {
       expect(result.error).toBeDefined();
 
       if (result.error) {
-        expect(result.error._code).toBe('ANSWER_ENGINE_ERROR');
+        expect(result.error.code).toBe('ANSWER_ENGINE_ERROR');
       } else {
         fail('Expected result.error to be defined');
       }
@@ -340,7 +348,7 @@ describe('Answer Engine E2E', () => {
       // Create multiple contexts
       const contexts = Array.from({ length: 10 }, (_, i) => ({
         brandId: testBrandId,
-        _metadata: {
+        metadata: {
           content: `Test content ${i}. This is a sample review.`,
           context: {
             query: `query ${i}`,
@@ -375,7 +383,7 @@ describe('Answer Engine E2E', () => {
         `Processed 10 mentions in ${duration}ms (${duration / 10}ms per mention)`,
       );
 
-      // Ensure processing time is reasonable (adjust threshold as _needed)
+      // Ensure processing time is reasonable (adjust threshold as needed)
       expect(duration).toBeLessThan(10000); // Less than 10 seconds for 10 mentions
     });
   });

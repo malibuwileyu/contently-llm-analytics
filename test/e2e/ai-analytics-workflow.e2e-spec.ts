@@ -23,7 +23,7 @@ dotenv.config({
 class MockOpenAIProvider implements AIProvider {
   readonly type = ProviderType.OPENAI;
   readonly name = 'Mock OpenAI';
-  readonly _capabilities: AIProviderCapabilities = {
+  readonly capabilities: AIProviderCapabilities = {
     chat: true,
     complete: true,
     embed: true,
@@ -315,21 +315,17 @@ describe('AI Analytics Workflow E2E', () => {
     const reviewPrompt =
       'Generate a detailed customer review about the XYZ Smartphone Pro';
 
-    const reviewResult = await aiProviderRunner.run<{
-      text: string;
-      choices?: string[];
-    }>({
-      type: ProviderType.OPENAI,
-      operation: OperationType.CHAT,
-      input: [
+    const reviewResult = await aiProviderRunner.runChat(
+      ProviderType.OPENAI,
+      [
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: reviewPrompt },
       ],
-      options: {
+      {
         temperature: 0.7,
         maxTokens: 200,
       },
-    });
+    );
 
     expect(reviewResult).toBeDefined();
     expect(reviewResult.data.text).toBeDefined();
@@ -365,15 +361,11 @@ describe('AI Analytics Workflow E2E', () => {
     expect(answerResult.data.health).toBeDefined();
 
     // 3. Generate embeddings for the review for semantic search
-    const embeddingResult = await aiProviderRunner.run<{
-      embedding: number[];
-      dimensions: number;
-    }>({
-      type: ProviderType.OPENAI,
-      operation: OperationType.EMBED,
-      input: reviewResult.data.text,
-      options: {},
-    });
+    const embeddingResult = await aiProviderRunner.runEmbed(
+      ProviderType.OPENAI,
+      reviewResult.data.text,
+      {},
+    );
 
     expect(embeddingResult).toBeDefined();
     expect(embeddingResult.data.embedding).toBeDefined();
@@ -386,21 +378,17 @@ describe('AI Analytics Workflow E2E', () => {
     const conversationPrompt =
       'Generate a conversation between a customer and an agent about the XYZ Smartphone Pro';
 
-    const conversationResult = await aiProviderRunner.run<{
-      text: string;
-      choices?: string[];
-    }>({
-      type: ProviderType.OPENAI,
-      operation: OperationType.CHAT,
-      input: [
+    const conversationResult = await aiProviderRunner.runChat(
+      ProviderType.OPENAI,
+      [
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: conversationPrompt },
       ],
-      options: {
+      {
         temperature: 0.7,
         maxTokens: 300,
       },
-    });
+    );
 
     expect(conversationResult).toBeDefined();
     expect(conversationResult.data.text).toBeDefined();
@@ -452,15 +440,11 @@ describe('AI Analytics Workflow E2E', () => {
     // 4. Generate embeddings for the conversation for semantic search
     const embeddingText = messages.map(m => m.content).join(' ');
 
-    const embeddingResult = await aiProviderRunner.run<{
-      embedding: number[];
-      dimensions: number;
-    }>({
-      type: ProviderType.OPENAI,
-      operation: OperationType.EMBED,
-      input: embeddingText,
-      options: {},
-    });
+    const embeddingResult = await aiProviderRunner.runEmbed(
+      ProviderType.OPENAI,
+      embeddingText,
+      {},
+    );
 
     expect(embeddingResult).toBeDefined();
     expect(embeddingResult.data.embedding).toBeDefined();
@@ -473,21 +457,17 @@ describe('AI Analytics Workflow E2E', () => {
     const reviewPrompt =
       'Generate a detailed customer review about the XYZ Smartphone Pro';
 
-    const reviewResult = await aiProviderRunner.run<{
-      text: string;
-      choices?: string[];
-    }>({
-      type: ProviderType.OPENAI,
-      operation: OperationType.CHAT,
-      input: [
+    const reviewResult = await aiProviderRunner.runChat(
+      ProviderType.OPENAI,
+      [
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: reviewPrompt },
       ],
-      options: {
+      {
         temperature: 0.7,
         maxTokens: 200,
       },
-    });
+    );
 
     expect(reviewResult).toBeDefined();
     expect(reviewResult.data.text).toBeDefined();
@@ -510,21 +490,17 @@ describe('AI Analytics Workflow E2E', () => {
     // 3. Generate a customer conversation based on the review
     const conversationPrompt = `Generate a conversation between a customer and support agent about the following review: ${reviewResult.data.text.substring(0, 100)}`;
 
-    const conversationResult = await aiProviderRunner.run<{
-      text: string;
-      choices?: string[];
-    }>({
-      type: ProviderType.OPENAI,
-      operation: OperationType.CHAT,
-      input: [
+    const conversationResult = await aiProviderRunner.runChat(
+      ProviderType.OPENAI,
+      [
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: conversationPrompt },
       ],
-      options: {
+      {
         temperature: 0.7,
         maxTokens: 300,
       },
-    });
+    );
 
     expect(conversationResult).toBeDefined();
     expect(conversationResult.data.text).toBeDefined();
@@ -585,28 +561,20 @@ describe('AI Analytics Workflow E2E', () => {
     expect(commonTopics.length).toBeGreaterThan(0);
 
     // 7. Generate embeddings for both the review and conversation
-    const reviewEmbedding = await aiProviderRunner.run<{
-      embedding: number[];
-      dimensions: number;
-    }>({
-      type: ProviderType.OPENAI,
-      operation: OperationType.EMBED,
-      input: reviewResult.data.text,
-      options: {},
-    });
+    const reviewEmbedding = await aiProviderRunner.runEmbed(
+      ProviderType.OPENAI,
+      reviewResult.data.text,
+      {},
+    );
 
     const conversationContent = messages
       .map((m: { content: string }) => m.content)
       .join(' ');
-    const conversationEmbedding = await aiProviderRunner.run<{
-      embedding: number[];
-      dimensions: number;
-    }>({
-      type: ProviderType.OPENAI,
-      operation: OperationType.EMBED,
-      input: conversationContent,
-      options: {},
-    });
+    const conversationEmbedding = await aiProviderRunner.runEmbed(
+      ProviderType.OPENAI,
+      conversationContent,
+      {},
+    );
 
     expect(reviewEmbedding).toBeDefined();
     expect(conversationEmbedding).toBeDefined();
