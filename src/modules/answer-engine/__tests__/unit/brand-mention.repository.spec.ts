@@ -194,7 +194,7 @@ describe('BrandMentionRepository', () => {
         { brandId },
       );
       expect(queryBuilder.andWhere).toHaveBeenCalledWith(
-        'mention.mentionedAt _BETWEEN :startDate _AND :endDate',
+        'mention.mentionedAt BETWEEN :startDate AND :endDate',
         {
           startDate,
           endDate,
