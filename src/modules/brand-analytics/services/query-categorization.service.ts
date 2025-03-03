@@ -322,10 +322,25 @@ JSON Response:
       // Extract JSON from the response
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
+        this.logger.warn(`No JSON found in response: ${response}`);
         throw new Error('Invalid response format');
       }
 
-      const parsed = JSON.parse(jsonMatch[0]);
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+      } catch (jsonError) {
+        this.logger.warn(`Failed to parse JSON: ${jsonMatch[0]}`);
+        throw new Error('Invalid JSON format');
+      }
+
+      // Check if required fields exist
+      if (!parsed.intent) {
+        this.logger.warn(
+          `Missing intent in parsed response: ${JSON.stringify(parsed)}`,
+        );
+        throw new Error('Missing intent in response');
+      }
 
       // Validate and normalize the response
       return {
@@ -359,10 +374,25 @@ JSON Response:
       // Extract JSON from the response
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
+        this.logger.warn(`No JSON found in tagging response: ${response}`);
         throw new Error('Invalid response format');
       }
 
-      const parsed = JSON.parse(jsonMatch[0]);
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+      } catch (jsonError) {
+        this.logger.warn(`Failed to parse tagging JSON: ${jsonMatch[0]}`);
+        throw new Error('Invalid JSON format');
+      }
+
+      // Check if required fields exist
+      if (!parsed.tags && !Array.isArray(parsed.tags)) {
+        this.logger.warn(
+          `Missing tags in parsed response: ${JSON.stringify(parsed)}`,
+        );
+        // Continue with empty tags rather than throwing
+      }
 
       // Validate and normalize the response
       return {

@@ -80,4 +80,4 @@ if ($LASTEXITCODE -eq 0) {
 # Clean up
 Remove-Item $tempFile.FullName
 
-Write-Host "Done!" 
+Write-Host "Done!"

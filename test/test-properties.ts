@@ -37,6 +37,6 @@ const values = {
 };
 
 // Unused parameter that should get an underscore
-function testFunction(_reallyUnusedParam: string): void {
+function testFunction(reallyUnusedParam: string): void {
   console.log('Test');
 }
