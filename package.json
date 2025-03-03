@@ -18,6 +18,7 @@
     "test:cov": "jest --config ./jest.config.js --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --config ./jest.config.js --runInBand",
     "test:e2e": "jest --config ./jest-e2e.config.js",
+    "test:integration": "jest --config ./jest.config.js \"src/**/*.integration.spec.ts\"",
     "test:smoke": "ts-node -r tsconfig-paths/register src/scripts/smoke-tests.ts",
     "test:health": "curl -f http://localhost:3000/health",
     "test:all": "npm run lint && npm test && npm run test:e2e",
