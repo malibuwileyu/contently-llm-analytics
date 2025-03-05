@@ -1,0 +1,84 @@
+{
+  "aiResponse": {
+    "content": "Nike has been at the forefront of sustainable athletic wear innovation. \nTheir latest products include:\n1. Nike Air VaporMax 2020 Flyknit - Made from at least 50% recycled content by weight\n2. Nike Forward - A revolutionary material innovation that reduces carbon footprint\n3. Space Hippie Collection - Made from recycled factory and post-consumer waste\n\nThese products demonstrate Nike's commitment to both performance and sustainability.\nThe company has also implemented water-saving technologies in their manufacturing process.",
+    "metadata": {
+      "model": "test-model",
+      "tokens": 100
+    }
+  },
+  "brandMentions": [
+    {
+      "id": "test-mention-1",
+      "brandId": "nike",
+      "content": "Nike Air VaporMax 2020 Flyknit",
+      "sentiment": 0.8,
+      "context": {
+        "query": "What are Nike's most innovative products in sustainable athletic wear?",
+        "response": "Nike has been at the forefront of sustainable athletic wear innovation. \nTheir latest products include:\n1. Nike Air VaporMax 2020 Flyknit - Made from at least 50% recycled content by weight\n2. Nike Forward - A revolutionary material innovation that reduces carbon footprint\n3. Space Hippie Collection - Made from recycled factory and post-consumer waste\n\nThese products demonstrate Nike's commitment to both performance and sustainability.\nThe company has also implemented water-saving technologies in their manufacturing process.",
+        "platform": "test"
+      },
+      "citations": [
+        {
+          "source": "Product Catalog",
+          "authority": 0.9,
+          "metadata": {
+            "category": "Footwear"
+          }
+        }
+      ]
+    }
+  ],
+  "brandHealth": {
+    "overallSentiment": 0.75,
+    "mentionCount": 10,
+    "citationCount": 5,
+    "topProducts": [
+      "Air VaporMax",
+      "Space Hippie"
+    ]
+  },
+  "citations": [
+    {
+      "source": "Product Catalog",
+      "authority": 0.9,
+      "metadata": {
+        "category": "Footwear"
+      }
+    }
+  ],
+  "conversation": {
+    "id": "test-conv-1",
+    "brandId": "nike",
+    "query": "What are Nike's most innovative products in sustainable athletic wear?",
+    "response": "Nike has been at the forefront of sustainable athletic wear innovation. \nTheir latest products include:\n1. Nike Air VaporMax 2020 Flyknit - Made from at least 50% recycled content by weight\n2. Nike Forward - A revolutionary material innovation that reduces carbon footprint\n3. Space Hippie Collection - Made from recycled factory and post-consumer waste\n\nThese products demonstrate Nike's commitment to both performance and sustainability.\nThe company has also implemented water-saving technologies in their manufacturing process.",
+    "metadata": {
+      "platform": "test",
+      "timestamp": "2025-03-04T21:54:36.354Z"
+    },
+    "engagementScore": 0.85
+  },
+  "insights": [
+    {
+      "type": "intent",
+      "value": "product_inquiry",
+      "confidence": 0.9,
+      "metadata": {
+        "category": "sustainability",
+        "subType": "innovation"
+      }
+    }
+  ],
+  "metrics": {
+    "totalConversations": 100,
+    "averageEngagement": 0.8,
+    "topIntents": [
+      "product_inquiry",
+      "sustainability"
+    ],
+    "trendsOverTime": {
+      "daily": [],
+      "weekly": [],
+      "monthly": []
+    }
+  }
+}

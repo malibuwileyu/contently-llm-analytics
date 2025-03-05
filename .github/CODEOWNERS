@@ -1,0 +1,24 @@
+# These owners will be the default owners for everything in the repo.
+# Unless a later match takes precedence, they will be requested for
+# review when someone opens a pull request.
+*       malibuwileyu
+
+# CI/CD Pipeline
+.github/workflows/   malibuwileyu
+.husky/             malibuwileyu
+
+# Core modules
+src/modules/answer-engine/       malibuwileyu
+src/modules/brand-analytics/     malibuwileyu
+src/modules/ai-provider/         malibuwileyu
+
+# Configuration files
+*.json              malibuwileyu
+*.js                malibuwileyu
+*.ts                malibuwileyu
+
+# Documentation
+docs/               malibuwileyu
+*.md                malibuwileyu
+
+# Replace @your-username with the actual GitHub usernames of the maintainers

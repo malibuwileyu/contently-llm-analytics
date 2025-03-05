@@ -1,0 +1,35 @@
+=== Product Description Generation Test ===
+
+
+Prompt: Write a compelling product description for Nike Air Max 270 that highlights its key features and benefits. Keep it under 100 words.
+
+Response: Elevate your style and comfort with the Nike Air Max 270. This cutting-edge sneaker boasts Nike's largest Air unit, providing unrivaled cushioning with every step. Its sleek, breathable mesh upper ensures your feet stay cool, while the dual-density foam sole offers exceptional support. The bold, iconic design exudes modern style, making the Air Max 270 a perfect blend of fashion and function. Whether you're hitting the gym or the streets, the Nike Air Max 270 is a game-changer in comfort and style. Experience the next level of footwear innovation today.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":33,"completion":119,"total":152}
+
+
+Prompt: Write a compelling product description for Nike Dri-FIT Running Shorts that highlights its key features and benefits. Keep it under 100 words.
+
+Response: Experience ultimate comfort and performance with Nike Dri-FIT Running Shorts. Crafted from moisture-wicking Dri-FIT fabric, these shorts ensure you stay dry and comfortable even during intense workouts. Its lightweight material and ergonomic seams provide superior mobility, while the adjustable waistband guarantees a personalized fit. The shorts also feature built-in briefs for added support and mesh panels for enhanced breathability. With reflective elements for visibility in low light and a secure zip pocket for essentials, Nike Dri-FIT shorts are your perfect partner for any running adventure.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":35,"completion":110,"total":145}
+
+
+Prompt: Write a compelling product description for Nike Zoom Pegasus 38 that highlights its key features and benefits. Keep it under 100 words.
+
+Response: The Nike Zoom Pegasus 38 is the epitome of comfort and performance. Designed with a breathable mesh upper, it ensures perfect fit and enhanced ventilation. The re-engineered midsole with Nike React foam delivers a lightweight, responsive ride, while the Zoom Air unit offers energy return to keep your stride smooth and efficient. Its wider forefoot provides superior stability, making it perfect for runners of all levels. With the durable rubber outsole, the Pegasus 38 promises unmatched traction and longevity. Experience the fusion of style, comfort, and durability with the Nike Zoom Pegasus 38.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":34,"completion":119,"total":153}
+
+
+=== Marketing Campaign Ideas Test ===
+
+
+Prompt: Generate 3 unique campaign ideas for Nike's summer collection that focus on sustainability and performance. Include taglines and key messaging points.
+

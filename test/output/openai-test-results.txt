@@ -1,0 +1,49 @@
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: Testing should start as early as possible in the software development life cycle. This helps in identifying and addressing potential issues at an initial stage, thus saving time and effort in the later stages of development.\n\n2. Exhaustive Testing is Impossible: It's not possible to test all combinations of inputs, scenarios, and preconditions within an application. Therefore, risk and priority-based testing should be adopted, focusing on the critical and high-risk functionalities.\n\n3. Defect Clustering: According to the Pareto Principle, a small number of modules usually contain most of the defects. Predicted by the principle of defect clustering, these areas should be given more focus during testing.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 138,
+      "total": 166
+    },
+    "latency": 5117
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: Always use names that reveal the intention behind your code. This applies to variables, functions, arguments, classes, and packages. The name should explain why it exists, what it does, and how it is used.\n\n2. Write Short Functions: Functions should ideally perform one task and be as short as possible. This makes them easier to understand, test, and reuse.\n\n3. Comment Wisely: Comments can be helpful, but they can also clutter up code if they're unnecessary. Use comments to explain the why, not the what. Avoid writing comments for code that is self-explanatory.\n\n4. Avoid Duplication: Duplicated code makes your program longer and harder to maintain. Always look for ways to reuse code, such as by creating functions for tasks you perform multiple times.\n\n5. Keep It Simple: The best code is simple and easy to understand. Avoid complex structures and unnecessary features. If there's a simpler way to do something, do it that way.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 204,
+      "total": 220
+    },
+    "latency": 8012
+  }
+}

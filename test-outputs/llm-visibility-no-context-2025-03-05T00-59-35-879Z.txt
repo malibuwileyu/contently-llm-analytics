@@ -1,0 +1,149 @@
+{
+  "aiResponse": {
+    "content": "The athletic wear industry features several major manufacturers:\n\n1. Nike - Known for performance technology and innovation\n2. Adidas - Strong in soccer/football and lifestyle segments\n3. Under Armour - Specializes in performance gear and digital fitness\n4. Puma - Focus on sports and fashion collaboration\n5. New Balance - Notable for running shoes and domestic manufacturing\n\nEach brand has unique strengths:\n- Adidas leads in sustainability with recycled ocean plastic initiatives\n- Nike dominates basketball and running categories\n- Under Armour excels in training gear technology\n- Puma shows strength in motorsport partnerships\n- New Balance maintains strong domestic production",
+    "metadata": {
+      "model": "test-model",
+      "tokens": 100,
+      "rankingData": {
+        "brandPosition": 2,
+        "competitorPositions": {
+          "nike": 1,
+          "under-armour": 3,
+          "puma": 4,
+          "new-balance": 5
+        }
+      }
+    }
+  },
+  "brandMentions": [
+    {
+      "id": "test-mention-1",
+      "brandId": "adidas",
+      "content": "Adidas - Strong in soccer/football and lifestyle segments",
+      "position": {
+        "index": 2,
+        "paragraph": 1,
+        "isLeading": false
+      },
+      "visibility": {
+        "prominence": 0.75,
+        "contextScore": 0.8,
+        "competitorProximity": [
+          {
+            "competitor": "nike",
+            "distance": -1,
+            "relationship": "peer"
+          }
+        ]
+      },
+      "knowledgeBaseMetrics": {
+        "citationFrequency": 0.7,
+        "authorityScore": 0.8,
+        "categoryLeadership": "strong"
+      },
+      "context": {
+        "query": "List major athletic wear manufacturers",
+        "response": "The athletic wear industry features several major manufacturers:\n\n1. Nike - Known for performance technology and innovation\n2. Adidas - Strong in soccer/football and lifestyle segments\n3. Under Armour - Specializes in performance gear and digital fitness\n4. Puma - Focus on sports and fashion collaboration\n5. New Balance - Notable for running shoes and domestic manufacturing\n\nEach brand has unique strengths:\n- Adidas leads in sustainability with recycled ocean plastic initiatives\n- Nike dominates basketball and running categories\n- Under Armour excels in training gear technology\n- Puma shows strength in motorsport partnerships\n- New Balance maintains strong domestic production",
+        "platform": "test"
+      }
+    }
+  ],
+  "brandHealth": {
+    "visibilityMetrics": {
+      "overallVisibility": 0.75,
+      "categoryRankings": {
+        "athletic-wear": 2,
+        "sustainability": 1,
+        "innovation": 2
+      },
+      "competitorComparison": {
+        "nike": {
+          "visibility": 0.85,
+          "relativeDelta": -0.1
+        },
+        "under-armour": {
+          "visibility": 0.6,
+          "relativeDelta": 0.15
+        }
+      }
+    },
+    "llmPresence": {
+      "knowledgeBaseStrength": 0.8,
+      "contextualAuthority": 0.75,
+      "topicalLeadership": [
+        "sustainability",
+        "soccer",
+        "lifestyle"
+      ]
+    },
+    "trendsOverTime": {
+      "visibilityTrend": "increasing",
+      "rankingStability": 0.85,
+      "competitorDynamics": "strong-challenger"
+    }
+  },
+  "citations": [
+    {
+      "source": "LLM Knowledge Base",
+      "authority": 0.8,
+      "metadata": {
+        "category": "Sustainability Leadership",
+        "contextualRelevance": 0.85,
+        "competitorPresence": true,
+        "citationImpact": "medium"
+      }
+    }
+  ],
+  "conversation": {
+    "id": "test-conv-1",
+    "brandId": "adidas",
+    "query": "List major athletic wear manufacturers",
+    "response": "The athletic wear industry features several major manufacturers:\n\n1. Nike - Known for performance technology and innovation\n2. Adidas - Strong in soccer/football and lifestyle segments\n3. Under Armour - Specializes in performance gear and digital fitness\n4. Puma - Focus on sports and fashion collaboration\n5. New Balance - Notable for running shoes and domestic manufacturing\n\nEach brand has unique strengths:\n- Adidas leads in sustainability with recycled ocean plastic initiatives\n- Nike dominates basketball and running categories\n- Under Armour excels in training gear technology\n- Puma shows strength in motorsport partnerships\n- New Balance maintains strong domestic production",
+    "visibilityMetrics": {
+      "position": 2,
+      "prominence": 0.75,
+      "contextQuality": 0.8,
+      "competitorPresence": true,
+      "leadingMention": false
+    },
+    "metadata": {
+      "platform": "test",
+      "timestamp": "2025-03-05T00:59:35.878Z",
+      "isContextCleared": true
+    }
+  },
+  "insights": [
+    {
+      "type": "visibility_pattern",
+      "value": "balanced_representation",
+      "confidence": 0.9,
+      "metadata": {
+        "category": "brand_presence",
+        "contextPattern": "natural_ordering",
+        "competitorDynamics": "competitive"
+      }
+    }
+  ],
+  "metrics": {
+    "visibilityStats": {
+      "averagePosition": 2.1,
+      "prominenceScore": 0.75,
+      "leadingMentions": "35%",
+      "competitorCooccurrence": "65%"
+    },
+    "llmPatterns": {
+      "knowledgeBaseRepresentation": 0.8,
+      "contextualAuthority": 0.75,
+      "categoryLeadership": {
+        "athletic-wear": "challenger",
+        "sustainability": "leader",
+        "soccer": "dominant"
+      }
+    },
+    "trendsOverTime": {
+      "visibilityTrend": "upward",
+      "positionStability": "medium",
+      "contextualEvolution": "strengthening"
+    }
+  }
+}

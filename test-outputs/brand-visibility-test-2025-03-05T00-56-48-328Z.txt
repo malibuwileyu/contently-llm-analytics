@@ -1,0 +1,373 @@
+=== Brand Market Position Test ===
+
+
+Prompt: Who are the top 3 athletic shoe manufacturers globally?
+
+Response: 1. Nike
+2. Adidas
+3. Puma
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":18,"completion":13,"total":31}
+
+
+Prompt: List the leading sportswear brands in order of market share.
+
+Response: Market share can fluctuate based on region and over time. As of October 2021, the following are some of the leading sportswear brands globally, however, exact rankings can vary:
+
+1. Nike - It continues to be the largest player in the global sportswear market.
+2. Adidas - The German-based company is Nike's biggest competitor.
+3. Under Armour - A relatively new player in the market, but it has seen rapid growth.
+4. Puma - Another German company that is a major player in the global market.
+5. New Balance - An American company that has a strong presence worldwide.
+6. ASICS - A Japanese company that is recognized for its running shoes.
+7. Columbia Sportswear - Known for their outdoor clothing.
+8. Skechers - An American lifestyle and performance footwear company.
+9. The North Face - Known for their outdoor products.
+10. Lululemon Athletica - A Canadian athletic apparel retailer.
+
+Please note, the order can differ based on different sources and market fluctuations.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":20,"completion":211,"total":231}
+
+
+Prompt: What companies dominate the athletic footwear market?
+
+Response: 1. Nike - Known for its innovative designs and high-performance shoes, Nike is a global leader in the athletic footwear market.
+
+2. Adidas - This German company is one of the largest sportswear manufacturers in the world and a major player in athletic footwear.
+
+3. Under Armour - This American company is known for its high-quality footwear designed for various sports and fitness activities.
+
+4. Puma - Another German multinational corporation, Puma is one of the leading brands in the athletic footwear market.
+
+5. New Balance - This American company is popular for its comfortable and durable athletic shoes.
+
+6. Asics - This Japanese company is known for its running shoes and is a significant player in the athletic footwear market.
+
+7. Reebok - Owned by Adidas, Reebok is known for its fitness-oriented footwear.
+
+8. Skechers - This American company offers a wide range of athletic shoes and is popular for its memory foam technology.
+
+9. Fila - This Italian-South Korean company is known for its stylish athletic footwear.
+
+10. Saucony - This American brand is popular among runners for its high-performance running shoes.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":15,"completion":227,"total":242}
+
+
+=== Brand Category Association Test ===
+
+
+Prompt: What brands come to mind for running shoes?
+
+Response: 1. Nike 
+2. Adidas 
+3. New Balance 
+4. Asics 
+5. Brooks 
+6. Saucony 
+7. Under Armour 
+8. Mizuno 
+9. Hoka One One 
+10. Puma 
+11. Salomon 
+12. Altra 
+13. Reebok 
+14. Skechers 
+15. Merrell 
+16. Columbia 
+17. On Running 
+18. The North Face 
+19. Salming 
+20. Inov-8.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":16,"completion":104,"total":120}
+
+
+Prompt: Which companies are known for basketball shoes?
+
+Response: 1. Nike
+2. Adidas
+3. Under Armour
+4. Reebok
+5. Puma
+6. New Balance
+7. Converse
+8. Jordan (owned by Nike)
+9. Peak
+10. Li-Ning
+11. Anta
+12. And1
+13. FILA
+14. K1X
+15. Asics
+16. Mizuno
+17. Skechers.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":15,"completion":89,"total":104}
+
+
+Prompt: Name the best brands for athletic performance wear.
+
+Response: 1. Nike
+2. Adidas
+3. Under Armour
+4. Puma
+5. Reebok
+6. Asics
+7. New Balance
+8. Lululemon
+9. Hoka One One
+10. Brooks
+11. Saucony
+12. Columbia
+13. The North Face
+14. Patagonia
+15. Salomon
+16. Champion
+17. Mizuno
+18. Fabletics
+19. Gore Wear
+20. Pearl Izumi.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":16,"completion":106,"total":122}
+
+
+=== Brand Innovation Test ===
+
+
+Prompt: Which athletic companies are leading in innovation?
+
+Response: 1. Nike: Known for its innovative designs, Nike has been leading the pack for years. They consistently release new technologies and products, such as self-lacing shoes, the Flyknit technology for lightweight, formfitting shoes, and the Nike+ app for tracking workouts.
+
+2. Adidas: Adidas has been a major player in innovation with their Boost technology, providing superior comfort and responsiveness. They also launched the Futurecraft 4D shoes, created with light and oxygen using Carbon Digital Light Synthesis technology.
+
+3. Under Armour: Under Armour has been pushing the boundaries with their smart shoe technology, including the HOVR series that tracks and analyzes running metrics. They also developed recovery sleepwear to help athletes recover faster.
+
+4. Puma: Puma has been focusing on sustainability with their "Forever Better" initiative, pushing for more sustainable materials and practices in their manufacturing process. They also created the Puma Fi, a self-lacing shoe.
+
+5. Lululemon: Lululemon is leading in athleisure innovation, creating clothing that is not only functional for athletic performance but also fashionable for everyday wear. They introduced the ABC (anti-ball-crushing) technology in their men's line for comfort and mobility.
+
+6. New Balance: New Balance has been on the forefront of 3D printing technology for their shoes, providing customized soles for better performance and comfort.
+
+7. Under Armour: Under Armour's innovation is also seen in their sportswear technology with products like the ColdGear Infrared, a soft thermo-conductive inner coating to absorb and retain body heat.
+
+8. Reebok: Reebok has introduced the Flexweave technology, a revolutionary shoe upper that boasts an unprecedented combination of strength, durability, and breathability. 
+
+9. Columbia Sportswear: Columbia has been leading in outdoor sportswear innovation with their Omni-Heat Reflective technology, which reflects body heat while providing breathability.
+
+10. ASICS: ASICS is leading in running shoe innovation with their GEL technology, providing superior shock absorption and comfort. They also have the Metarun shoe, designed with human-centric science and the latest technology to deliver high performance.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":15,"completion":442,"total":457}
+
+
+Prompt: What brands are pioneering sustainable athletic wear?
+
+Response: 1. Patagonia: Patagonia's mission statement is to "Build the best product, cause no unnecessary harm, use business to inspire and implement solutions to the environmental crisis." They use recycled materials in their products and ensure a fair trade production process.
+
+2. Adidas: Adidas has partnered with Parley for the Oceans to produce shoes and athletic wear made from recycled ocean plastic. They aim to use only recycled polyester in their products by 2024.
+
+3. PACT: PACT creates clothing from organic cotton, reducing their impact on the environment. They also ensure fair working conditions for their workers.
+
+4. Outdoor Voices: Outdoor Voices uses sustainable materials and ethical manufacturing processes. They also have a recycling program for their products.
+
+5. Allbirds: Allbirds is a shoe company that uses natural and recycled materials like wool and eucalyptus tree fiber. They also use a carbon offset program to reduce their environmental impact.
+
+6. Girlfriend Collective: Girlfriend Collective creates activewear from recycled materials, like plastic water bottles and fishing nets. They also maintain transparency in their production process and prioritize fair labor practices.
+
+7. Threads 4 Thought: Threads 4 Thought uses sustainable materials and ethical manufacturing processes. They also partner with the International Rescue Committee to support humanitarian initiatives.
+
+8. prAna: prAna uses organic cotton, recycled wool, hemp, recycled polyester, and responsibly sourced down in their products. They also ensure fair trade and safe working conditions.
+
+9. Nike: Nike has a line of products called "Move to Zero" which is their journey towards zero carbon and zero waste to help protect the future of sport.
+
+10. TALA: TALA is a UK based company that produces sustainable and stylish sportswear. Their products are made from up to 92% upcycled materials and they aim to be 100% carbon neutral.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":15,"completion":375,"total":390}
+
+
+Prompt: Who makes the most technologically advanced running shoes?
+
+Response: Nike, Adidas, and Under Armour are often cited as some of the companies that make the most technologically advanced running shoes. They offer features like energy return, cushioning technology, and precise fit systems. However, this can vary depending on personal preferences and specific needs. Other notable brands include Asics, New Balance, and Brooks.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":17,"completion":68,"total":85}
+
+
+=== Brand Market Presence Test ===
+
+
+Prompt: Which athletic brands dominate in North America?
+
+Response: 1. Nike
+2. Under Armour
+3. Adidas
+4. New Balance
+5. Reebok
+6. Puma
+7. Columbia Sportswear
+8. The North Face
+9. Asics
+10. Jordan (owned by Nike)
+11. Converse (owned by Nike)
+12. Vans (owned by VF Corporation)
+13. Lululemon Athletica
+14. Brooks Sports (owned by Berkshire Hathaway)
+15. Skechers
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":15,"completion":100,"total":115}
+
+
+Prompt: What are the most popular sports brands in Europe?
+
+Response: 1. Adidas: Based in Germany, Adidas is one of the most popular sports brands in Europe, known for their shoes, clothing and accessories.
+
+2. Nike: Despite being an American brand, Nike is very popular in Europe. They offer a wide range of sports equipment and clothing.
+
+3. Puma: Another German brand, Puma is known for their footwear and sportswear. 
+
+4. Under Armour: This American brand has gained popularity in Europe in recent years, particularly in the UK.
+
+5. Reebok: Originally a British brand, Reebok is now owned by Adidas. They offer a wide range of sports clothing and equipment.
+
+6. Umbro: Famous for their football (soccer) equipment, this British brand is prevalent in Europe.
+
+7. New Balance: Known for their running shoes, New Balance is popular in Europe, particularly in the UK.
+
+8. Salomon: Based in France, Salomon is known for their winter sports equipment.
+
+9. Decathlon: A French brand, Decathlon is Europe's largest sports retailer.
+
+10. Lotto: An Italian brand, Lotto is known for their tennis and football (soccer) equipment.
+
+11. Kappa: This Italian brand is particularly known for their football (soccer) uniforms.
+
+12. ASICS: Originally a Japanese brand, ASICS has gained popularity in Europe for their running shoes.
+
+13. Le Coq Sportif: French brand known for its sports and lifestyle shoes, clothing and accessories. 
+
+14. Diadora: An Italian sports brand known for its footwear and apparel in football, tennis and running. 
+
+15. Errea: An Italian sportswear brand specializing in team sports.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":17,"completion":342,"total":359}
+
+
+Prompt: Who leads the athletic wear market in Asia?
+
+Response: As of the latest data, Nike and Adidas are the top leaders in the athletic wear market in Asia. However, local brands like Li Ning and Anta from China are also gaining significant market share.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":16,"completion":41,"total":57}
+
+
+=== Brand Historical Impact Test ===
+
+
+Prompt: What athletic brands have had the biggest impact on sports history?
+
+Response: 1. Nike: Known for their iconic "swoosh" logo and "Just Do It" slogan, Nike has had a major impact on sports history. They've sponsored some of the biggest athletes in the world, including Michael Jordan, LeBron James, and Serena Williams. 
+
+2. Adidas: Established in Germany in 1949, Adidas has grown to be a global powerhouse in sports. They've sponsored major events like the FIFA World Cup and athletes such as Lionel Messi and David Beckham.
+
+3. Under Armour: Although relatively new in comparison to other brands, Under Armour has made a significant impact in sports. They've sponsored athletes like Steph Curry and Tom Brady, and have become known for their innovative performance apparel.
+
+4. Puma: Founded by the brother of Adidas' founder, Puma has a long history in sports. They've sponsored many athletes, including Pele and Usain Bolt. 
+
+5. Reebok: Known for their footwear and apparel, Reebok has had a major impact on sports such as basketball, tennis, and crossfit. They've sponsored athletes like Shaquille O'Neal, Venus Williams, and Conor McGregor.
+
+6. New Balance: New Balance has been a major player in running and baseball. They've sponsored athletes like Francisco Lindor and Sydney McLaughlin.
+
+7. Asics: Known for their running shoes, Asics has had a major impact on marathon running and other endurance sports. They've sponsored athletes like Deena Kastor and Gwen Jorgensen.
+
+8. Converse: Converse's Chuck Taylor All-Stars have become synonymous with basketball. They've sponsored athletes like Magic Johnson and Larry Bird.
+
+9. Wilson: Wilson has had a major impact on sports like tennis, baseball, and American football. They've sponsored athletes like Serena Williams and Pete Sampras.
+
+10. Speedo: Known for their swimwear, Speedo has had a major impact on competitive swimming. They've sponsored athletes like Michael Phelps and Missy Franklin.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":19,"completion":405,"total":424}
+
+
+Prompt: Which sports companies have revolutionized athletic footwear?
+
+Response: 1. Nike - Known for their innovative designs and technology such as the Nike Air and Flyknit technology.
+
+2. Adidas - Introduced Boost technology which offers energy return in every step.
+
+3. Under Armour - Introduced 'smart' shoes that track and store data to improve performance.
+
+4. Reebok - Known for their 'Pump' technology that allows users to custom fit their shoes.
+
+5. Puma - Introduced disc technology which eliminates the need for laces.
+
+6. New Balance - Known for their focus on comfort and fit, they introduced 3D printing technology to customize soles of shoes.
+
+7. Asics - Known for their GEL technology which provides superior cushioning and protection.
+
+8. Salomon - Revolutionized trail running shoes with their Quicklace system and Contagrip outsoles for better traction.
+
+9. Brooks - Known for their DNA AMP midsole technology which provides superior energy return.
+
+10. Hoka One One - Known for their 'maximalist' shoes that provide more cushioning than traditional running shoes. 
+
+11. Converse - Revolutionized basketball footwear with the introduction of the Chuck Taylor All-Stars.
+
+12. Vans - Known for their waffle soles which provide superior grip for skateboarders.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":16,"completion":253,"total":269}
+
+
+Prompt: Name the most influential athletic wear companies of all time.
+
+Response: 1. Nike
+2. Adidas
+3. Under Armour
+4. Puma
+5. Reebok
+6. Asics
+7. New Balance
+8. Fila
+9. Lululemon Athletica
+10. Converse
+11. Umbro
+12. Saucony
+13. The North Face
+14. Columbia Sportswear
+15. Salomon
+16. Skechers
+17. Champion
+18. Russell Athletic
+19. Mizuno Corporation
+20. Patagonia.
+
+Model: gpt-4-0613
+
+Tokens: {"prompt":18,"completion":110,"total":128}
+
