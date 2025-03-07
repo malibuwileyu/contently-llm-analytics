@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { QueryTemplateEntity } from '../../modules/brand-analytics/entities/query-template.entity';
-import { QueryType } from '../types/query.types';
+import { QueryTemplateEntity } from '../entities/query-template.entity';
+import {
+  QueryTemplate,
+  QueryType,
+  QueryValidationResult,
+} from '../types/query.types';
 import { QueryValidationService } from './query-validation.service';
 import { VariableBankService } from './variable-bank.service';
 
