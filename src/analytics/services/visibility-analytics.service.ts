@@ -6,6 +6,8 @@ import { CompetitorEntity } from '../../modules/brand-analytics/entities/competi
 import { PerplexityService } from './perplexity.service';
 import { ComparativeQueryService } from './comparative-query.service';
 import { Between } from 'typeorm';
+import { In } from 'typeorm';
+import { CustomerResearchService } from '../../modules/brand-analytics/services/customer-research.service';
 
 interface AnalyticsMetrics {
   mentionCount: number;
@@ -33,6 +35,35 @@ interface CompetitiveData {
   relativeStrength: number;
 }
 
+interface IndustryData {
+  totalMentions: number;
+  averageProminence: number;
+  competitorStats: Array<{
+    name: string;
+    mentions: number;
+    prominence: number;
+  }>;
+  trends: {
+    growth: number;
+    stability: number;
+  };
+}
+
+interface VisibilityAnalysis {
+  industryData: IndustryData;
+  competitorVisibility: {
+    mentions: number;
+    prominence: number;
+    ranking: number;
+  };
+  trends: {
+    weeklyGrowth: number;
+    monthlyGrowth: number;
+    stability: number;
+  };
+  recommendations: string[];
+}
+
 @Injectable()
 export class VisibilityAnalyticsService {
   constructor(
@@ -40,6 +71,7 @@ export class VisibilityAnalyticsService {
     private readonly analyticsRepository: Repository<AnalyticsResult>,
     private readonly perplexityService: PerplexityService,
     private readonly comparativeQueryService: ComparativeQueryService,
+    private readonly customerResearchService: CustomerResearchService,
   ) {}
 
   async processQueryResponse(
@@ -523,11 +555,128 @@ export class VisibilityAnalyticsService {
     // Get industry data
     const industryData = await this.getIndustryData(competitor);
 
-    // Process and return the analysis
+    // Get competitor's recent analytics
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const competitorAnalytics = await this.analyticsRepository.find({
+      where: {
+        companyId: competitor.id,
+        createdAt: Between(thirtyDaysAgo, new Date()),
+      },
+    });
+
+    // Calculate competitor visibility metrics
+    const mentions = competitorAnalytics.reduce(
+      (sum, a) => sum + a.mentionCount,
+      0,
+    );
+    const prominence =
+      competitorAnalytics.reduce((sum, a) => sum + a.prominenceScore, 0) /
+      (competitorAnalytics.length || 1);
+
+    // Calculate ranking
+    const sortedCompetitors = [...industryData.competitorStats].sort(
+      (a, b) => b.prominence - a.prominence,
+    );
+    const ranking =
+      sortedCompetitors.findIndex(c => c.name === competitor.name) + 1;
+
+    // Calculate trends
+    const weeklyGrowth = await this.calculateCompetitorGrowth(
+      competitorAnalytics,
+      7,
+    );
+    const monthlyGrowth = await this.calculateCompetitorGrowth(
+      competitorAnalytics,
+      30,
+    );
+    const stability =
+      await this.calculateIndustryStability(competitorAnalytics);
+
+    // Generate recommendations
+    const recommendations = await this.generateRecommendations(
+      competitor,
+      { mentions, prominence, ranking },
+      industryData,
+    );
+
     return {
       industryData,
-      // ... rest of the analysis
+      competitorVisibility: {
+        mentions,
+        prominence,
+        ranking,
+      },
+      trends: {
+        weeklyGrowth,
+        monthlyGrowth,
+        stability,
+      },
+      recommendations,
     };
+  }
+
+  private async calculateCompetitorGrowth(
+    analytics: AnalyticsResult[],
+    days: number,
+  ): Promise<number> {
+    if (analytics.length < 2) return 0;
+
+    const sortedAnalytics = analytics.sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+    );
+    const periodAnalytics = sortedAnalytics.slice(-days);
+
+    if (periodAnalytics.length < 2) return 0;
+
+    const firstScore = periodAnalytics[0].visibilityScore;
+    const lastScore =
+      periodAnalytics[periodAnalytics.length - 1].visibilityScore;
+
+    return ((lastScore - firstScore) / firstScore) * 100;
+  }
+
+  private async generateRecommendations(
+    competitor: CompetitorEntity,
+    visibility: { mentions: number; prominence: number; ranking: number },
+    industryData: IndustryData,
+  ): Promise<string[]> {
+    const recommendations: string[] = [];
+
+    // Compare to industry averages
+    if (
+      visibility.mentions <
+      industryData.totalMentions / industryData.competitorStats.length
+    ) {
+      recommendations.push(
+        'Increase brand presence through more frequent content creation and distribution',
+      );
+    }
+
+    if (visibility.prominence < industryData.averageProminence) {
+      recommendations.push(
+        'Improve content quality and relevance to boost prominence in industry discussions',
+      );
+    }
+
+    if (
+      visibility.ranking > Math.ceil(industryData.competitorStats.length / 2)
+    ) {
+      recommendations.push(
+        'Focus on competitive differentiation to improve industry ranking',
+      );
+    }
+
+    // Add general recommendations
+    recommendations.push(
+      'Maintain consistent brand messaging across all channels',
+    );
+    recommendations.push(
+      'Monitor and engage with industry trends and discussions',
+    );
+
+    return recommendations;
   }
 
   async getVisibilityHistory(
@@ -537,5 +686,102 @@ export class VisibilityAnalyticsService {
       where: { companyId: company.id },
       order: { createdAt: 'ASC' },
     });
+  }
+
+  private async getIndustryData(
+    competitor: CompetitorEntity,
+  ): Promise<IndustryData> {
+    // Get all competitors in the same industry
+    const competitors =
+      await this.customerResearchService.getCompetitorsByIndustry(
+        competitor.industryId,
+      );
+
+    // Get analytics for all competitors in the last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const allAnalytics = await this.analyticsRepository.find({
+      where: {
+        companyId: In(competitors.map(c => c.id)),
+        createdAt: Between(thirtyDaysAgo, new Date()),
+      },
+    });
+
+    // Calculate industry stats
+    const competitorStats = competitors.map(comp => {
+      const analytics = allAnalytics.filter(a => a.companyId === comp.id);
+      return {
+        name: comp.name,
+        mentions: analytics.reduce((sum, a) => sum + a.mentionCount, 0),
+        prominence:
+          analytics.reduce((sum, a) => sum + a.prominenceScore, 0) /
+          (analytics.length || 1),
+      };
+    });
+
+    const totalMentions = competitorStats.reduce(
+      (sum, stat) => sum + stat.mentions,
+      0,
+    );
+    const averageProminence =
+      competitorStats.reduce((sum, stat) => sum + stat.prominence, 0) /
+      competitorStats.length;
+
+    // Calculate trends
+    const growth = await this.calculateIndustryGrowth(allAnalytics);
+    const stability = await this.calculateIndustryStability(allAnalytics);
+
+    return {
+      totalMentions,
+      averageProminence,
+      competitorStats,
+      trends: {
+        growth,
+        stability,
+      },
+    };
+  }
+
+  private async calculateIndustryGrowth(
+    analytics: AnalyticsResult[],
+  ): Promise<number> {
+    if (analytics.length < 2) return 0;
+
+    const sortedAnalytics = analytics.sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+    );
+    const firstWeekAnalytics = sortedAnalytics.slice(
+      0,
+      Math.floor(sortedAnalytics.length / 4),
+    );
+    const lastWeekAnalytics = sortedAnalytics.slice(
+      -Math.floor(sortedAnalytics.length / 4),
+    );
+
+    const firstWeekAvg =
+      firstWeekAnalytics.reduce((sum, a) => sum + a.visibilityScore, 0) /
+      firstWeekAnalytics.length;
+    const lastWeekAvg =
+      lastWeekAnalytics.reduce((sum, a) => sum + a.visibilityScore, 0) /
+      lastWeekAnalytics.length;
+
+    return ((lastWeekAvg - firstWeekAvg) / firstWeekAvg) * 100;
+  }
+
+  private async calculateIndustryStability(
+    analytics: AnalyticsResult[],
+  ): Promise<number> {
+    if (analytics.length < 2) return 1;
+
+    const scores = analytics.map(a => a.visibilityScore);
+    const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+    const variance =
+      scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) /
+      scores.length;
+
+    // Convert variance to stability score (0-1)
+    // Lower variance means higher stability
+    return Math.max(0, 1 - Math.sqrt(variance) / mean);
   }
 }
