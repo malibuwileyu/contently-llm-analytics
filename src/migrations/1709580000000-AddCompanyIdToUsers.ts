@@ -9,6 +9,12 @@ export class AddCompanyIdToUsers1709580000000 implements MigrationInterface {
       ON CONFLICT DO NOTHING;
     `);
 
+    // Drop existing constraint if it exists
+    await queryRunner.query(`
+      ALTER TABLE "auth"."users" 
+      DROP CONSTRAINT IF EXISTS "fk_user_company";
+    `);
+
     // Then add the company_id column with default value
     await queryRunner.query(`
       ALTER TABLE "auth"."users" 

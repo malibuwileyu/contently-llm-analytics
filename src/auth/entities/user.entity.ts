@@ -1,68 +1,65 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Company } from '../../analytics/entities/company.entity';
+import * as typeorm from 'typeorm';
 
-@Entity({ schema: 'auth', name: 'users' })
-export class User {
-  @Column({ primary: true, type: 'uuid' })
+@typeorm.Entity('users')
+class UserEntity {
+  @typeorm.PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @typeorm.Column({ length: 255, unique: true })
   email: string;
 
-  @Column({ name: 'encrypted_password', nullable: true })
-  encryptedPassword: string;
+  @typeorm.Column({ length: 255, nullable: true })
+  password: string;
 
-  @Column({ name: 'company_id', type: 'uuid', nullable: true })
-  companyId: string;
-
-  @ManyToOne(() => Company)
-  @JoinColumn({ name: 'company_id' })
-  company: Company;
-
-  @Column({ name: 'raw_user_meta_data', type: 'jsonb', nullable: true })
-  rawUserMetaData: {
+  @typeorm.Column({ name: 'raw_user_meta_data', type: process.env.NODE_ENV === 'test' ? 'simple-json' : 'jsonb', nullable: true })
+  metadata: {
     firstName?: string;
     lastName?: string;
-    picture?: string;
     roles?: string[];
     permissions?: string[];
     department?: string;
     title?: string;
+    picture?: string;
   };
 
-  @Column({ name: 'is_anonymous', default: false })
-  isAnonymous: boolean;
+  @typeorm.Column({ name: 'is_active', default: true })
+  isActive: boolean;
 
-  @Column({ name: 'confirmed_at', nullable: true })
+  @typeorm.Column({ name: 'is_admin', default: false })
+  isAdmin: boolean;
+
+  @typeorm.Column({ name: 'confirmed_at', type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp', nullable: true })
   confirmedAt: Date;
 
-  @Column({ name: 'last_sign_in_at', nullable: true })
+  @typeorm.Column({ type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp', nullable: true })
   lastSignInAt: Date;
 
-  @Column({ name: 'created_at' })
+  @typeorm.Column({ type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column({ name: 'updated_at' })
+  @typeorm.Column({ type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 
   // Helper getters for metadata
   get firstName(): string | undefined {
-    return this.rawUserMetaData?.firstName;
+    return this.metadata?.firstName;
   }
 
   get lastName(): string | undefined {
-    return this.rawUserMetaData?.lastName;
+    return this.metadata?.lastName;
   }
 
   get roles(): string[] {
-    return this.rawUserMetaData?.roles || [];
+    return this.metadata?.roles || [];
   }
 
   get permissions(): string[] {
-    return this.rawUserMetaData?.permissions || [];
+    return this.metadata?.permissions || [];
   }
 
   get picture(): string | undefined {
-    return this.rawUserMetaData?.picture;
+    return this.metadata?.picture;
   }
 }
+
+module.exports = { UserEntity }; 

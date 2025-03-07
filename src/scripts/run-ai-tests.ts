@@ -3,12 +3,34 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as path from 'path';
 import { AIProviderModule } from '../modules/ai-provider/ai-provider.module';
-import { TypeOrmConfigService } from '../config/typeorm.config';
-import { User } from '../auth/entities/user.entity';
-import { Company } from '../analytics/entities/company.entity';
+import { CompanyEntity } from '../analytics/entities/company.entity';
+import { UserEntity } from '../auth/entities/user.entity';
 
 async function runTests() {
-  let module = null;
+  const moduleRef = await Test.createTestingModule({
+    imports: [
+      ConfigModule.forRoot(),
+      TypeOrmModule.forRootAsync({
+        imports: [ConfigModule],
+        useFactory: async () => ({
+          type: 'postgres',
+          url: process.env.DATABASE_URL,
+          entities: [CompanyEntity, UserEntity],
+          synchronize: false,
+          ssl: {
+            rejectUnauthorized: false
+          }
+        }),
+      }),
+      AIProviderModule,
+      TypeOrmModule.forFeature([CompanyEntity, UserEntity]),
+    ],
+  }).compile();
+
+  const app = moduleRef.createNestApplication();
+  await app.init();
+
+  // Run your tests here
   try {
     console.log('Starting AI Provider Integration Tests...\n');
 
@@ -22,18 +44,10 @@ async function runTests() {
     console.log('\nTests completed successfully!');
     console.log('Check the test-outputs directory for results.');
   } catch (error) {
-    console.error('Error running tests:', error);
-    process.exit(1);
+    console.error('Test error:', error);
   } finally {
-    if (module) {
-      const connection = module.get('Connection');
-      if (connection && connection.isConnected) {
-        await connection.close();
-      }
-      await module.close();
-    }
+    await app.close();
   }
 }
 
-// Run the tests
-runTests();
+runTests().catch(console.error);

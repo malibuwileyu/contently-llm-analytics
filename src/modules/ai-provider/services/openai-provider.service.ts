@@ -1,52 +1,22 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OpenAI } from 'openai';
 import { BaseAIProvider } from './base-ai-provider.service';
-import { AIProviderConfig } from '../config/ai-provider.config';
-import {
-  AIProviderResponse,
-  OpenAIModelType,
-  OpenAIProviderOptions,
-  AIProviderCapabilities,
-  ProviderType,
-} from '../interfaces/ai-provider.interface';
+import { AIProviderCapabilities, AIProviderResponse, ProviderType } from '../interfaces/ai-provider.interface';
 
 @Injectable()
-export class OpenAIProviderService
-  extends BaseAIProvider
-  implements OnModuleDestroy
-{
-  private client: OpenAI;
-  private options: OpenAIProviderOptions;
+export class OpenAIProviderService extends BaseAIProvider {
+  private readonly logger = new Logger(OpenAIProviderService.name);
+  private readonly client: OpenAI;
 
   constructor(private readonly configService: ConfigService) {
     super();
-    const config = this.configService.get<AIProviderConfig>('ai');
-    this.options = {
-      apiKey: config.openai.apiKey,
-      organization: config.openai.organization,
-      defaultModel:
-        (config.openai.defaultModel as OpenAIModelType) || OpenAIModelType.GPT4,
-      timeout: config.openai.timeout || 30000,
-    };
-    this.client = new OpenAI({
-      apiKey: this.options.apiKey,
-      organization: this.options.organization,
-      timeout: this.options.timeout,
-    });
-  }
-
-  async onModuleDestroy() {
-    await this.cleanup();
-  }
-
-  async cleanup() {
-    // Close any open connections or resources
-    if (this.client) {
-      // OpenAI client doesn't have a close method yet
-      // but we'll keep this for future compatibility
-      this.client = null;
+    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+    if (!apiKey) {
+      this.logger.error('OpenAI API key not found in configuration');
+      throw new Error('OpenAI API key not found');
     }
+    this.client = new OpenAI({ apiKey });
   }
 
   async isAvailable(): Promise<boolean> {
@@ -54,6 +24,7 @@ export class OpenAIProviderService
       await this.client.models.list();
       return true;
     } catch (error) {
+      this.logger.error('Error checking OpenAI availability:', error);
       return false;
     }
   }
@@ -61,72 +32,95 @@ export class OpenAIProviderService
   getCapabilities(): AIProviderCapabilities {
     return {
       type: ProviderType.OPENAI,
-      models: Object.values(OpenAIModelType),
+      models: ['gpt-4', 'text-embedding-ada-002'],
       features: {
         chat: true,
         completion: true,
         embedding: true,
-        imageGeneration: true,
-        imageAnalysis: true,
-      },
+        imageGeneration: false,
+        imageAnalysis: false
+      }
     };
   }
 
-  async chat(
-    messages: Array<{ role: string; content: string }>,
-  ): Promise<AIProviderResponse> {
+  async chat(messages: Array<{ role: string; content: string }>): Promise<AIProviderResponse> {
+    const startTime = Date.now();
     try {
-      const startTime = Date.now();
       const response = await this.client.chat.completions.create({
-        model: this.options.defaultModel,
+        model: 'gpt-4',
         messages: messages.map(msg => ({
-          role: msg.role as 'user' | 'assistant' | 'system',
-          content: msg.content,
+          role: msg.role as 'system' | 'user' | 'assistant',
+          content: msg.content
         })),
-        temperature: 0.7,
+        temperature: 0.7
       });
-      const endTime = Date.now();
+
+      const latency = Date.now() - startTime;
 
       return {
-        content: response.choices[0].message.content,
+        content: response.choices[0]?.message?.content || '',
         metadata: {
-          model: response.model,
           provider: ProviderType.OPENAI,
+          latency,
+          model: response.model,
           tokens: {
-            prompt: response.usage.prompt_tokens,
-            completion: response.usage.completion_tokens,
-            total: response.usage.total_tokens,
-          },
-          latency: endTime - startTime,
-        },
+            prompt: response.usage?.prompt_tokens || 0,
+            completion: response.usage?.completion_tokens || 0,
+            total: response.usage?.total_tokens || 0
+          }
+        }
       };
     } catch (error) {
-      throw this.handleError(error);
+      this.logger.error('Error in chat operation:', error);
+      throw error;
     }
   }
 
   async complete(prompt: string): Promise<AIProviderResponse> {
-    return this.chat([{ role: 'user', content: prompt }]);
+    const startTime = Date.now();
+    try {
+      const response = await this.client.chat.completions.create({
+        model: 'gpt-4',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7
+      });
+
+      const latency = Date.now() - startTime;
+
+      return {
+        content: response.choices[0]?.message?.content || '',
+        metadata: {
+          provider: ProviderType.OPENAI,
+          latency,
+          model: response.model,
+          tokens: {
+            prompt: response.usage?.prompt_tokens || 0,
+            completion: response.usage?.completion_tokens || 0,
+            total: response.usage?.total_tokens || 0
+          }
+        }
+      };
+    } catch (error) {
+      this.logger.error('Error in complete operation:', error);
+      throw error;
+    }
   }
 
   async embed(text: string): Promise<number[]> {
     try {
       const response = await this.client.embeddings.create({
         model: 'text-embedding-ada-002',
-        input: text,
+        input: text
       });
-      return response.data[0].embedding;
+
+      return response.data[0]?.embedding || [];
     } catch (error) {
-      throw this.handleError(error);
+      this.logger.error('Error in embed operation:', error);
+      throw error;
     }
   }
 
-  private handleError(error: any): Error {
-    if (error.response) {
-      return new Error(
-        `OpenAI API error: ${error.response.status} - ${error.response.data.error.message}`,
-      );
-    }
-    return new Error(`OpenAI error: ${error.message}`);
+  async cleanup(): Promise<void> {
+    // No cleanup needed for OpenAI
   }
 }

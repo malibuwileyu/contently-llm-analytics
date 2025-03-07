@@ -1,7 +1,9 @@
+import { jest } from '@jest/globals';
 import { config } from 'dotenv';
+import { join } from 'path';
 
-// Load environment variables from .env.test file
-config({ path: '.env.test' });
+// Load test environment variables
+config({ path: join(__dirname, '../.env.test') });
 
-// Increase timeout for all tests
-jest.setTimeout(120000); // 2 minutes timeout
+// Set default test timeout
+jest.setTimeout(60000);

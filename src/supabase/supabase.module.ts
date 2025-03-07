@@ -1,21 +1,14 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { createClient } from '@supabase/supabase-js';
+import { Module, forwardRef } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { SupabaseService } from './supabase.service';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [ConfigModule],
-  providers: [
-    {
-      provide: 'SUPABASE_CLIENT',
-      useFactory: (configService: ConfigService) => {
-        return createClient(
-          configService.get<string>('NEXT_PUBLIC_SUPABASE_URL'),
-          configService.get<string>('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
-        );
-      },
-      inject: [ConfigService],
-    },
+  imports: [
+    ConfigModule,
+    forwardRef(() => AuthModule)
   ],
-  exports: ['SUPABASE_CLIENT'],
+  providers: [SupabaseService],
+  exports: [SupabaseService],
 })
 export class SupabaseModule {}

@@ -5,25 +5,38 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { SupabaseModule } from './supabase/supabase.module';
-import { TypeOrmConfigService } from './config/typeorm.config';
 import { HealthModule } from './health/health.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { BooksModule } from './books/books.module';
 
 // Config imports
 import authConfig from './config/auth.config';
 import databaseConfig from './config/database.config';
+import supabaseConfig from './config/supabase.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [authConfig, databaseConfig],
+      envFilePath: '.env',
+      load: [authConfig, databaseConfig, supabaseConfig],
+      expandVariables: true,
+      cache: true,
     }),
-    TypeOrmModule.forRootAsync({
-      useClass: TypeOrmConfigService,
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      url: process.env.DATABASE_URL,
+      autoLoadEntities: true,
+      synchronize: false,
+      ssl: {
+        rejectUnauthorized: false
+      }
     }),
     SupabaseModule,
     AuthModule,
     HealthModule,
+    AnalyticsModule,
+    BooksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

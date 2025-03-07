@@ -1,47 +1,51 @@
-import { Injectable } from '@nestjs/common';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { DataSourceOptions } from 'typeorm';
+import * as dotenv from 'dotenv';
+import { IndustryEntity } from '../modules/brand-analytics/entities/industry.entity';
+import { CompetitorEntity } from '../modules/brand-analytics/entities/competitor.entity';
+import { QueryTemplateEntity } from '../analytics/entities/query-template.entity';
+import { AnalyticsResult } from '../analytics/entities/analytics-result.entity';
 
-@Injectable()
-export class TypeOrmConfigService {
-  constructor(private configService: ConfigService) {
-    console.log('TypeOrmConfigService constructor called');
-  }
+dotenv.config();
 
-  createTypeOrmOptions(): TypeOrmModuleOptions {
-    console.log('Creating TypeORM options...');
-    const password = this.configService.get('SUPABASE_PASSWORD');
-    if (!password) {
-      console.error('SUPABASE_PASSWORD is not configured');
-      throw new Error('SUPABASE_PASSWORD is not configured');
-    }
+const configService = new ConfigService();
 
-    const connectionString = `postgresql://postgres.hgmbooestwqhfempyjun:${password}@aws-0-us-west-1.pooler.supabase.com:5432/postgres`;
-    console.log('Database connection string created (password hidden)');
+const supabasePassword = configService.get<string>('SUPABASE_PASSWORD');
 
-    const options = {
-      type: 'postgres',
-      url: connectionString,
-      schema: 'auth',
-      entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-      synchronize: false,
-      logging: ['error', 'schema', 'warn', 'info', 'log', 'migration', 'query'],
-      maxQueryExecutionTime: 1000,
-      poolSize: 5,
-      retryAttempts: 5,
-      retryDelay: 3000,
-      connectTimeoutMS: 60000,
-      applicationName: 'contently-llm-analytics',
-      ssl: true,
-      extra: {
-        ssl: {
-          rejectUnauthorized: false,
-        },
-      },
-    } as DataSourceOptions;
-
-    console.log('TypeORM options created successfully');
-    return options;
-  }
+if (!supabasePassword) {
+  throw new Error('SUPABASE_PASSWORD must be configured');
 }
+
+const connectionString = `postgresql://postgres.hgmbooestwqhfempyjun:${supabasePassword}@aws-0-us-west-1.pooler.supabase.com:5432/postgres`;
+
+export const FEATURE_FLAGS = {
+  ENABLE_COMPETITIVE_QUERIES: false,
+  // Add other feature flags here as needed
+} as const;
+
+const dataSourceOptions: DataSourceOptions = {
+  type: 'postgres',
+  url: connectionString,
+  ssl: {
+    rejectUnauthorized: false
+  },
+  entities: [
+    'dist/**/*.entity{.ts,.js}',
+    'src/**/*.entity{.ts,.js}',
+    IndustryEntity,
+    CompetitorEntity,
+    QueryTemplateEntity,
+    AnalyticsResult
+  ],
+  synchronize: false,
+  logging: ['error', 'schema', 'warn'],
+  migrations: [
+    'src/migrations/*.ts'
+  ],
+  extra: {
+    // Add any extra options here
+  }
+};
+
+const dataSource = new DataSource(dataSourceOptions);
+export default dataSource;

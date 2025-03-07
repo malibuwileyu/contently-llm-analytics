@@ -8,49 +8,30 @@ import * as path from 'path';
 
 async function generateQuestionBatch(
   aiRunner: AIProviderRunner,
-  batchSize: number,
-  existingQuestions: string[] = [],
+  searchTerm: string,
+  description?: string,
 ): Promise<string[]> {
-  const categories = [
-    'athletic shoes',
-    'running shoes',
-    'sports shoes',
-    'athletic wear',
-    'sportswear',
-    'activewear',
-    'sports equipment',
-    'fitness gear',
-    'workout gear',
-    'sports apparel',
-    'training equipment',
-    'athletic accessories',
-  ];
+  const prompt = `
+    Given the keyword below, first determine its broader category or industry. Then, generate a list of search queries that are likely to return results mentioning the keyword—without explicitly including the keyword itself.
 
-  const prompt = `Generate ${batchSize} unique, natural-sounding questions about athletic brands and products. 
-  The questions should focus on these categories: ${categories.join(', ')}.
-  
-  Rules:
-  1. Each question should be natural and varied in structure
-  2. Include questions about market share, popularity, quality, innovation, and trends
-  3. Some questions should target specific demographics (men, women, kids, athletes, etc.)
-  4. Some questions should include temporal aspects (2024, 2025, current trends, etc.)
-  5. No question should be similar to these existing questions: ${existingQuestions.join(', ')}
-  6. Each question should be on a new line
-  7. Don't number the questions
-  8. Questions should be relevant for brand visibility analysis
-  
-  Format the output as a JSON array of strings.`;
+    The queries should reflect common ways users research entities in this category, focusing on discovery and informational queries with five or more words.
+
+    Avoid queries that are too general (e.g., "How does [industry process] work?") or too specific to unrelated functions (e.g., "How do I reset my online banking password?").
+
+    Return the response strictly as a JSON array with no extra text or explanations.
+
+    Keyword: ${searchTerm}${description ? ` (Description: ${description})` : ''}
+  `;
 
   const response = await aiRunner.run(ProviderType.OPENAI, 'chat', [
     {
       role: 'system',
-      content:
-        'You are a market research expert creating questions for brand visibility analysis.',
+      content: 'You are a market research expert creating search queries for brand visibility analysis.',
     },
     { role: 'user', content: prompt },
   ]);
 
-  return JSON.parse(response.content);
+  return JSON.parse(response.content.trim());
 }
 
 async function generateAllQuestions() {
@@ -84,43 +65,41 @@ async function generateAllQuestions() {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  const totalQuestions = 100;
-  const batchSize = 20;
-  let allQuestions: string[] = [];
+  const searchTerms = [
+    { term: 'Nike', description: 'Global athletic footwear and apparel brand' },
+    { term: 'Adidas', description: 'Sports and lifestyle brand' },
+    { term: 'Under Armour', description: 'Performance apparel manufacturer' },
+    { term: 'New Balance', description: 'Athletic footwear company' },
+    { term: 'Puma', description: 'Sports lifestyle brand' }
+  ];
+
+  const allQueries: Record<string, string[]> = {};
 
   try {
-    for (let i = 0; i < totalQuestions / batchSize; i++) {
-      console.log(
-        `Generating batch ${i + 1} of ${totalQuestions / batchSize}...`,
-      );
-      const newQuestions = await generateQuestionBatch(
-        aiRunner,
-        batchSize,
-        allQuestions,
-      );
-      allQuestions = [...allQuestions, ...newQuestions];
+    for (const { term, description } of searchTerms) {
+      console.log(`Generating queries for ${term}...`);
+      const queries = await generateQuestionBatch(aiRunner, term, description);
+      allQueries[term] = queries;
 
-      // Save progress after each batch
+      // Save progress after each term
       fs.writeFileSync(
-        path.join(outputDir, 'generated-questions.json'),
-        JSON.stringify(allQuestions, null, 2),
-        'utf8',
+        path.join(outputDir, 'generated-queries.json'),
+        JSON.stringify(allQueries, null, 2),
+        'utf8'
       );
-      console.log(
-        `Batch ${i + 1} complete. Total questions so far: ${allQuestions.length}`,
-      );
+      console.log(`Generated ${queries.length} queries for ${term}`);
 
-      // Small delay between batches
+      // Small delay between terms
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
   } catch (error) {
-    console.error('Error generating questions:', error);
-    // Save whatever questions we have so far
-    if (allQuestions.length > 0) {
+    console.error('Error generating queries:', error);
+    // Save whatever queries we have so far
+    if (Object.keys(allQueries).length > 0) {
       fs.writeFileSync(
-        path.join(outputDir, 'generated-questions.json'),
-        JSON.stringify(allQuestions, null, 2),
-        'utf8',
+        path.join(outputDir, 'generated-queries.json'),
+        JSON.stringify(allQueries, null, 2),
+        'utf8'
       );
     }
     throw error;
@@ -128,13 +107,13 @@ async function generateAllQuestions() {
     await app.close();
   }
 
-  return allQuestions;
+  return allQueries;
 }
 
 // Run the generator
 generateAllQuestions()
   .then(() => {
-    console.log('All questions generated successfully!');
+    console.log('All queries generated successfully!');
   })
   .catch(error => {
     console.error('Error in main process:', error);

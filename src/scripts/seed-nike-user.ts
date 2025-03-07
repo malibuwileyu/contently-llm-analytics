@@ -3,74 +3,58 @@ import { AppModule } from '../app.module';
 import { AuthService } from '../auth/auth.service';
 import { v4 as uuidv4 } from 'uuid';
 import { DataSource } from 'typeorm';
-import { Company } from '../analytics/entities/company.entity';
-import { User } from '../auth/entities/user.entity';
+import { CompanyEntity } from '../analytics/entities/company.entity';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserEntity } from '../auth/entities/user.entity';
 
 async function bootstrap() {
-  const app = await NestFactory.createApplicationContext(AppModule);
+  const app = await NestFactory.create(AppModule);
   const authService = app.get(AuthService);
   const dataSource = app.get(DataSource);
-  const companyRepository = dataSource.getRepository(Company);
-  const userRepository = dataSource.getRepository(User);
+  const companyRepository = app.get<Repository<CompanyEntity>>(getRepositoryToken(CompanyEntity));
+  const userRepository = app.get<Repository<UserEntity>>(getRepositoryToken(UserEntity));
 
   try {
-    // Check if Nike company already exists
-    let nikeCompany = await companyRepository.findOne({
-      where: { name: 'Nike' },
+    // Create Nike company
+    const nikeCompany = await companyRepository.save({
+      name: 'Nike',
+      domain: 'nike.com',
+      settings: {
+        industry: 'Athletic Footwear & Apparel',
+        competitors: ['Adidas', 'Puma', 'Under Armour'],
+        regions: ['North America', 'Europe', 'Asia'],
+      }
     });
 
-    if (!nikeCompany) {
-      // Create Nike company
-      nikeCompany = await companyRepository.save({
-        id: uuidv4(),
-        name: 'Nike',
-        settings: {
-          allowedDomains: ['nike.com'],
-          successCriteria: {
-            minConfidenceScore: 0.7,
-            minResponseQuality: 0.8,
-            maxDuration: 300, // 5 minutes
-          },
-        },
-      });
-      console.log('Nike company created with ID:', nikeCompany.id);
-    } else {
-      console.log('Nike company already exists with ID:', nikeCompany.id);
-    }
+    console.log('Successfully created Nike company:', nikeCompany);
 
     // Check if test user already exists
-    const testEmail = 'nike.test@nike.com';
+    const testEmail = 'nike.test@example.com';
     const existingUser = await userRepository.findOne({
-      where: { email: testEmail },
+      where: { email: testEmail }
     });
 
-    if (!existingUser) {
-      // Create Nike test user
-      const testUser = await authService.createUser({
-        email: testEmail,
-        password: 'Nike@Test2024',
-        rawUserMetaData: {
-          firstName: 'Nike',
-          lastName: 'Test',
-          roles: ['admin'],
-          permissions: ['read:analytics', 'read:conversations'],
-          department: 'Digital Innovation',
-          title: 'Analytics Manager',
-        },
-        companyId: nikeCompany.id,
-      });
-
-      console.log('Test user created:', {
-        email: testUser.email,
-        password: 'Nike@Test2024',
-        companyId: testUser.companyId,
-      });
-    } else {
-      console.log('Test user already exists:', {
-        email: existingUser.email,
-        companyId: existingUser.companyId,
-      });
+    if (existingUser) {
+      console.log('Test user already exists');
+      return;
     }
+
+    // Create test user
+    const user = await userRepository.save({
+      email: testEmail,
+      password: 'Nike@Test2024',
+      metadata: {
+        firstName: 'Nike',
+        lastName: 'Test',
+        roles: ['admin'],
+        permissions: ['read', 'write', 'delete'],
+        department: 'Engineering',
+        title: 'Test Engineer'
+      }
+    });
+
+    console.log('Created test user:', user);
   } catch (error) {
     console.error('Error seeding Nike data:', error);
     process.exit(1);

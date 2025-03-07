@@ -1,10 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe, RequestMethod } from '@nestjs/common';
+import { ValidationPipe, RequestMethod, ValidationError, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'debug', 'log', 'verbose'],
+  });
   const configService = app.get(ConfigService);
 
   // Global Pipes
@@ -12,25 +14,60 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
-      forbidNonWhitelisted: true,
       transformOptions: {
         enableImplicitConversion: true,
+      },
+      forbidNonWhitelisted: true,
+      stopAtFirstError: false,
+      validationError: {
+        target: false,
+        value: true,
+      },
+      exceptionFactory: (errors: ValidationError[]) => {
+        const formattedErrors = errors.reduce((acc, err) => {
+          acc[err.property] = {
+            value: err.value,
+            constraints: err.constraints,
+            children: err.children,
+          };
+          return acc;
+        }, {});
+        
+        return new BadRequestException({
+          message: 'Validation failed',
+          errors: formattedErrors,
+        });
       },
     }),
   );
 
-  // CORS Configuration
+  // Configure JSON responses
+  app.getHttpAdapter().getInstance().set('json spaces', 2);
+
+  // Configure CORS
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:10001',
+    'http://127.0.0.1:10001',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001'
+  ];
+
   app.enableCors({
-    origin: ['http://localhost:3000'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'Accept',
-      'Origin',
-      'X-Requested-With',
-    ],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
   });
 
   // API Prefix with health check exclusions
@@ -38,10 +75,14 @@ async function bootstrap() {
   app.setGlobalPrefix(apiPrefix, {
     exclude: [
       { path: 'health', method: RequestMethod.GET },
-      { path: 'health/(.*)', method: RequestMethod.GET }, // This will match all health/* endpoints
+      { path: 'health/database', method: RequestMethod.GET },
+      { path: 'health/liveness', method: RequestMethod.GET },
+      { path: 'health/readiness', method: RequestMethod.GET },
     ],
   });
 
-  await app.listen(10001);
+  const port = process.env.PORT || 3001;
+  await app.listen(port);
+  console.log(`Application is running on: http://localhost:${port}`);
 }
 bootstrap();

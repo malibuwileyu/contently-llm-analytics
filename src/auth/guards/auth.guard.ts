@@ -2,21 +2,21 @@ import {
   Injectable,
   ExecutionContext,
   UnauthorizedException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { AuthGuard as NestAuthGuard } from '@nestjs/passport';
 import { Observable } from 'rxjs';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-import { AuthService } from '../auth.service';
+import { SupabaseService } from '../../supabase/supabase.service';
 
 @Injectable()
-export class AuthGuard extends NestAuthGuard('jwt') {
+export class AuthGuard {
   constructor(
     private reflector: Reflector,
-    private authService: AuthService,
-  ) {
-    super();
-  }
+    @Inject(forwardRef(() => SupabaseService))
+    private supabaseService: SupabaseService,
+  ) {}
 
   canActivate(
     context: ExecutionContext,
@@ -42,8 +42,8 @@ export class AuthGuard extends NestAuthGuard('jwt') {
 
   private async validateRequest(request: any, token: string): Promise<boolean> {
     try {
-      const payload = await this.authService.validateToken(token);
-      request.user = payload;
+      const user = await this.supabaseService.verifyToken(token);
+      request.user = user;
       return true;
     } catch {
       throw new UnauthorizedException('Invalid token');

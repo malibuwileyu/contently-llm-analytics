@@ -1,33 +1,31 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+const typeorm = require('typeorm');
 
-@Entity({ schema: 'public', name: 'companies' })
-export class Company {
-  @PrimaryGeneratedColumn('uuid')
+@typeorm.ViewEntity('companies')
+class CompanyEntity {
+  @typeorm.ViewColumn()
   id: string;
 
-  @Column()
+  @typeorm.ViewColumn()
   name: string;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @typeorm.ViewColumn()
+  domain: string;
+
+  @typeorm.ViewColumn()
+  isCustomer: boolean;
+
+  @typeorm.ViewColumn({ name: 'settings' })
   settings: {
-    allowedDomains?: string[];
-    features?: string[];
-    successCriteria?: {
-      minConfidenceScore?: number;
-      minResponseQuality?: number;
-      maxDuration?: number;
-    };
+    industry: string;
+    competitors: string[];
+    regions: string[];
   };
 
-  @CreateDateColumn({ name: 'created_at' })
+  @typeorm.ViewColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @typeorm.ViewColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+
+module.exports = { CompanyEntity }; 

@@ -9,7 +9,7 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
+    "baseUrl": "./src",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
@@ -17,11 +17,21 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["*"]
     },
-    "jsx": "react-jsx"
+    "types": ["node"],
+    "lib": ["ES2021"]
   },
-  "include": ["src/**/*"],
+  "ts-node": {
+    "transpileOnly": true,
+    "files": true,
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  },
+  "include": ["src/**/*", "src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

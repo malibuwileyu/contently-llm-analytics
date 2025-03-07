@@ -47,3 +47,983 @@ Response:
     "latency": 8012
   }
 }
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: Errors detected early in the software development lifecycle are cheaper and easier to fix. Therefore, testing activities should start as early as possible in the software or system development life cycle.\n\n2. Exhaustive Testing is Impossible: It is impractical to test all possible combinations of data input, scenarios, and preconditions within an application due to time and cost constraints. Therefore, risk and priority are used to focus testing efforts.\n\n3. Defect Clustering: According to the Pareto Principle, approximately 80% of the problems are found in 20% of the modules. This principle suggests that most defects tend to be concentrated in a small number of modules or functionalities within the software. So, testing should be focused more on these areas.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 152,
+      "total": 180
+    },
+    "latency": 6254
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: The names of variables, functions, classes, etc. should clearly indicate what they do. This makes the code easier to understand and maintain.\n\n2. Keep Code Simple: Keep your code as simple and straightforward as possible. Avoid unnecessary complexity. The easier the code is to read, the easier it is to maintain and debug.\n\n3. Comment Your Code: Use comments to explain why you did something, not what you did. The code itself should explain what it does. Comments should be used to provide additional context or to explain complex sections of code.\n\n4. Consistent Indentation and Formatting: Consistency makes the code easier to read and understand. This includes consistent use of indentation, brackets, white space, etc.\n\n5. Refactor Regularly: Regularly review your code to identify areas that can be improved or simplified. Refactoring can improve the efficiency and readability of your code. Don't be afraid to rewrite or delete old code.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 198,
+      "total": 214
+    },
+    "latency": 9214
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: The principle of early testing states that testing activities should start as early as possible in the software development lifecycle. This helps in detecting and correcting defects at an early stage, reducing the cost and time to fix them.\n\n2. Exhaustive Testing is Impossible: Due to time and budget constraints, not all possible combinations and scenarios can be tested in a software program. So, it's important to prioritize testing based on risk assessment, such as focusing on the most used features or those parts where failures can cause the most harm.\n\n3. Defect Clustering: This principle refers to the Pareto principle or the 80/20 rule, stating that approximately 80% of the problems are found in 20% of the modules. Identifying these critical modules and focusing more on them can help in improving the efficiency of testing.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 170,
+      "total": 198
+    },
+    "latency": 5995
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: Choose easily understandable and meaningful names for variables, functions, and classes. This not only makes your code more readable but also reduces the need for extensive comments.\n\n2. Keep it Simple: Avoid complex and clever codes, which can make the code less readable. It's better to keep your code as simple and straightforward as possible. \n\n3. Code Refactoring: Regularly review and refactor your code. Remove any duplicate or unnecessary code. This can help your code to be more efficient and maintainable.\n\n4. Proper Indentation and Formatting: Properly indent and format your code. This improves the readability and consistency of your code. \n\n5. Comment and Document: Use comments to explain the purpose of complex codes. Also, document your code properly to explain how different parts of your code work together. This is especially helpful for others who might work on your code in the future.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 185,
+      "total": 201
+    },
+    "latency": 7831
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: This principle emphasizes that testing should begin as early as possible in the software development lifecycle. By starting testing early, issues can be identified and resolved sooner, which can reduce costs and time to fix errors.\n\n2. Exhaustive Testing is Impossible: It is practically impossible to test all combinations of inputs, scenarios, and paths in the software because it would take an inordinate amount of time and resources. Therefore, risk and priority-based testing becomes necessary to optimize the process.\n\n3. Defect Clustering: This principle is based on the Pareto Rule, which suggests that approximately 80% of the problems are found in 20% of the modules. It means that a small number of modules usually contain most of the defects detected. This principle helps in the prioritization of testing.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 162,
+      "total": 190
+    },
+    "latency": 6794
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: Naming is an important aspect of coding. The names of variables, functions, classes, and other components should be descriptive and clearly indicate their purpose or functionality. This makes the code easier to understand and maintain.\n\n2. Keep Functions and Methods Short: A function or method should ideally perform only one task. This makes it easier to understand and test. Keeping functions short also improves readability.\n\n3. Comment Your Code: Comments should be used to explain the purpose of the code, any complex logic, and any assumptions made. This makes your code easier to understand for other developers or for yourself when you return to your code later.\n\n4. Follow a Consistent Coding Style: This includes consistent use of indentation, spaces, line breaks, brackets, etc. This makes the code easier to read and understand.\n\n5. Refactor Regularly: Regularly review your code to identify areas for improvement or simplification. This helps to maintain clean and efficient code.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 197,
+      "total": 213
+    },
+    "latency": 4962
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: This principle states that testing should start as early as possible in the software development lifecycle. It helps to identify and address issues at an early stage, reducing the cost and effort of fixing them later.\n\n2. Exhaustive Testing is Impossible: It's practically impossible to test all combinations of inputs, scenarios, and preconditions within an application. Therefore, risk and priority-based testing should be carried out, which means testing those parts of the application which are more likely to have defects or which are frequently used.\n\n3. Defect Clustering: According to the Pareto Principle, approximately 80% of the problems are found in 20% of the modules. So, this principle suggests that testing should focus on the modules where the highest risk and frequency of defects has been predicted.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 161,
+      "total": 189
+    },
+    "latency": 9548
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Keep it Simple: The best code is the simplest code that achieves the desired functionality. Avoid complex structures, unnecessary classes, and over-engineering. \n\n2. Use Meaningful Names: Use clear, descriptive names for variables, functions, classes, and modules. They should clearly indicate what they represent or what they do. Avoid using generic names like \"temp\" or \"data\".\n\n3. Comment and Document: Comments are essential to explain the complex parts of the code, design decisions, and anything that is not immediately obvious from the code itself. Documentation is necessary for APIs, libraries, and general system architecture.\n\n4. Consistent Formatting: Consistency makes the code easier to read and understand. This includes consistent indentation, consistent use of white space, consistent naming conventions, and so on.\n\n5. Test and Review: Write unit tests to verify that each part of your code works as expected, and use code reviews to ensure that your code is understandable to other developers. This also helps to catch and fix bugs early.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 207,
+      "total": 223
+    },
+    "latency": 7689
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: Testing should start as early as possible in the software development life cycle. This helps to identify and address issues in the initial stages and can save time and cost in the later stages of development.\n\n2. Defect Clustering: This principle is based on the Pareto rule which states that approximately 80% of errors are found in 20% of the modules. By focusing on these critical areas, testers can effectively use their resources.\n\n3. Pesticide Paradox: If the same set of tests are repeated over and over again, they will no longer find new bugs. To overcome this, the test cases need to be regularly reviewed and revised, adding new and different test cases to help find more defects.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 149,
+      "total": 177
+    },
+    "latency": 6133
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: Choose names that clearly express the intent of the function, variable, class, etc. The name should tell you why it exists, what it does, and how it is used.\n\n2. Keep Functions Small: The smaller the function, the easier it is to read and understand. A function should do only one thing and do it well.\n\n3. Comment Wisely: Comments should explain why something is done, not what is done. Avoid redundant or unnecessary comments. If your code needs a comment to be understood, consider rewriting it to make it clearer.\n\n4. Use Consistent Indentation and Formatting: Consistency improves readability. Adopt a style guide and stick to it.\n\n5. Refactor Regularly: Refactoring is the process of improving your code without changing its external behavior. Regular refactoring makes your code more efficient, readable, and maintainable.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 181,
+      "total": 197
+    },
+    "latency": 8527
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: This principle suggests that testing should start as early as possible in the software or system development life cycle. This helps in catching defects at an early stage which can save costs, time, and effort down the line.\n\n2. Exhaustive Testing is Impossible: It is virtually impossible to test every possible combination of inputs, scenarios, and preconditions within an application. Prioritization and proper selection of what to test based on risk and impact is crucial.\n\n3. Defect Clustering: According to this principle, a small number of modules contain most of the defects or are responsible for most operational failures. This is also known as the Pareto Principle, where approximately 80% of the problems are found in 20% of the modules.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 153,
+      "total": 181
+    },
+    "latency": 5679
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Descriptive Naming: Your code should be self-explanatory. This can be achieved by using meaningful and descriptive names for variables, functions, classes, and other code elements. \n\n2. Keep it Simple: The simpler your code, the easier it is to understand and maintain. Avoid over-complicated designs and unnecessary features.\n\n3. Comment Wisely: While your code should be self-explanatory, comments are beneficial to explain the logic and purpose of your code. But, avoid unnecessary and redundant comments.\n\n4. Consistent Indentation and Formatting: Consistent code layout makes your code easier to read and understand. It includes proper indentation, use of white spaces, and positioning of braces.\n\n5. Refactoring and Code Reviews: Regularly review and refactor your code. It helps in identifying the weak areas in your code and improving them. Code reviews also ensure that the code is clean, efficient and follows the coding standards.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 191,
+      "total": 207
+    },
+    "latency": 9104
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: The principle of early testing states that testing activities should start as early as possible in the software development life cycle. This helps to catch defects at an early stage, reducing the cost and time needed for debugging and problem-solving later in the process.\n\n2. Exhaustive Testing is Impossible: It is virtually impossible to test all possible combinations of inputs, scenarios, and preconditions within an application. Therefore, risk and priority based testing becomes important to identify which test scenarios to focus on.\n\n3. Defect Clustering: According to the Pareto principle, 80% of the problems are found in 20% of the system. This principle suggests that most errors will be found in a few modules or functionalities of the software. Therefore, these areas should be thoroughly tested.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 159,
+      "total": 187
+    },
+    "latency": 6465
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: Names for variables, functions, classes, etc. should be clear, concise, and descriptive. This makes the code easier to read and understand.\n\n2. Keep Functions and Methods Short: Each function or method should be designed to perform a single task. This makes them easier to read, understand, and debug.\n\n3. Comment Your Code: Comments help others (and future you) understand your code. Explain what your code does, not how.\n\n4. Consistent Indentation and Formatting: Consistent code layout makes it easier to read and understand the code. This includes consistent use of spaces, tabs, line breaks, and brackets.\n\n5. Refactor Regularly: Regularly review your code to identify areas for improvement. This can include removing redundancy, simplifying complex areas, and improving performance.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 169,
+      "total": 185
+    },
+    "latency": 7798
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: One of the most important principles of software testing is to start testing as early as possible in the software development life cycle. This helps to identify and fix defects at an early stage, reducing the cost and time required to fix them at a later stage.\n\n2. Exhaustive Testing is Impossible: It is practically impossible to test every single input combination, every path in the program, and every possible interaction between all software components due to constraints in terms of time and resources. Therefore, risk and priority-based testing becomes important.\n\n3. Defect Clustering: A relatively small number of modules contain most of the defects or are responsible for most of the operational failures. This principle, known as the Pareto Principle, suggests that approximately 80% of the problems are found in 20% of the modules. This helps to focus testing efforts on areas that are most likely to have defects.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 182,
+      "total": 210
+    },
+    "latency": 6455
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: Choose meaningful and understandable names for variables, functions, arguments, classes, and packages. They should clearly represent what they do or hold.\n\n2. Keep It Simple: Avoid complex and clever codes. Code should be as simple as possible so that it can be easily understood, tested, and maintained by others. \n\n3. Comment Wisely: Use comments to explain complex parts of code, intentions, and important decisions. However, don't overuse them. Good code mostly documents itself.\n\n4. Refactor Regularly: Refactoring is the process of improving your code after it has been written by changing the internal structure without altering external behavior. It helps to keep the code clean and understandable.\n\n5. Follow DRY Principle: DRY stands for Don't Repeat Yourself. Aim to reduce repetition of software patterns, replacing it with abstractions or using data normalization to avoid redundancy.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 183,
+      "total": 199
+    },
+    "latency": 6462
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: This principle suggests that testing should begin as early as possible in the software development life cycle. It helps in identifying and rectifying issues or problems at an initial stage, which makes it easier and cost-effective to fix.\n\n2. Exhaustive Testing is Impossible: It is not feasible to test every possible aspect of a software application due to resource limitations and time constraints. Hence, risk and priority-based testing is implemented to optimize the process.\n\n3. Defect Clustering: This principle is based on the Pareto rule which states that approximately 80% of the problems are found in 20% of the system. It means a small number of modules contain most of the defects. Identifying these critical areas can help focus testing efforts effectively.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 153,
+      "total": 181
+    },
+    "latency": 6228
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: Naming variables, functions, and classes correctly can significantly improve the readability of the code. Avoid using vague or generic names; instead, use names that describe what the variable is or what the function does.\n\n2. Keep It Simple: The best code is the simplest code. Convoluted logic and overly complex solutions are harder to read, harder to maintain, and more prone to errors. Always strive to keep your code as simple as possible.\n\n3. Comment Wisely: While the code should be self-explanatory, comments can still be helpful to explain the purpose of the code, its logic, and any non-obvious features or behavior. However, avoid redundant comments that simply restate what the code is doing.\n\n4. Refactor Regularly: Refactoring is the process of improving your code without changing its functionality. This can include removing redundant code, simplifying complex parts, or reorganizing your code for better readability.\n\n5. Follow a Coding Standard: Consistency is key in writing clean code. This includes consistent naming conventions, indentation, use of white space, and placement of braces. Many programming languages have their own coding standards, and there are also general coding standards like the Google Style Guides.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 251,
+      "total": 267
+    },
+    "latency": 10330
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: One of the most important principles of software testing is to start testing as early as possible in the software development life cycle. This helps to identify and fix issues at an earlier stage, reducing the cost and time of development.\n\n2. Exhaustive Testing is Impossible: It's not possible to test all combinations of inputs, scenarios, and preconditions within a software application. Therefore, risk and priority analysis should be performed to focus on the most important areas.\n\n3. Defect Clustering: According to the Pareto Principle, approximately 80% of the problems are found in 20% of the system. So, testing should be focused on the modules of the software where most defects were found previously.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 146,
+      "total": 174
+    },
+    "latency": 5769
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Descriptive Naming: The names of variables, functions, classes, etc., should clearly indicate what they represent. This makes the code easier to understand and maintain.\n\n2. Keep Functions and Classes Small: Functions and classes should only do one thing. If they are doing multiple tasks, they can be broken down into smaller, more manageable pieces.\n\n3. Comment and Document: Comments and documentation can help other developers understand the purpose and functionality of the code. However, they should not be used as a crutch to justify complex code.\n\n4. Follow a Consistent Coding Style: Following a consistent coding style can make the code easier to read and understand. This includes consistent use of indentation, capitalization, spacing, and other code formatting practices.\n\n5. Refactor Regularly: As code is added or changed, it may become messy or complicated. Regular refactoring can help keep the code clean and efficient. This includes removing redundant or unused code, simplifying complex code, and improving code structure.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 203,
+      "total": 219
+    },
+    "latency": 10677
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: This principle suggests that testing should start as early as possible in the software development life cycle. It helps to catch and correct defects at an early stage, which is less costly and easier to resolve.\n\n2. Defect Clustering: According to this principle, a small number of modules contain most of the defects discovered during pre-release testing, or are responsible for most of the operational failures. This principle is also known as the Pareto principle, which states that approximately 80% of the problems are found in 20% of the modules.\n\n3. Pesticide Paradox: This principle states that if the same tests are repeated over and over again, eventually these tests will no longer find new bugs. Just as a pesticide is not effective if the same one is used all the time, similarly, there needs to be a revision in the test cases to catch more defects.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 181,
+      "total": 209
+    },
+    "latency": 6423
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Descriptive Names: Use clear and concise names for variables, functions, and classes. This makes the code easier to read and understand.\n\n2. Keep Functions and Classes Short: A function or class should only do one thing. If it’s doing multiple things, it should be broken down into smaller, more manageable functions or classes.\n\n3. Write Comments: Comments can explain the purpose of a piece of code, making it easier for others (or future you) to understand what the code is doing. However, avoid redundant comments that explain \"what\" the code is doing instead of \"why\".\n\n4. Follow a Coding Standard: Consistency is key. Following a coding standard makes the code easier to read and understand. This includes consistent indentation, use of white space, and naming conventions.\n\n5. Refactor Regularly: Do not be afraid to revisit and revise your code. Refactoring helps to improve the design, structure, and implementation of the code, making it cleaner and more efficient.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 203,
+      "total": 219
+    },
+    "latency": 9192
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: The process of testing should start as early as possible in the software development life cycle. This helps in identifying and fixing the defects at an early stage, saving time and cost.\n\n2. Exhaustive Testing is Impossible: It's not possible to test all possible combinations of data and scenarios due to limited resources and time constraints. Therefore, risk and priority-based testing is performed.\n\n3. Defect Clustering: According to this principle, a small number of modules contain most of the bugs discovered during pre-release testing or show the most operational failures. This is also known as the Pareto Principle, which states that approximately 80% of the problems are found in 20% of the modules.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 144,
+      "total": 172
+    },
+    "latency": 5617
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: Names for variables, classes, methods, etc., should be clear and concise, describing their purpose or functionality. Avoid using names that are too generic or too short to understand. \n\n2. Keep It Simple: Avoid writing complex codes when a simpler solution is available. Break down complex tasks into smaller, manageable functions or methods. \n\n3. Comment and Document: Ensure your code is well-commented and documented. This will help other developers understand your code better and make it easier for them to debug or enhance it in the future.\n\n4. Consistent Indentation and Formatting: Consistency in coding style, such as indentation, use of spaces, and brackets, makes the code easier to read.\n\n5. Refactor Regularly: Regularly review and refactor your code to remove unnecessary parts, improve efficiency, and maintain code quality. This also includes removing any dead or unused code.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 185,
+      "total": 201
+    },
+    "latency": 5547
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: This principle suggests that testing should start as early as possible in the software development lifecycle. This helps in detecting and correcting defects at an early stage, resulting in cost-effectiveness and saving time.\n\n2. Exhaustive Testing is Impossible: It is simply impossible to test all combinations of inputs, scenarios, and preconditions within an application. So, instead of attempting exhaustive testing, risk and priority-based testing is more effective. This involves identifying critical functionalities which are prone to have defects and then focusing more on testing those areas.\n\n3. Defect Clustering: According to this principle, a small number of modules contain most of the defects detected. Also known as the Pareto Principle, it states that approximately 80% of the problems are found in 20% of the modules. Identifying these critical modules and focusing more efforts on them can lead to effective testing.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 178,
+      "total": 206
+    },
+    "latency": 6259
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: Choose descriptive and meaningful names for variables, functions, classes, etc. This helps other developers understand the purpose of different parts of your code.\n\n2. Keep it Simple: Avoid complex and clever codes. The simpler and more concise the code, the easier it is to read and understand.\n\n3. Comment Strategically: Use comments to explain the why, not the what. Comments should clarify complex sections of code, not explain obvious information.\n\n4. Consistent Indentation and Formatting: Keep your code visually clean with consistent indentation and formatting. This helps to improve the readability of your code.\n\n5. Refactor Regularly: Regularly review your code and refactor it to improve its efficiency, reduce redundancies, and keep it clean and maintainable.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 158,
+      "total": 174
+    },
+    "latency": 5859
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: One of the most important principles of software testing is to start testing activities as early as possible in the software development life cycle. This can lead to error detection at an early stage, reducing the cost and time to fix them.\n\n2. Exhaustive Testing is Impossible: It's not feasible to test all possible combinations of data and scenarios due to time and budget constraints. Therefore, risk and priority-based testing is used to focus on key areas and functions.\n\n3. Defect Clustering: According to this principle, a small number of modules contain most of the bugs discovered during pre-release testing or show the most operational failures. This is also known as the Pareto Principle, and it helps testers to focus their efforts on the most critical areas.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 154,
+      "total": 182
+    },
+    "latency": 4249
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: Make sure that your variable, method, and class names clearly represent their function or data they hold. This makes your code easy to understand for other developers and for your future self. \n\n2. Keep It Simple: Avoid complex solutions and unnecessary elements. Write your code in the simplest possible way that gets the job done efficiently. \n\n3. Comment Your Code: Commenting your code is a good practice to make your code more understandable. However, do not overdo it. Write comments for complex logic and important sections of your code.\n\n4. Follow a Consistent Coding Standard: Use a consistent naming convention, indentation style, and other syntax rules. This makes your code look uniform and easier to read.\n\n5. Refactor Regularly: Regularly review and revise your code to improve its structure and efficiency without changing its external behavior. This helps to keep your code clean and well-organized.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 187,
+      "total": 203
+    },
+    "latency": 9070
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: The principle of early testing states that testing should start as soon as possible in the software development lifecycle. This can help detect and fix defects at an early stage, reducing the cost and time of development.\n\n2. Exhaustive Testing is Impossible: It is not feasible to test all combinations of inputs, scenarios, and preconditions within an application. Therefore, risk and priority are used to focus testing efforts on the most important areas.\n\n3. Defect Clustering: A small number of modules usually contain most of the defects. Predicted by the Pareto principle, this states that approximately 80% of the problems are found in 20% of the modules. This principle suggests that focusing effort on a small, critical part of a system can yield high results.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 158,
+      "total": 186
+    },
+    "latency": 6540
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful and Consistent Naming: The names of variables, methods, classes, etc. should clearly indicate their function and purpose. Consistent naming conventions make the code more readable and understandable.\n\n2. Keep code DRY (Don't Repeat Yourself): Instead of repeating the same code in multiple places, it's better to create a function or method that can be called whenever needed.\n\n3. Write Short, Simple Functions: Each function should perform one task or function. This makes your code more readable and easier to test and debug.\n\n4. Comment and Document: While the code should be self-explanatory, adding comments and documentation can be helpful to explain complex or tricky parts of the code. It also aid future developers who might work on your code.\n\n5. Refactor and Optimize: Regularly review and revise your code to ensure it's as efficient and clean as possible. Remove unnecessary or redundant code, and optimize wherever possible.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 192,
+      "total": 208
+    },
+    "latency": 7349
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: This principle implies that testing should start as early as possible in the software development lifecycle. By doing so, any defects or issues can be identified and corrected sooner, which can reduce the cost and time of development.\n\n2. Exhaustive Testing is Impossible: It is impossible to test all possible combinations in the software due to time and cost constraints. Therefore, risk and priority based testing is done to test the functionality of the application.\n\n3. Defect Clustering: According to this principle, a small number of modules contain most of the defects. The Pareto Principle, often called the 80-20 rule, applies here, suggesting that 80% of errors are found in 20% of the system's modules. Therefore, these modules should be rigorously tested.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 160,
+      "total": 188
+    },
+    "latency": 7640
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: Use names that are descriptive and convey the purpose of the variable, function, or class. Avoid names that are too general or too short. \n\n2. Keep Functions Small: Each function should perform a single task. This makes the code easier to read, understand, and test.\n\n3. Comment Wisely: Comments should explain why something is done, not what is being done. They should be concise and clear. Avoid unnecessary comments or commenting out codes.\n\n4. Use Consistent Indentation and Formatting: Consistent formatting improves the readability of the code. Use consistent indentation, spacing, and capitalization.\n\n5. Refactor Regularly: Always look for opportunities to improve your code. Remove redundancies, simplify complex areas, and break down large functions or classes into smaller, more manageable parts.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 168,
+      "total": 184
+    },
+    "latency": 10860
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Exhaustive Testing is Impossible: It's not possible to test all combinations of inputs, scenarios, and preconditions within an application. Therefore, risk and priority analysis should be done to focus on key areas and use techniques like boundary value analysis, equivalence partitioning, etc.\n\n2. Early Testing: The earlier the testing starts in the lifecycle of the product, the better. It's easier and cheaper to fix defects detected during the early stages. This includes activities like review of requirements and design.\n\n3. Defect Clustering: According to the Pareto Principle, 80% of the problems are found in 20% of the system. This means that a small number of modules usually contain most of the defects detected. It’s beneficial to identify these modules and focus more testing effort on them.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 162,
+      "total": 190
+    },
+    "latency": 5604
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: The names of variables, methods, classes and other entities should be clear, descriptive and meaningful, which can convey the purpose of that entity.\n\n2. Keep Functions Small: Functions should be small and do only one thing. This makes them easy to understand, test, and reuse in different contexts.\n\n3. Write Comments: Though the code should be self-explanatory, comments can help in understanding the purpose and functionality of the code, especially complex algorithms or workarounds.\n\n4. Refactor Regularly: Always look for ways to improve your code. Refactoring helps to remove code smells, improve code readability, and reduce complexity.\n\n5. Follow the DRY Principle: DRY stands for \"Don't Repeat Yourself\". Instead of duplicating code, it's better to abstract it into a function or method and call it whenever needed. This makes the code more maintainable and less error-prone.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 189,
+      "total": 205
+    },
+    "latency": 9528
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: The principle of early testing suggests that the testing process should start as early as possible in the software development life cycle. It helps in detecting and rectifying defects at an early stage, reducing the cost of bug fixes.\n\n2. Exhaustive Testing is Impossible: It means it's not possible to test all combinations of inputs, scenarios, and preconditions within an application due to time and budget constraints. Hence, risk and priority-based testing is performed.\n\n3. Defect Clustering: This principle states that a small number of modules contain most of the defects detected. It follows the Pareto principle, which states that approximately 80% of the problems are found in 20% of the modules. It helps to focus the testing effort on the areas that are likely to have the most defects.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 164,
+      "total": 192
+    },
+    "latency": 7736
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use meaningful names: Naming is crucial in programming. Variable and function names should be clear, concise, and descriptive of their purpose. \n\n2. Keep it simple: The most effective code is simple and straightforward. Avoid complex and convoluted solutions when a simpler one will do. This also applies to the overall structure of your code; keep modules and functions small and focused.\n\n3. Comment your code: Comments help others (and your future self) understand the purpose and functionality of your code. Use them to explain why you did something, not what you did. \n\n4. Follow a coding standard: Consistency is key. Following a coding standard or style guide can make your code easier to read and understand. This can include rules for naming, formatting, and commenting.\n\n5. Refactor regularly: Refactoring is the process of improving your code without changing its functionality. This could involve removing redundant code, simplifying complex sections, or improving the efficiency of a function. Regular refactoring can help keep your code clean and manageable.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 210,
+      "total": 226
+    },
+    "latency": 6271
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: One of the most important principles of software testing is to start testing as early as possible in the software development life cycle. This helps to identify and correct issues or bugs at the earliest stage, which can save time, effort, and cost.\n\n2. Exhaustive Testing is impossible: It is not feasible to test all combinations of inputs, scenarios, and preconditions within an application. Hence, it's important to prioritize testing based on risk assessment, requirements, and functionality.\n\n3. Defect Clustering: A small number of modules usually contain most of the defects discovered during pre-release testing, or are responsible for most of the operational failures. This principle is known as the Pareto principle, and suggests that by focusing on a certain type of defect, you can eliminate the majority of the problems in a system.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 168,
+      "total": 196
+    },
+    "latency": 17533
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: Names of variables, functions, classes, etc. should be clear and descriptive to help others understand the purpose of each component.\n\n2. Keep Functions Short: Functions should be small and perform a single task. This makes the code easier to understand, test, and debug.\n\n3. Use Comments Wisely: Comments should be used to explain the purpose and functionality of the code. They should not be used excessively or as a substitute for writing clear code.\n\n4. Follow a Consistent Coding Style: This includes consistent use of indentation, spacing, and capitalization. This helps make the code more readable and maintainable.\n\n5. Refactor Regularly: Regularly review and refine your code to remove redundancies, improve efficiency, and ensure that it adheres to the best practices.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 164,
+      "total": 180
+    },
+    "latency": 12325
+  }
+}
+
+Chat Completion Test Results
+==========================
+Request:
+[
+  {
+    "role": "system",
+    "content": "You are a helpful assistant."
+  },
+  {
+    "role": "user",
+    "content": "What are the three most important principles of software testing?"
+  }
+]
+
+Response:
+{
+  "content": "1. Early Testing: Testing should start as soon as possible in the software development life cycle. This not only helps in identifying and fixing the defects early but also reduces the cost of fixing them.\n\n2. Exhaustive Testing is Impossible: It's not possible to test all possible combinations of data input and scenarios in software applications. Instead, risk and priority-based testing should be done where the highest-risk areas are tested first.\n\n3. Defect Clustering: According to the Pareto Principle, approximately 80% of the problems are found in 20% of the modules. This principle is also known as the 80-20 rule and suggests that most errors are found in a small number of modules. Thus, it's important to find and focus on these high-risk areas.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 28,
+      "completion": 157,
+      "total": 185
+    },
+    "latency": 6330
+  }
+}
+
+Text Completion Test Results
+==========================
+Prompt:
+List five best practices for writing clean code:
+
+Response:
+{
+  "content": "1. Use Meaningful Names: The names of variables, methods and classes should be clear and meaningful. They should describe what they do or what they represent, making your code easier to understand.\n\n2. Keep It Simple: Avoid over-complicating your code. The best code is often the simplest code that accomplishes the task at hand. Avoid unnecessary complexity and try to keep your code as straightforward as possible.\n\n3. Comment Your Code: Comments can help other developers understand what your code is doing, why you made certain decisions, and how they should use your code. However, don't overdo it. Good code should be self-explanatory most of the time.\n\n4. Consistent Indentation and Formatting: Consistency in indentation and formatting helps to make your code more readable. It helps other developers understand the structure of your code and makes it easier for them to work with it.\n\n5. Refactor Regularly: Refactoring is the process of improving your code without changing its functionality. Regular refactoring helps to keep your code clean, efficient, and easy to understand. Always review your code and look for opportunities to refactor.",
+  "metadata": {
+    "model": "gpt-4-0613",
+    "provider": "openai",
+    "tokens": {
+      "prompt": 16,
+      "completion": 231,
+      "total": 247
+    },
+    "latency": 18268
+  }
+}
