@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { QueryTemplateEntity } from '../entities/query-template.entity';
-import { QueryTemplate, QueryType, QueryValidationResult } from '../types/query.types';
+import { QueryTemplateEntity } from '../../modules/brand-analytics/entities/query-template.entity';
+import { QueryType } from '../types/query.types';
 import { QueryValidationService } from './query-validation.service';
 import { VariableBankService } from './variable-bank.service';
 
@@ -12,7 +12,7 @@ export class QueryTemplateService {
     @InjectRepository(QueryTemplateEntity)
     private readonly queryTemplateRepository: Repository<QueryTemplateEntity>,
     private readonly queryValidationService: QueryValidationService,
-    private readonly variableBankService: VariableBankService
+    private readonly variableBankService: VariableBankService,
   ) {}
 
   async seedQueryTemplates(templates: QueryTemplate[]): Promise<void> {
@@ -22,8 +22,8 @@ export class QueryTemplateService {
         where: {
           type: template.type,
           intent: template.intent,
-          template: template.template
-        }
+          template: template.template,
+        },
       });
 
       if (!existingTemplate) {
@@ -32,7 +32,7 @@ export class QueryTemplateService {
           isActive: true,
           priority: 1,
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         });
       }
     }
@@ -40,7 +40,7 @@ export class QueryTemplateService {
 
   async generateQueryVariations(
     template: QueryTemplate,
-    count: number
+    count: number,
   ): Promise<string[]> {
     const variations: string[] = [];
     const maxAttempts = count * 3; // Allow for some failed attempts
@@ -49,11 +49,11 @@ export class QueryTemplateService {
     while (variations.length < count && attempts < maxAttempts) {
       attempts++;
       const variation = await this.generateVariation(template);
-      
+
       // Validate the variation
       const validationResult = this.queryValidationService.validateQuery(
         variation,
-        template
+        template,
       );
 
       if (validationResult.isValid) {
@@ -83,23 +83,23 @@ export class QueryTemplateService {
     return this.queryTemplateRepository.find({
       where: {
         type,
-        isActive: true
+        isActive: true,
       },
       order: {
-        priority: 'DESC'
-      }
+        priority: 'DESC',
+      },
     });
   }
 
   async validateQueryResponse(
     query: string,
     response: string,
-    template: QueryTemplate
+    template: QueryTemplate,
   ): Promise<boolean> {
     // First validate the query
     const queryValidation = this.queryValidationService.validateQuery(
       query,
-      template
+      template,
     );
 
     if (!queryValidation.isValid) {
@@ -109,7 +109,7 @@ export class QueryTemplateService {
     // Then validate the response
     const responseValidation = this.queryValidationService.validateResponse(
       response,
-      template
+      template,
     );
 
     // Consider the response valid if it meets minimum quality standards
@@ -124,7 +124,7 @@ export class QueryTemplateService {
 
   async updateTemplatePriority(
     template: QueryTemplate,
-    successRate: number
+    successRate: number,
   ): Promise<void> {
     // Adjust template priority based on success rate
     const priority = Math.max(1, Math.min(5, Math.ceil(successRate * 5)));
@@ -133,12 +133,12 @@ export class QueryTemplateService {
       {
         type: template.type,
         intent: template.intent,
-        template: template.template
+        template: template.template,
       },
       {
         priority,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     );
   }
-} 
+}

@@ -8,29 +8,29 @@ import { ComparativeQueryService } from './comparative-query.service';
 import { Between } from 'typeorm';
 
 interface AnalyticsMetrics {
-  mention_count: number;
-  prominence_score: number;
-  sentiment_score: number;
-  relevance_score: number;
-  context_score: number;
+  mentionCount: number;
+  prominenceScore: number;
+  sentimentScore: number;
+  relevanceScore: number;
+  contextScore: number;
 }
 
 interface ContextData {
-  core_offering_match: number;
-  approach_relevance: number;
-  technology_alignment: number;
-  segment_fit: number;
-  value_prop_match: number;
+  coreOfferingMatch: number;
+  approachRelevance: number;
+  technologyAlignment: number;
+  segmentFit: number;
+  valuePropMatch: number;
 }
 
 interface CompetitiveData {
-  competitor_mentions: Array<{
+  competitorMentions: Array<{
     name: string;
     count: number;
     sentiment: number;
   }>;
-  market_position: number;
-  relative_strength: number;
+  marketPosition: number;
+  relativeStrength: number;
 }
 
 @Injectable()
@@ -39,53 +39,72 @@ export class VisibilityAnalyticsService {
     @InjectRepository(AnalyticsResult)
     private readonly analyticsRepository: Repository<AnalyticsResult>,
     private readonly perplexityService: PerplexityService,
-    private readonly comparativeQueryService: ComparativeQueryService
+    private readonly comparativeQueryService: ComparativeQueryService,
   ) {}
 
   async processQueryResponse(
     company: CompetitorEntity,
     queryType: 'industry' | 'context' | 'competitive',
     query: string,
-    response: string
+    response: string,
   ): Promise<AnalyticsResult> {
     const startTime = Date.now();
 
     // Get company profile for context analysis
-    const profile = await this.perplexityService.generateCompanyProfile(company);
+    const profile =
+      await this.perplexityService.generateCompanyProfile(company);
 
     // Calculate base metrics
     const metrics = await this.calculateBaseMetrics(response, company);
 
     // Calculate type-specific data
-    const contextData = queryType === 'context' ? 
-      await this.calculateContextData(response, profile) : null;
+    const contextData =
+      queryType === 'context'
+        ? await this.calculateContextData(response, profile)
+        : null;
 
-    const competitiveData = queryType === 'competitive' ?
-      await this.calculateCompetitiveData(response, company) : null;
+    const competitiveData =
+      queryType === 'competitive'
+        ? await this.calculateCompetitiveData(response, company)
+        : null;
 
     // Create analytics result
     const result = this.analyticsRepository.create({
       companyId: company.id,
-      query_type: queryType,
-      query_text: query,
-      response_text: response,
-      mention_count: metrics.mention_count,
-      prominence_score: metrics.prominence_score,
-      sentiment_score: metrics.sentiment_score,
-      relevance_score: metrics.relevance_score,
-      context_score: metrics.context_score,
-      context_data: contextData,
-      competitive_data: competitiveData,
-      response_metadata: {
+      queryType: queryType,
+      queryText: query,
+      responseText: response,
+      mentionCount: metrics.mentionCount,
+      prominenceScore: metrics.prominenceScore,
+      sentimentScore: metrics.sentimentScore,
+      relevanceScore: metrics.relevanceScore,
+      contextScore: metrics.contextScore,
+      visibilityScore: metrics.prominenceScore,
+      authorityScore: metrics.contextScore,
+      citationFrequency: 0,
+      categoryLeadership: '',
+      competitorProximity: [],
+      knowledgeBaseMetrics: {
+        knowledgeBaseStrength: metrics.relevanceScore,
+        contextualAuthority: metrics.contextScore,
+        topicalLeadership: [],
+      },
+      trends: {
+        visibilityTrend: 'stable',
+        rankingStability: 1.0,
+        competitorDynamics: 'neutral',
+      },
+      responseMetadata: {
         model: 'gpt-4',
         tokens: response.split(/\s+/).length,
-        processingTime: Date.now() - startTime
+        processingTime: Date.now() - startTime,
       },
-      created_at: new Date(),
+      timestamp: new Date(),
       metadata: {
         version: '1.0.0',
         batchId: Date.now().toString(),
-        index: 0
+        queryType: queryType,
+        index: 0,
       },
       analysis: {
         question: query,
@@ -94,59 +113,32 @@ export class VisibilityAnalyticsService {
           metadata: {
             model: 'gpt-4',
             tokens: response.split(/\s+/).length,
-            rankingData: {
-              brandPosition: metrics.prominence_score,
-              competitorPositions: competitiveData?.competitor_mentions.reduce((acc, curr) => ({
-                ...acc,
-                [curr.name]: curr.count
-              }), {}) || {}
-            }
-          }
+          },
         },
-        brandMentions: [],
         brandHealth: {
           visibilityMetrics: {
-            overallVisibility: metrics.prominence_score,
+            overallVisibility: metrics.prominenceScore,
             categoryRankings: {},
-            competitorComparison: {}
+            competitorComparison: {},
           },
           llmPresence: {
-            knowledgeBaseStrength: metrics.relevance_score,
-            contextualAuthority: metrics.context_score,
-            topicalLeadership: []
+            knowledgeBaseStrength: metrics.relevanceScore,
+            contextualAuthority: metrics.contextScore,
+            topicalLeadership: [],
           },
           trendsOverTime: {
             visibilityTrend: 'stable',
             rankingStability: 1.0,
-            competitorDynamics: 'neutral'
-          }
+            competitorDynamics: 'neutral',
+          },
         },
-        citations: [],
-        insights: [],
+        brandMentions: [],
         metrics: {
           visibilityStats: {
-            averagePosition: metrics.prominence_score,
-            prominenceScore: metrics.prominence_score,
-            leadingMentions: String(metrics.mention_count),
-            competitorCooccurrence: 'neutral'
+            prominenceScore: metrics.prominenceScore,
           },
-          llmPatterns: {
-            knowledgeBaseRepresentation: metrics.relevance_score,
-            contextualAuthority: metrics.context_score,
-            categoryLeadership: {}
-          },
-          trendsOverTime: {
-            visibilityTrend: 'stable',
-            positionStability: 'stable',
-            contextualEvolution: 'neutral'
-          }
         },
-        metadata: {
-          processingTime: Date.now() - startTime,
-          retryCount: 0,
-          timestamp: new Date().toISOString()
-        }
-      }
+      },
     });
 
     return this.analyticsRepository.save(result);
@@ -154,13 +146,17 @@ export class VisibilityAnalyticsService {
 
   private async calculateBaseMetrics(
     response: string,
-    company: CompetitorEntity
+    company: CompetitorEntity,
   ): Promise<AnalyticsMetrics> {
     // First, analyze the response for mentions and their positions
     const mentions = this.analyzeMentions(response, company.name);
-    
+
     // Calculate prominence score based on mentions and positions
-    const prominenceScore = this.calculateProminenceScore(mentions.count, mentions.positions, response.length);
+    const prominenceScore = this.calculateProminenceScore(
+      mentions.count,
+      mentions.positions,
+      response.length,
+    );
 
     const prompt = `
       Analyze this response and calculate visibility metrics:
@@ -177,32 +173,35 @@ export class VisibilityAnalyticsService {
       }
     `;
 
-    const completion = await this.perplexityService['openai'].chat.completions.create({
-      model: "gpt-4",
+    const completion = await this.perplexityService[
+      'openai'
+    ].chat.completions.create({
+      model: 'gpt-4',
       messages: [
-        { 
-          role: "system", 
-          content: "You are a visibility metrics expert. Calculate accurate visibility scores. Always respond with valid JSON." 
+        {
+          role: 'system',
+          content:
+            'You are a visibility metrics expert. Calculate accurate visibility scores. Always respond with valid JSON.',
         },
-        { role: "user", content: prompt }
+        { role: 'user', content: prompt },
       ],
       temperature: 0.3,
-      max_tokens: 1000
+      max_tokens: 1000,
     });
 
     const metrics = JSON.parse(completion.choices[0].message.content);
     return {
-      mention_count: mentions.count,
-      prominence_score: prominenceScore,
-      sentiment_score: metrics.sentiment_score,
-      relevance_score: metrics.relevance_score,
-      context_score: metrics.context_score
+      mentionCount: mentions.count,
+      prominenceScore: prominenceScore,
+      sentimentScore: metrics.sentiment_score,
+      relevanceScore: metrics.relevance_score,
+      contextScore: metrics.context_score,
     };
   }
 
   private async calculateContextData(
     response: string,
-    profile: any
+    profile: any,
   ): Promise<ContextData> {
     const prompt = `
       Analyze the response's alignment with the company profile:
@@ -221,17 +220,20 @@ export class VisibilityAnalyticsService {
       }
     `;
 
-    const completion = await this.perplexityService['openai'].chat.completions.create({
-      model: "gpt-4",
+    const completion = await this.perplexityService[
+      'openai'
+    ].chat.completions.create({
+      model: 'gpt-4',
       messages: [
-        { 
-          role: "system", 
-          content: "You are a context analysis expert. Calculate alignment scores between responses and company profiles. Always respond with valid JSON." 
+        {
+          role: 'system',
+          content:
+            'You are a context analysis expert. Calculate alignment scores between responses and company profiles. Always respond with valid JSON.',
         },
-        { role: "user", content: prompt }
+        { role: 'user', content: prompt },
       ],
       temperature: 0.3,
-      max_tokens: 1000
+      max_tokens: 1000,
     });
 
     return JSON.parse(completion.choices[0].message.content);
@@ -239,69 +241,83 @@ export class VisibilityAnalyticsService {
 
   private async calculateCompetitiveData(
     response: string,
-    company: CompetitorEntity
+    company: CompetitorEntity,
   ): Promise<CompetitiveData> {
     // Get competitive landscape
-    const landscape = await this.comparativeQueryService['competitorAnalysisService'].generateCompetitiveLandscape(company);
-    
+    const landscape =
+      await this.comparativeQueryService[
+        'competitorAnalysisService'
+      ].generateCompetitiveLandscape(company);
+
     // Analyze competitor mentions
     const competitors = [
       ...landscape.directCompetitors.map(c => c.competitor),
-      ...landscape.indirectCompetitors.map(c => c.competitor)
+      ...landscape.indirectCompetitors.map(c => c.competitor),
     ];
-    
-    const mentions = await this.comparativeQueryService.analyzeCompetitorMentions(
-      response,
-      competitors
-    );
+
+    const mentions =
+      await this.comparativeQueryService.analyzeCompetitorMentions(
+        response,
+        competitors,
+      );
 
     // Calculate market position and relative strength
-    const competitorStats = await this.comparativeQueryService.calculateCompetitivePosition(
-      mentions,
-      1 // Single response analysis
+    const competitorStats =
+      await this.comparativeQueryService.calculateCompetitivePosition(
+        mentions,
+        1, // Single response analysis
+      );
+
+    const competitorMentions = Object.entries(competitorStats).map(
+      ([name, stats]) => ({
+        name,
+        count: stats.mentionCount,
+        sentiment: stats.averageSentiment,
+      }),
     );
 
-    const competitor_mentions = Object.entries(competitorStats).map(([name, stats]) => ({
-      name,
-      count: stats.mentionCount,
-      sentiment: stats.averageSentiment
-    }));
-
     // Calculate relative metrics
-    const market_position = await this.calculateMarketPosition(competitorStats, company.name);
-    const relative_strength = await this.calculateRelativeStrength(response, landscape);
+    const marketPosition = await this.calculateMarketPosition(
+      competitorStats,
+      company.name,
+    );
+    const relativeStrength = await this.calculateRelativeStrength(
+      response,
+      landscape,
+    );
 
     return {
-      competitor_mentions,
-      market_position,
-      relative_strength
+      competitorMentions,
+      marketPosition,
+      relativeStrength,
     };
   }
 
   private async calculateMarketPosition(
     stats: Record<string, any>,
-    companyName: string
+    companyName: string,
   ): Promise<number> {
     const companies = Object.keys(stats);
     const positions = companies.map(name => ({
       name,
-      score: (
-        stats[name].mentionCount * 0.3 +
-        stats[name].averagePosition * 0.4 +
-        ((stats[name].averageSentiment + 1) / 2) * 0.3
-      ) * 100
+      score:
+        (stats[name].mentionCount * 0.3 +
+          stats[name].averagePosition * 0.4 +
+          ((stats[name].averageSentiment + 1) / 2) * 0.3) *
+        100,
     }));
 
     positions.sort((a, b) => b.score - a.score);
     const companyIndex = positions.findIndex(p => p.name === companyName);
-    
-    return companyIndex === -1 ? 0 : 
-      100 * (1 - (companyIndex / positions.length));
+
+    return companyIndex === -1
+      ? 0
+      : 100 * (1 - companyIndex / positions.length);
   }
 
   private async calculateRelativeStrength(
     response: string,
-    landscape: any
+    landscape: any,
   ): Promise<number> {
     const prompt = `
       Analyze this response for relative competitive strength:
@@ -322,58 +338,61 @@ export class VisibilityAnalyticsService {
       }
     `;
 
-    const completion = await this.perplexityService['openai'].chat.completions.create({
-      model: "gpt-4",
+    const completion = await this.perplexityService[
+      'openai'
+    ].chat.completions.create({
+      model: 'gpt-4',
       messages: [
-        { 
-          role: "system", 
-          content: "You are a competitive analysis expert. Calculate relative strength scores based on market responses. Always respond with valid JSON." 
+        {
+          role: 'system',
+          content:
+            'You are a competitive analysis expert. Calculate relative strength scores based on market responses. Always respond with valid JSON.',
         },
-        { role: "user", content: prompt }
+        { role: 'user', content: prompt },
       ],
       temperature: 0.3,
-      max_tokens: 1000
+      max_tokens: 1000,
     });
 
-    return JSON.parse(completion.choices[0].message.content).relative_strength;
+    return JSON.parse(completion.choices[0].message.content).relativeStrength;
   }
 
   async getVisibilityTrends(
     company: CompetitorEntity,
-    timeframe: { start: Date; end: Date }
+    timeframe: { start: Date; end: Date },
   ): Promise<any> {
     return this.analyticsRepository
       .createQueryBuilder('ar')
       .select([
-        'ar.query_type',
-        'DATE_TRUNC(\'day\', ar.created_at) as date',
-        'AVG(ar.mention_count) as avg_mentions',
-        'AVG(ar.prominence_score) as avg_prominence',
-        'AVG(ar.sentiment_score) as avg_sentiment',
-        'AVG(ar.relevance_score) as avg_relevance',
-        'AVG(ar.context_score) as avg_context'
+        'ar.queryType',
+        "DATE_TRUNC('day', ar.createdAt) as date",
+        'AVG(ar.mentionCount) as avg_mentions',
+        'AVG(ar.prominenceScore) as avg_prominence',
+        'AVG(ar.sentimentScore) as avg_sentiment',
+        'AVG(ar.relevanceScore) as avg_relevance',
+        'AVG(ar.contextScore) as avg_context',
       ])
       .where('ar.companyId = :companyId', { companyId: company.id })
-      .andWhere('ar.created_at BETWEEN :start AND :end', timeframe)
-      .groupBy('ar.query_type, DATE_TRUNC(\'day\', ar.created_at)')
-      .orderBy('DATE_TRUNC(\'day\', ar.created_at)', 'ASC')
+      .andWhere('ar.createdAt BETWEEN :start AND :end', timeframe)
+      .groupBy("ar.queryType, DATE_TRUNC('day', ar.createdAt)")
+      .orderBy("DATE_TRUNC('day', ar.createdAt)", 'ASC')
       .getRawMany();
   }
 
   async exportAnalyticsToFile(
     company: CompetitorEntity,
     timeframe: { start: Date; end: Date },
-    outputPath: string
+    outputPath: string,
   ): Promise<void> {
     // Get all analytics results for the company
     const results = await this.analyticsRepository.find({
       where: {
         companyId: company.id,
-        created_at: Between(timeframe.start, timeframe.end)
+        createdAt: Between(timeframe.start, timeframe.end),
       },
       order: {
-        created_at: 'ASC'
-      }
+        createdAt: 'ASC',
+      },
     });
 
     // Get visibility trends
@@ -384,26 +403,26 @@ export class VisibilityAnalyticsService {
       company: {
         id: company.id,
         name: company.name,
-        industry: company.industry?.name
+        industry: company.industry?.name,
       },
       timeframe: {
         start: timeframe.start,
-        end: timeframe.end
+        end: timeframe.end,
       },
       analytics_results: results,
       visibility_trends: trends,
       summary: {
-        total_queries: results.length,
-        average_metrics: {
-          mention_count: this.calculateAverage(results, 'mention_count'),
-          prominence_score: this.calculateAverage(results, 'prominence_score'),
-          sentiment_score: this.calculateAverage(results, 'sentiment_score'),
-          relevance_score: this.calculateAverage(results, 'relevance_score'),
-          context_score: this.calculateAverage(results, 'context_score')
+        totalQueries: results.length,
+        averageMetrics: {
+          mentionCount: this.calculateAverage(results, 'mentionCount'),
+          prominenceScore: this.calculateAverage(results, 'prominenceScore'),
+          sentimentScore: this.calculateAverage(results, 'sentimentScore'),
+          relevanceScore: this.calculateAverage(results, 'relevanceScore'),
+          contextScore: this.calculateAverage(results, 'contextScore'),
         },
-        query_type_distribution: this.calculateQueryDistribution(results),
-        generated_at: new Date().toISOString()
-      }
+        queryTypeDistribution: this.calculateQueryDistribution(results),
+        generatedAt: new Date().toISOString(),
+      },
     };
 
     // Write to file
@@ -411,20 +430,29 @@ export class VisibilityAnalyticsService {
     await fs.promises.writeFile(
       outputPath,
       JSON.stringify(exportData, null, 2),
-      'utf8'
+      'utf8',
     );
   }
 
   private calculateAverage(results: AnalyticsResult[], field: string): number {
-    const values = results.map(r => r[field]).filter(v => v !== null && v !== undefined);
-    return values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+    const values = results
+      .map(r => r[field])
+      .filter(v => v !== null && v !== undefined);
+    return values.length
+      ? values.reduce((a, b) => a + b, 0) / values.length
+      : 0;
   }
 
-  private calculateQueryDistribution(results: AnalyticsResult[]): Record<string, number> {
-    const distribution = results.reduce((acc, result) => {
-      acc[result.query_type] = (acc[result.query_type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+  private calculateQueryDistribution(
+    results: AnalyticsResult[],
+  ): Record<string, number> {
+    const distribution = results.reduce(
+      (acc, result) => {
+        acc[result.queryType] = (acc[result.queryType] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     // Convert to percentages
     const total = results.length;
@@ -435,7 +463,10 @@ export class VisibilityAnalyticsService {
     return distribution;
   }
 
-  private analyzeMentions(text: string, companyName: string): { count: number; positions: number[] } {
+  private analyzeMentions(
+    text: string,
+    companyName: string,
+  ): { count: number; positions: number[] } {
     const words = text.split(/\s+/);
     const positions: number[] = [];
     let count = 0;
@@ -446,7 +477,7 @@ export class VisibilityAnalyticsService {
       companyName.toLowerCase(),
       companyName.toUpperCase(),
       `${companyName}'s`,
-      `${companyName.toLowerCase()}'s`
+      `${companyName.toLowerCase()}'s`,
     ];
 
     words.forEach((word, index) => {
@@ -459,41 +490,52 @@ export class VisibilityAnalyticsService {
     return { count, positions };
   }
 
-  private calculateProminenceScore(mentions: number, positions: number[], totalLength: number): number {
+  private calculateProminenceScore(
+    mentions: number,
+    positions: number[],
+    totalLength: number,
+  ): number {
     if (mentions === 0) return 0;
 
     // Base score from mention count (logarithmic scaling)
     // log10(101) ≈ 2, so multiply by 25 to get max 50 points from mentions
     const mentionScore = Math.min(Math.log10(mentions + 1) * 25, 50);
-    
+
     // Position score (earlier mentions = higher score)
     // Calculate average position score, where earlier positions get higher scores
-    const positionScore = positions.reduce((acc, pos) => {
-      // Earlier positions get higher scores
-      const positionWeight = Math.max(0, 100 - (pos / totalLength) * 100);
-      return acc + positionWeight;
-    }, 0) / positions.length;
+    const positionScore =
+      positions.reduce((acc, pos) => {
+        // Earlier positions get higher scores
+        const positionWeight = Math.max(0, 100 - (pos / totalLength) * 100);
+        return acc + positionWeight;
+      }, 0) / positions.length;
 
     // Normalize position score to 0-50 range
     const normalizedPositionScore = (positionScore / 100) * 50;
-    
+
     // Final score combines mention frequency and position importance
     return Math.min(mentionScore + normalizedPositionScore, 100);
   }
 
-  async analyzeVisibility(company: CompetitorEntity): Promise<AnalyticsResult> {
-    const result = this.analyticsRepository.create({
-      companyId: company.id,
-      // ... rest of the fields ...
-    });
+  async analyzeVisibility(
+    competitor: CompetitorEntity,
+  ): Promise<VisibilityAnalysis> {
+    // Get industry data
+    const industryData = await this.getIndustryData(competitor);
 
-    return this.analyticsRepository.save(result);
+    // Process and return the analysis
+    return {
+      industryData,
+      // ... rest of the analysis
+    };
   }
 
-  async getVisibilityHistory(company: CompetitorEntity): Promise<AnalyticsResult[]> {
+  async getVisibilityHistory(
+    company: CompetitorEntity,
+  ): Promise<AnalyticsResult[]> {
     return this.analyticsRepository.find({
       where: { companyId: company.id },
-      order: { created_at: 'ASC' }
+      order: { createdAt: 'ASC' },
     });
   }
-} 
+}

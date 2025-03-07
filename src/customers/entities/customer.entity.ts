@@ -4,12 +4,12 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany
+  OneToMany,
 } from 'typeorm';
 import { AnalyticsResult } from '../../analytics/entities/analytics-result.entity';
 
 @Entity('customers')
-export class Customer {
+export class CustomerEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -36,4 +36,4 @@ export class Customer {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
-} 
+}

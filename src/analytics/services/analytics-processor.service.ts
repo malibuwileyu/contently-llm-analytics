@@ -5,7 +5,6 @@ import { CompetitorEntity } from '../../modules/brand-analytics/entities/competi
 import { AnalyticsResult } from '../entities/analytics-result.entity';
 import { BrandVisibilityService } from './brand-visibility.service';
 import { CustomerResearchService } from '../../modules/brand-analytics/services/customer-research.service';
-import { AnalyticsResultRepository } from '../repositories/analytics-result.repository';
 
 interface AnalysisResult {
   question: string;
@@ -17,10 +16,13 @@ interface AnalysisResult {
     visibilityMetrics: {
       overallVisibility: number;
       categoryRankings: Record<string, number>;
-      competitorComparison: Record<string, {
-        visibility: number;
-        relativeDelta: number;
-      }>;
+      competitorComparison: Record<
+        string,
+        {
+          visibility: number;
+          relativeDelta: number;
+        }
+      >;
     };
     llmPresence: {
       knowledgeBaseStrength: number;
@@ -67,38 +69,44 @@ export class AnalyticsProcessorService {
     private readonly competitorRepository: Repository<CompetitorEntity>,
     private readonly brandVisibilityService: BrandVisibilityService,
     private readonly customerResearchService: CustomerResearchService,
-    private readonly dataSource: DataSource
+    private readonly dataSource: DataSource,
   ) {}
 
   async processAnalysis(
     customer: CompetitorEntity,
     analysis: AnalysisResult,
-    queryType: string
+    queryType: string,
   ): Promise<AnalyticsResult> {
     try {
       // Calculate derived metrics
       const mentionCount = analysis.brandMentions.length;
-      const sentimentScore = analysis.brandMentions.reduce(
-        (sum, mention) => sum + mention.knowledgeBaseMetrics.authorityScore, 
-        0
-      ) / mentionCount;
-      const relevanceScore = (
-        analysis.brandMentions[0].visibility.contextScore + 
-        analysis.brandHealth.visibilityMetrics.overallVisibility
-      ) / 2;
+      const sentimentScore =
+        analysis.brandMentions.reduce(
+          (sum, mention) => sum + mention.knowledgeBaseMetrics.authorityScore,
+          0,
+        ) / mentionCount;
+      const relevanceScore =
+        (analysis.brandMentions[0].visibility.contextScore +
+          analysis.brandHealth.visibilityMetrics.overallVisibility) /
+        2;
 
       // Create the analytics result
       const result = new AnalyticsResult();
       result.companyId = customer.id;
       result.queryText = analysis.question;
       result.responseText = analysis.aiResponse.content;
-      result.visibilityScore = analysis.brandHealth.visibilityMetrics.overallVisibility;
+      result.visibilityScore =
+        analysis.brandHealth.visibilityMetrics.overallVisibility;
       result.prominenceScore = analysis.metrics.visibilityStats.prominenceScore;
       result.contextScore = analysis.brandMentions[0].visibility.contextScore;
-      result.authorityScore = analysis.brandMentions[0].knowledgeBaseMetrics.authorityScore;
-      result.citationFrequency = analysis.brandMentions[0].knowledgeBaseMetrics.citationFrequency;
-      result.categoryLeadership = analysis.brandMentions[0].knowledgeBaseMetrics.categoryLeadership;
-      result.competitorProximity = analysis.brandMentions[0].visibility.competitorProximity;
+      result.authorityScore =
+        analysis.brandMentions[0].knowledgeBaseMetrics.authorityScore;
+      result.citationFrequency =
+        analysis.brandMentions[0].knowledgeBaseMetrics.citationFrequency;
+      result.categoryLeadership =
+        analysis.brandMentions[0].knowledgeBaseMetrics.categoryLeadership;
+      result.competitorProximity =
+        analysis.brandMentions[0].visibility.competitorProximity;
       result.knowledgeBaseMetrics = analysis.brandHealth.llmPresence;
       result.trends = analysis.brandHealth.trendsOverTime;
       result.responseMetadata = analysis.aiResponse.metadata;
@@ -109,7 +117,7 @@ export class AnalyticsProcessorService {
         version: '1.0.0',
         batchId: new Date().toISOString(),
         queryType,
-        index: 1
+        index: 1,
       };
       result.mentionCount = mentionCount;
       result.sentimentScore = sentimentScore;
@@ -118,7 +126,10 @@ export class AnalyticsProcessorService {
       // Save the result
       return await this.analyticsResultRepository.save(result);
     } catch (error) {
-      this.logger.error(`Error processing analysis for customer ${customer.name}:`, error);
+      this.logger.error(
+        `Error processing analysis for customer ${customer.name}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -126,25 +137,31 @@ export class AnalyticsProcessorService {
   async processBatch(
     customer: CompetitorEntity,
     questions: string[],
-    queryType: string
+    queryType: string,
   ): Promise<AnalyticsResult[]> {
     try {
       // Get analysis results from brand visibility service
-      const batchResults = await this.brandVisibilityService.analyzeBrandVisibilityBatch(
-        customer,
-        questions,
-        { maxConcurrent: 2 }
-      );
+      const batchResults =
+        await this.brandVisibilityService.analyzeBrandVisibilityBatch(
+          customer,
+          questions,
+          { maxConcurrent: 2 },
+        );
 
       // Process each analysis result
       const results = await Promise.all(
-        batchResults.map(analysis => this.processAnalysis(customer, analysis, queryType))
+        batchResults.map(analysis =>
+          this.processAnalysis(customer, analysis, queryType),
+        ),
       );
 
       return results;
     } catch (error) {
-      this.logger.error(`Error processing batch for customer ${customer.name}:`, error);
+      this.logger.error(
+        `Error processing batch for customer ${customer.name}:`,
+        error,
+      );
       throw error;
     }
   }
-} 
+}

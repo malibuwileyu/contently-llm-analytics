@@ -8,12 +8,6 @@ import { PerplexityService } from './perplexity.service';
 import { VariableBankService } from './variable-bank.service';
 import { QueryConfig, QueryType } from '../types/query.types';
 
-interface ContextQueryConfig {
-  industryQueriesCount: number;
-  contextQueriesCount: number;
-  competitiveQueriesCount?: number;
-}
-
 @Injectable()
 export class ContextQueryService {
   constructor(
@@ -22,25 +16,33 @@ export class ContextQueryService {
     @InjectRepository(QueryTemplateEntity)
     private readonly queryTemplateRepository: Repository<QueryTemplateEntity>,
     private readonly perplexityService: PerplexityService,
-    private readonly variableBankService: VariableBankService
+    private readonly variableBankService: VariableBankService,
   ) {}
 
   async generateQueriesForCompany(
     company: CompetitorEntity,
-    config: QueryConfig
+    config: QueryConfig,
   ): Promise<Record<string, string[]>> {
     // Update variable bank with company-specific data
     await this.variableBankService.updateVariableBank(company);
 
     // Generate queries for each type
-    const industryQueries = await this.generateIndustryQueries(config.industryQueriesCount);
-    const contextQueries = await this.generateContextQueries(company, config.contextQueriesCount);
-    const competitiveQueries = await this.generateCompetitiveQueries(company, config.competitiveQueriesCount);
+    const industryQueries = await this.generateIndustryQueries(
+      config.industryQueriesCount,
+    );
+    const contextQueries = await this.generateContextQueries(
+      company,
+      config.contextQueriesCount,
+    );
+    const competitiveQueries = await this.generateCompetitiveQueries(
+      company,
+      config.competitiveQueriesCount,
+    );
 
     return {
       industry: industryQueries,
       context: contextQueries,
-      competitive: competitiveQueries
+      competitive: competitiveQueries,
     };
   }
 
@@ -48,20 +50,20 @@ export class ContextQueryService {
     const queries: string[] = [];
     const templates = await this.queryTemplateRepository.find({
       where: { type: QueryType.INDUSTRY, isActive: true },
-      order: { priority: 'DESC' }
+      order: { priority: 'DESC' },
     });
 
     while (queries.length < count && templates.length > 0) {
       // Get random template weighted by priority
       const template = this.getWeightedRandomTemplate(templates);
-      
+
       // Generate variables for template
       const variables = await this.generateVariablesForTemplate(template);
-      
+
       // Replace variables in template
       const query = this.variableBankService.replaceVariablesInTemplate(
         template.template,
-        variables
+        variables,
       );
 
       // Add query if not duplicate
@@ -75,12 +77,12 @@ export class ContextQueryService {
 
   private async generateContextQueries(
     company: CompetitorEntity,
-    count: number
+    count: number,
   ): Promise<string[]> {
     const queries: string[] = [];
     const templates = await this.queryTemplateRepository.find({
       where: { type: QueryType.CONTEXT, isActive: true },
-      order: { priority: 'DESC' }
+      order: { priority: 'DESC' },
     });
 
     while (queries.length < count && templates.length > 0) {
@@ -93,7 +95,7 @@ export class ContextQueryService {
 
       const query = this.variableBankService.replaceVariablesInTemplate(
         template.template,
-        variables
+        variables,
       );
 
       if (!queries.includes(query)) {
@@ -106,12 +108,12 @@ export class ContextQueryService {
 
   private async generateCompetitiveQueries(
     company: CompetitorEntity,
-    count: number
+    count: number,
   ): Promise<string[]> {
     const queries: string[] = [];
     const templates = await this.queryTemplateRepository.find({
       where: { type: QueryType.COMPETITIVE, isActive: true },
-      order: { priority: 'DESC' }
+      order: { priority: 'DESC' },
     });
 
     while (queries.length < count && templates.length > 0) {
@@ -124,7 +126,7 @@ export class ContextQueryService {
 
       const query = this.variableBankService.replaceVariablesInTemplate(
         template.template,
-        variables
+        variables,
       );
 
       if (!queries.includes(query)) {
@@ -135,10 +137,12 @@ export class ContextQueryService {
     return queries;
   }
 
-  private getWeightedRandomTemplate(templates: QueryTemplateEntity[]): QueryTemplateEntity {
+  private getWeightedRandomTemplate(
+    templates: QueryTemplateEntity[],
+  ): QueryTemplateEntity {
     const totalWeight = templates.reduce((sum, t) => sum + t.priority, 0);
     let random = Math.random() * totalWeight;
-    
+
     for (const template of templates) {
       random -= template.priority;
       if (random <= 0) {
@@ -150,20 +154,24 @@ export class ContextQueryService {
   }
 
   private async generateVariablesForTemplate(
-    template: QueryTemplateEntity
+    template: QueryTemplateEntity,
   ): Promise<Record<string, string>> {
     const variables: Record<string, string> = {};
-    
+
     for (const variable of template.variables) {
       if (variable !== 'company_name' && variable !== 'product/service') {
-        variables[variable] = await this.variableBankService.getVariableValue(variable);
+        variables[variable] =
+          await this.variableBankService.getVariableValue(variable);
       }
     }
 
     return variables;
   }
 
-  async validateContextRelevance(query: string, profile: CompanyProfileEntity): Promise<number> {
+  async validateContextRelevance(
+    query: string,
+    profile: CompanyProfileEntity,
+  ): Promise<number> {
     // Use GPT-4 to score the relevance of the query to the company context
     const prompt = `
       Rate the relevance of this query to the company profile (0-100):
@@ -184,20 +192,23 @@ export class ContextQueryService {
       Return only a number between 0 and 100.
     `;
 
-    const completion = await this.perplexityService['openai'].chat.completions.create({
-      model: "gpt-4",
+    const completion = await this.perplexityService[
+      'openai'
+    ].chat.completions.create({
+      model: 'gpt-4',
       messages: [
-        { 
-          role: "system", 
-          content: "You are a relevance scoring expert. Score how relevant a query is to a company profile." 
+        {
+          role: 'system',
+          content:
+            'You are a relevance scoring expert. Score how relevant a query is to a company profile.',
         },
-        { role: "user", content: prompt }
+        { role: 'user', content: prompt },
       ],
       temperature: 0.3,
-      max_tokens: 10
+      max_tokens: 10,
     });
 
     const score = parseInt(completion.choices[0].message.content.trim(), 10);
     return isNaN(score) ? 0 : Math.min(100, Math.max(0, score));
   }
-} 
+}

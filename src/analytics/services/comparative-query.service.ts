@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { CompetitorEntity } from '../../modules/brand-analytics/entities/competitor.entity';
-import { CompanyProfileEntity } from '../entities/company-profile.entity';
 import { CompetitorAnalysisService } from './competitor-analysis.service';
 import { PerplexityService } from './perplexity.service';
 
@@ -22,19 +21,23 @@ interface CompetitiveInsight {
 export class ComparativeQueryService {
   constructor(
     private readonly competitorAnalysisService: CompetitorAnalysisService,
-    private readonly perplexityService: PerplexityService
+    private readonly perplexityService: PerplexityService,
   ) {}
 
   async generateComparativeQueries(
     company: CompetitorEntity,
-    count: number
+    count: number,
   ): Promise<string[]> {
     // Get competitive landscape
-    const landscape = await this.competitorAnalysisService.generateCompetitiveLandscape(company);
-    
+    const landscape =
+      await this.competitorAnalysisService.generateCompetitiveLandscape(
+        company,
+      );
+
     // Get company profiles
-    const mainProfile = await this.perplexityService.generateCompanyProfile(company);
-    
+    const mainProfile =
+      await this.perplexityService.generateCompanyProfile(company);
+
     const prompt = `
       Generate ${count} comparative analysis questions about market presence and competition.
       
@@ -62,17 +65,20 @@ export class ComparativeQueryService {
       }
     `;
 
-    const completion = await this.perplexityService['openai'].chat.completions.create({
-      model: "gpt-4",
+    const completion = await this.perplexityService[
+      'openai'
+    ].chat.completions.create({
+      model: 'gpt-4',
       messages: [
-        { 
-          role: "system", 
-          content: "You are a competitive analysis expert. Generate insightful comparative questions. Always respond with valid JSON." 
+        {
+          role: 'system',
+          content:
+            'You are a competitive analysis expert. Generate insightful comparative questions. Always respond with valid JSON.',
         },
-        { role: "user", content: prompt }
+        { role: 'user', content: prompt },
       ],
       temperature: 0.8,
-      max_tokens: 1000
+      max_tokens: 1000,
     });
 
     return JSON.parse(completion.choices[0].message.content).questions;
@@ -80,7 +86,7 @@ export class ComparativeQueryService {
 
   async analyzeCompetitorMentions(
     response: string,
-    competitors: CompetitorEntity[]
+    competitors: CompetitorEntity[],
   ): Promise<CompetitorMention[]> {
     const prompt = `
       Analyze this response for competitor mentions:
@@ -102,17 +108,20 @@ export class ComparativeQueryService {
       }
     `;
 
-    const completion = await this.perplexityService['openai'].chat.completions.create({
-      model: "gpt-4",
+    const completion = await this.perplexityService[
+      'openai'
+    ].chat.completions.create({
+      model: 'gpt-4',
       messages: [
-        { 
-          role: "system", 
-          content: "You are a competitive analysis expert. Analyze text for competitor mentions and sentiment. Always respond with valid JSON." 
+        {
+          role: 'system',
+          content:
+            'You are a competitive analysis expert. Analyze text for competitor mentions and sentiment. Always respond with valid JSON.',
         },
-        { role: "user", content: prompt }
+        { role: 'user', content: prompt },
       ],
       temperature: 0.3,
-      max_tokens: 1000
+      max_tokens: 1000,
     });
 
     return JSON.parse(completion.choices[0].message.content).mentions;
@@ -120,10 +129,14 @@ export class ComparativeQueryService {
 
   async generateCompetitiveInsights(
     company: CompetitorEntity,
-    responses: string[]
+    responses: string[],
   ): Promise<CompetitiveInsight[]> {
-    const landscape = await this.competitorAnalysisService.generateCompetitiveLandscape(company);
-    const mainProfile = await this.perplexityService.generateCompanyProfile(company);
+    const landscape =
+      await this.competitorAnalysisService.generateCompetitiveLandscape(
+        company,
+      );
+    const mainProfile =
+      await this.perplexityService.generateCompanyProfile(company);
 
     const prompt = `
       Analyze these responses and generate competitive insights:
@@ -150,17 +163,20 @@ export class ComparativeQueryService {
       }
     `;
 
-    const completion = await this.perplexityService['openai'].chat.completions.create({
-      model: "gpt-4",
+    const completion = await this.perplexityService[
+      'openai'
+    ].chat.completions.create({
+      model: 'gpt-4',
       messages: [
-        { 
-          role: "system", 
-          content: "You are a competitive analysis expert. Generate strategic insights from market responses. Always respond with valid JSON." 
+        {
+          role: 'system',
+          content:
+            'You are a competitive analysis expert. Generate strategic insights from market responses. Always respond with valid JSON.',
         },
-        { role: "user", content: prompt }
+        { role: 'user', content: prompt },
       ],
       temperature: 0.7,
-      max_tokens: 1000
+      max_tokens: 1000,
     });
 
     return JSON.parse(completion.choices[0].message.content).insights;
@@ -168,18 +184,26 @@ export class ComparativeQueryService {
 
   async calculateCompetitivePosition(
     mentions: CompetitorMention[],
-    totalResponses: number
-  ): Promise<Record<string, {
-    mentionCount: number;
-    averagePosition: number;
-    averageSentiment: number;
-    shareOfVoice: number;
-  }>> {
-    const positions = new Map<string, {
-      mentions: number;
-      totalPosition: number;
-      totalSentiment: number;
-    }>();
+    totalResponses: number,
+  ): Promise<
+    Record<
+      string,
+      {
+        mentionCount: number;
+        averagePosition: number;
+        averageSentiment: number;
+        shareOfVoice: number;
+      }
+    >
+  > {
+    const positions = new Map<
+      string,
+      {
+        mentions: number;
+        totalPosition: number;
+        totalSentiment: number;
+      }
+    >();
 
     // Aggregate mentions
     for (const mention of mentions) {
@@ -187,7 +211,7 @@ export class ComparativeQueryService {
         positions.set(mention.name, {
           mentions: 0,
           totalPosition: 0,
-          totalSentiment: 0
+          totalSentiment: 0,
         });
       }
 
@@ -204,10 +228,10 @@ export class ComparativeQueryService {
         mentionCount: stats.mentions,
         averagePosition: stats.totalPosition / stats.mentions,
         averageSentiment: stats.totalSentiment / stats.mentions,
-        shareOfVoice: (stats.mentions / totalResponses) * 100
+        shareOfVoice: (stats.mentions / totalResponses) * 100,
       };
     }
 
     return result;
   }
-} 
+}

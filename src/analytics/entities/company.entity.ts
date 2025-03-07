@@ -1,31 +1,29 @@
-const typeorm = require('typeorm');
+import { ViewEntity, ViewColumn } from 'typeorm';
 
-@typeorm.ViewEntity('companies')
-class CompanyEntity {
-  @typeorm.ViewColumn()
+@ViewEntity('companies')
+export class CompanyEntity {
+  @ViewColumn()
   id: string;
 
-  @typeorm.ViewColumn()
+  @ViewColumn()
   name: string;
 
-  @typeorm.ViewColumn()
+  @ViewColumn()
   domain: string;
 
-  @typeorm.ViewColumn()
+  @ViewColumn()
   isCustomer: boolean;
 
-  @typeorm.ViewColumn({ name: 'settings' })
+  @ViewColumn({ name: 'settings' })
   settings: {
     industry: string;
     competitors: string[];
     regions: string[];
   };
 
-  @typeorm.ViewColumn({ name: 'created_at' })
+  @ViewColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @typeorm.ViewColumn({ name: 'updated_at' })
+  @ViewColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
-
-module.exports = { CompanyEntity }; 

@@ -1,8 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { OpenAIProviderService } from '../../modules/ai-provider/services/openai-provider.service';
-import { PromisePool } from '../utils/promise-pool';
 import { QuestionValidatorService } from './question-validator.service';
 import { CompetitorEntity } from '../../modules/brand-analytics/entities/competitor.entity';
 import { CustomerResearchService } from '../../modules/brand-analytics/services/customer-research.service';
@@ -55,10 +52,13 @@ export interface BrandVisibilityAnalysis {
     visibilityMetrics: {
       overallVisibility: number;
       categoryRankings: Record<string, number>;
-      competitorComparison: Record<string, {
-        visibility: number;
-        relativeDelta: number;
-      }>;
+      competitorComparison: Record<
+        string,
+        {
+          visibility: number;
+          relativeDelta: number;
+        }
+      >;
     };
     llmPresence: {
       knowledgeBaseStrength: number;
@@ -107,7 +107,9 @@ export class BrandVisibilityService {
     private readonly nlpService: NLPService,
   ) {}
 
-  private async analyzeQuestion(question: BrandVisibilityQuestion): Promise<BrandVisibilityAnalysis> {
+  private async analyzeQuestion(
+    question: BrandVisibilityQuestion,
+  ): Promise<BrandVisibilityAnalysis> {
     const startTime = Date.now();
     const prompt = `
       You are a knowledgeable expert in ${question.competitor.industry.name}. Answer the following question naturally, as if responding to a user's search query. Focus on providing helpful recommendations and insights.
@@ -165,7 +167,8 @@ export class BrandVisibilityService {
         knowledgeBaseMetrics: {
           citationFrequency: 0.8,
           authorityScore: 0.9,
-          categoryLeadership: nlpAnalysis.marketPosition.leadership || 'dominant',
+          categoryLeadership:
+            nlpAnalysis.marketPosition.leadership || 'dominant',
         },
       };
 
@@ -175,7 +178,7 @@ export class BrandVisibilityService {
           overallVisibility: nlpAnalysis.marketPosition.visibility || 0.85,
           categoryRankings: {
             [question.competitor.industry.name]: 1,
-            'innovation': nlpAnalysis.marketPosition.innovationRank || 2,
+            innovation: nlpAnalysis.marketPosition.innovationRank || 2,
             'market-presence': nlpAnalysis.marketPosition.presenceRank || 1,
           },
           competitorComparison: Object.fromEntries(
@@ -185,13 +188,17 @@ export class BrandVisibilityService {
                 visibility: comp.visibility,
                 relativeDelta: comp.relativeDelta,
               },
-            ])
+            ]),
           ),
         },
         llmPresence: {
           knowledgeBaseStrength: 0.9,
           contextualAuthority: 0.85,
-          topicalLeadership: ['market-leadership', 'innovation', 'brand-presence'],
+          topicalLeadership: [
+            'market-leadership',
+            'innovation',
+            'brand-presence',
+          ],
         },
         trendsOverTime: {
           visibilityTrend: 'increasing',
@@ -213,12 +220,15 @@ export class BrandVisibilityService {
           contextualAuthority: 0.85,
           categoryLeadership: {
             [question.competitor.industry.name]: 'dominant',
-            'innovation': 'pioneer',
+            innovation: 'pioneer',
             'market-presence': 'leader',
           },
         },
         trendsOverTime: {
-          visibilityTrend: nlpAnalysis.trends.visibility[0] > nlpAnalysis.trends.visibility[1] ? 'upward' : 'stable',
+          visibilityTrend:
+            nlpAnalysis.trends.visibility[0] > nlpAnalysis.trends.visibility[1]
+              ? 'upward'
+              : 'stable',
           positionStability: 'high',
           contextualEvolution: 'strengthening',
         },
@@ -235,7 +245,10 @@ export class BrandVisibilityService {
             rankingData: {
               brandPosition: 1,
               competitorPositions: Object.fromEntries(
-                question.competitor.competitors?.map((comp, idx) => [comp.toLowerCase(), idx + 2]) || []
+                question.competitor.competitors?.map((comp, idx) => [
+                  comp.toLowerCase(),
+                  idx + 2,
+                ]) || [],
               ),
             },
           },
@@ -260,35 +273,44 @@ export class BrandVisibilityService {
     questions: string[],
     options: { maxConcurrent: number },
   ): Promise<BrandVisibilityAnalysis[]> {
-    this.logger.log(`Starting batch analysis for ${competitor.name} with ${questions.length} questions`);
+    this.logger.log(
+      `Starting batch analysis for ${competitor.name} with ${questions.length} questions`,
+    );
 
     // Process questions in order
     const results = await Promise.all(
-      questions.map(async (question) => {
+      questions.map(async question => {
         try {
           return await this.analyzeQuestion({
             question,
             competitor,
           });
         } catch (error) {
-          this.logger.error(`Error processing question "${question}": ${error.message}`);
+          this.logger.error(
+            `Error processing question "${question}": ${error.message}`,
+          );
           return null;
         }
-      })
+      }),
     );
 
     // Filter out failed questions while preserving order
-    const validResults = results.filter((r): r is BrandVisibilityAnalysis => r !== null);
+    const validResults = results.filter(
+      (r): r is BrandVisibilityAnalysis => r !== null,
+    );
 
     const totalTime = Date.now();
     this.logger.log(
-      `Batch analysis completed with ${validResults.length} successful results out of ${questions.length} questions`
+      `Batch analysis completed with ${validResults.length} successful results out of ${questions.length} questions`,
     );
 
     return validResults;
   }
 
-  async analyzeBrandVisibility(competitor: CompetitorEntity, question: string): Promise<string> {
+  async analyzeBrandVisibility(
+    competitor: CompetitorEntity,
+    question: string,
+  ): Promise<string> {
     const prompt = `
       Please provide a detailed brand visibility analysis for ${competitor.name} in the ${competitor.industry.name} industry.
       
@@ -323,4 +345,4 @@ export class BrandVisibilityService {
   async getCompanyDetails(companyId: string): Promise<CompetitorEntity> {
     return this.customerResearchService.getCompetitorById(companyId);
   }
-} 
+}

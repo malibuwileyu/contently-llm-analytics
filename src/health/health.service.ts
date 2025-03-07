@@ -3,9 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { InjectConnection } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
 import {
-  HealthCheckResult,
-  HealthIndicatorResult,
+  HealthCheckService,
   TypeOrmHealthIndicator,
+  MemoryHealthIndicator,
+  HealthIndicatorResult,
   HealthIndicatorStatus,
 } from '@nestjs/terminus';
 
@@ -23,7 +24,10 @@ export class HealthService {
     this.logger.debug('Starting database health check...');
     try {
       const result = await this.db.pingCheck('database', { timeout: 5000 });
-      this.logger.debug('Database health check completed successfully:', result);
+      this.logger.debug(
+        'Database health check completed successfully:',
+        result,
+      );
       return result;
     } catch (error) {
       this.logger.error('Database health check failed:', error);

@@ -21,11 +21,11 @@ async function seedData() {
     type: 'postgres',
     url: connectionString,
     ssl: {
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
     },
     entities: [QueryTemplateEntity, CompetitorEntity, IndustryEntity],
     synchronize: false,
-    logging: true
+    logging: true,
   });
 
   try {
@@ -39,7 +39,7 @@ async function seedData() {
       // Check if category already exists
       const existingCategory = await dataSource.query(
         'SELECT id FROM public.business_categories WHERE name = $1',
-        [category.name]
+        [category.name],
       );
 
       let categoryId;
@@ -62,8 +62,8 @@ async function seedData() {
             category.name,
             category.description,
             category.keywords,
-            category.synonyms || []
-          ]
+            category.synonyms || [],
+          ],
         );
         categoryId = result[0].id;
         console.log(`Created business category: ${category.name}`);
@@ -77,7 +77,7 @@ async function seedData() {
         // Check if competitor already exists
         const existingCompetitor = await dataSource.query(
           'SELECT id FROM public.competitors WHERE name = $1',
-          [competitor.name]
+          [competitor.name],
         );
 
         if (existingCompetitor.length === 0) {
@@ -100,8 +100,8 @@ async function seedData() {
               competitor.description,
               competitor.website,
               categoryId,
-              competitor.isCustomer
-            ]
+              competitor.isCustomer,
+            ],
           );
           console.log(`Created competitor: ${competitor.name}`);
         } else {
@@ -112,24 +112,26 @@ async function seedData() {
 
     // Seed query templates
     const queryTemplateRepo = dataSource.getRepository(QueryTemplateEntity);
-    
+
     for (const template of queryTemplates) {
       // Check if template already exists
       const existingTemplate = await queryTemplateRepo.findOne({
         where: {
           type: template.type,
-          template: template.template
-        }
+          template: template.template,
+        },
       });
 
       if (!existingTemplate) {
-        await queryTemplateRepo.save({
+        const newTemplate = new QueryTemplateEntity();
+        Object.assign(newTemplate, {
           ...template,
           isActive: true,
           priority: 1,
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         });
+        await queryTemplateRepo.save(newTemplate);
         console.log(`Created query template: ${template.template}`);
       } else {
         console.log(`Query template already exists: ${template.template}`);
@@ -154,8 +156,8 @@ if (require.main === module) {
       console.log('Seeding script completed');
       process.exit(0);
     })
-    .catch((error) => {
+    .catch(error => {
       console.error('Seeding script failed:', error);
       process.exit(1);
     });
-} 
+}

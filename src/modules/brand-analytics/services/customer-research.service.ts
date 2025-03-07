@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CompetitorEntity } from '../entities/competitor.entity';
@@ -34,7 +34,9 @@ export class CustomerResearchService {
     return competitor;
   }
 
-  async getCompetitorsByIndustry(industryId: string): Promise<CompetitorEntity[]> {
+  async getCompetitorsByIndustry(
+    industryId: string,
+  ): Promise<CompetitorEntity[]> {
     return this.competitorRepository.find({
       where: { industryId },
       relations: ['industry'],
@@ -77,7 +79,9 @@ export class CustomerResearchService {
     });
   }
 
-  async findCustomersByIndustry(industryId: string): Promise<CompetitorEntity[]> {
+  async findCustomersByIndustry(
+    industryId: string,
+  ): Promise<CompetitorEntity[]> {
     return this.competitorRepository.find({
       where: {
         isCustomer: true,
@@ -97,4 +101,4 @@ export class CustomerResearchService {
       relations: ['competitors'],
     });
   }
-} 
+}

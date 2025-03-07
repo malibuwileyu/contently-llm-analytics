@@ -53,12 +53,14 @@ export class NLPService {
     text: string,
     options: BrandAnalysisOptions,
   ): Promise<BrandAnalysis> {
-    const startTime = Date.now();
     try {
       // First, analyze the text for brand mentions and sentiment
       const brandMentions = this.extractBrandMentions(text, options.name);
-      const competitorMentions = this.extractCompetitorMentions(text, options.competitors);
-      
+      const competitorMentions = this.extractCompetitorMentions(
+        text,
+        options.competitors,
+      );
+
       // Then get AI to help analyze market position and trends
       const analysisPrompt = `
         Analyze this text for brand visibility metrics:
@@ -81,9 +83,12 @@ export class NLPService {
       `;
 
       const aiAnalysis = await this.aiProvider.complete(analysisPrompt);
-      
+
       // Extract market position and trends from AI analysis
-      const marketPosition = this.extractMarketPosition(aiAnalysis.content, options);
+      const marketPosition = this.extractMarketPosition(
+        aiAnalysis.content,
+        options,
+      );
       const trends = this.extractTrends(aiAnalysis.content);
 
       return {
@@ -98,11 +103,14 @@ export class NLPService {
     }
   }
 
-  private extractBrandMentions(text: string, brandName: string): BrandMention[] {
+  private extractBrandMentions(
+    text: string,
+    brandName: string,
+  ): BrandMention[] {
     // Simple extraction for now - can be enhanced with more sophisticated NLP
     const mentions: BrandMention[] = [];
     const sentences = text.split(/[.!?]+/);
-    
+
     sentences.forEach((sentence, idx) => {
       if (sentence.toLowerCase().includes(brandName.toLowerCase())) {
         mentions.push({
@@ -112,19 +120,22 @@ export class NLPService {
         });
       }
     });
-    
+
     return mentions;
   }
 
-  private extractCompetitorMentions(text: string, competitors: string[]): CompetitorMention[] {
+  private extractCompetitorMentions(
+    text: string,
+    competitors: string[],
+  ): CompetitorMention[] {
     const mentions: CompetitorMention[] = [];
     const sentences = text.split(/[.!?]+/);
-    
+
     competitors.forEach(competitor => {
-      const firstMention = sentences.findIndex(s => 
-        s.toLowerCase().includes(competitor.toLowerCase())
+      const firstMention = sentences.findIndex(s =>
+        s.toLowerCase().includes(competitor.toLowerCase()),
       );
-      
+
       if (firstMention >= 0) {
         mentions.push({
           name: competitor,
@@ -135,11 +146,14 @@ export class NLPService {
         });
       }
     });
-    
+
     return mentions;
   }
 
-  private extractMarketPosition(analysis: string, options: BrandAnalysisOptions): MarketPosition {
+  private extractMarketPosition(
+    analysis: string,
+    options: BrandAnalysisOptions,
+  ): MarketPosition {
     // Extract market position metrics from AI analysis
     // This is a simplified implementation - can be enhanced with more sophisticated NLP
     return {
@@ -157,7 +171,7 @@ export class NLPService {
     const sentimentTrend = this.extractTrendValues(analysis, 'sentiment');
     const visibilityTrend = this.extractTrendValues(analysis, 'visibility');
     const engagementTrend = this.extractTrendValues(analysis, 'engagement');
-    
+
     return {
       sentiment: sentimentTrend,
       visibility: visibilityTrend,
@@ -175,28 +189,54 @@ export class NLPService {
     // Simple sentiment calculation - can be enhanced with proper NLP
     const positiveWords = ['good', 'great', 'excellent', 'best', 'leading'];
     const negativeWords = ['bad', 'poor', 'worst', 'failing'];
-    
+
     const words = text.toLowerCase().split(/\W+/);
     let score = 0.5; // Neutral starting point
-    
+
     words.forEach(word => {
       if (positiveWords.includes(word)) score += 0.1;
       if (negativeWords.includes(word)) score -= 0.1;
     });
-    
+
     return Math.max(0, Math.min(1, score));
   }
 
   private determineRelationship(text: string): string {
     // Simple relationship determination - can be enhanced with proper NLP
     const words = text.toLowerCase();
-    
-    if (words.includes('better') || words.includes('leading') || words.includes('ahead')) {
+
+    if (
+      words.includes('better') ||
+      words.includes('leading') ||
+      words.includes('ahead')
+    ) {
       return 'superior';
     }
-    if (words.includes('worse') || words.includes('behind') || words.includes('trailing')) {
+    if (
+      words.includes('worse') ||
+      words.includes('behind') ||
+      words.includes('trailing')
+    ) {
       return 'inferior';
     }
     return 'comparable';
   }
-} 
+
+  async analyzeResponse(_analysis: string, _options?: any): Promise<any> {
+    // Implementation
+  }
+
+  async analyzeAspect(_text: string, _aspect: string): Promise<any> {
+    // Implementation
+  }
+
+  async analyzeText(text: string): Promise<any> {
+    try {
+      const response = await this.aiProvider.complete(text);
+      return response;
+    } catch (error) {
+      this.logger.error(`Error analyzing text: ${error.message}`);
+      throw error;
+    }
+  }
+}

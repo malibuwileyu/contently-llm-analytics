@@ -1,5 +1,15 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { CompetitorEntity } from '../../modules/brand-analytics/entities/competitor.entity';
+import { CustomerEntity } from '../../customers/entities/customer.entity';
 
 @Entity('analytics_results')
 export class AnalyticsResult {
@@ -13,6 +23,10 @@ export class AnalyticsResult {
   @ManyToOne(() => CompetitorEntity)
   @JoinColumn({ name: 'company_id' })
   competitor: CompetitorEntity;
+
+  @ManyToOne(() => CustomerEntity)
+  @JoinColumn({ name: 'company_id' })
+  customer: CustomerEntity;
 
   @Column({ type: 'text', name: 'query_text' })
   queryText: string;
@@ -79,10 +93,13 @@ export class AnalyticsResult {
       visibilityMetrics: {
         overallVisibility: number;
         categoryRankings: Record<string, number>;
-        competitorComparison: Record<string, {
-          visibility: number;
-          relativeDelta: number;
-        }>;
+        competitorComparison: Record<
+          string,
+          {
+            visibility: number;
+            relativeDelta: number;
+          }
+        >;
       };
       llmPresence: {
         knowledgeBaseStrength: number;
@@ -140,4 +157,4 @@ export class AnalyticsResult {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
-} 
+}

@@ -1,21 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BrandVisibilityService } from '../../src/analytics/services/brand-visibility.service';
-import { QuestionValidatorService } from '../../src/analytics/services/question-validator.service';
-import { CompetitorEntity } from '../../src/modules/brand-analytics/entities/competitor.entity';
-import { BusinessCategoryEntity } from '../../src/modules/brand-analytics/entities/business-category.entity';
-import { OpenAIProviderService } from '../../src/modules/ai-provider/services/openai-provider.service';
-import { CustomerResearchService } from '../../src/modules/brand-analytics/services/customer-research.service';
 import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { BrandVisibilityService } from '../../src/analytics/services/brand-visibility.service';
+import { OpenAIProviderService } from '../../src/modules/ai-provider/services/openai-provider.service';
+import { QuestionValidatorService } from '../../src/analytics/services/question-validator.service';
+import { NLPService } from '../../src/modules/nlp/nlp.service';
+import { CompetitorEntity } from '../../src/modules/brand-analytics/entities/competitor.entity';
+import { IndustryEntity } from '../../src/modules/brand-analytics/entities/industry.entity';
 import { AIProviderModule } from '../../src/modules/ai-provider/ai-provider.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
-import { describe, beforeEach, afterEach, it, expect, jest } from '@jest/globals';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { NLPService } from '../../src/modules/nlp/nlp.service';
+import {
+  describe,
+  beforeEach,
+  afterEach,
+  it,
+  expect,
+  jest,
+} from '@jest/globals';
+import { Repository } from 'typeorm';
 
-const TEST_OUTPUT_FILE = 'llm-visibility-batch-test.json';
+const TEST_OUTPUT_FILE = 'visibility-test-results.json';
 
 interface TestResult {
   config: {
@@ -68,11 +73,11 @@ const appendTestOutput = (data: Partial<TestResult>) => {
   const projectRoot = path.resolve(__dirname, '../../');
   const outputDir = path.join(projectRoot, 'test-outputs');
   const outputPath = path.join(outputDir, TEST_OUTPUT_FILE);
-  
+
   console.log('Project root:', projectRoot);
   console.log('Writing to directory:', outputDir);
   console.log('Full output path:', outputPath);
-  
+
   if (!fs.existsSync(outputDir)) {
     console.log('Creating directory:', outputDir);
     fs.mkdirSync(outputDir, { recursive: true });
@@ -88,20 +93,20 @@ const appendTestOutput = (data: Partial<TestResult>) => {
       brandMentions: r.brandMentions?.map(m => ({
         brandId: m.brandId,
         position: m.position,
-        visibility: m.visibility
+        visibility: m.visibility,
       })),
       metrics: {
         visibilityStats: r.metrics?.visibilityStats,
-        categoryLeadership: r.metrics?.llmPatterns?.categoryLeadership
+        categoryLeadership: r.metrics?.llmPatterns?.categoryLeadership,
       },
-      metadata: r.metadata
-    }))
+      metadata: r.metadata,
+    })),
   };
 
   console.log('Writing file...');
   fs.writeFileSync(outputPath, JSON.stringify(conciseData, null, 2));
   console.log('File written successfully');
-  
+
   // Verify file exists
   if (fs.existsSync(outputPath)) {
     console.log('File exists after writing');
@@ -119,11 +124,30 @@ describe('BrandVisibilityService - Batch Processing', () => {
   let service: BrandVisibilityService;
   let validator: QuestionValidatorService;
   let openAIProvider: OpenAIProviderService;
-  let customerResearch: CustomerResearchService;
-  let competitorRepository: Repository<CompetitorEntity>;
-  let businessCategoryRepository: Repository<BusinessCategoryEntity>;
-  let testBusinessCategory: BusinessCategoryEntity;
+  let testIndustry: IndustryEntity;
   let testCompany: CompetitorEntity;
+
+  const mockOpenAIProvider = {
+    complete: jest.fn(),
+  };
+
+  const mockQuestionValidator: Partial<QuestionValidatorService> = {
+    validateQuestions: jest.fn().mockImplementation((questions: string[]) => {
+      return Promise.resolve(
+        questions.map(q => ({
+          question: q,
+          isRelevant: true,
+          relevanceScore: 0.9,
+          category: 'brand-visibility',
+          isBrandAgnostic: true,
+        })),
+      );
+    }),
+  };
+
+  const mockNLPService = {
+    analyzeBrand: jest.fn(),
+  };
 
   beforeEach(async () => {
     // Ensure test-outputs directory exists
@@ -142,43 +166,45 @@ describe('BrandVisibilityService - Batch Processing', () => {
       imports: [
         ConfigModule.forRoot({
           isGlobal: true,
-          envFilePath: '.env.test'
+          envFilePath: '.env.test',
         }),
         TypeOrmModule.forRoot({
           type: 'better-sqlite3',
           database: ':memory:',
-          entities: [CompetitorEntity, BusinessCategoryEntity],
+          entities: [CompetitorEntity, IndustryEntity],
           synchronize: true,
           dropSchema: true,
           logging: false,
         }),
-        TypeOrmModule.forFeature([CompetitorEntity, BusinessCategoryEntity]),
+        TypeOrmModule.forFeature([CompetitorEntity, IndustryEntity]),
         AIProviderModule,
       ],
       providers: [
         BrandVisibilityService,
-        QuestionValidatorService,
-        CustomerResearchService,
-        OpenAIProviderService,
-        NLPService,
-      ]
+        {
+          provide: OpenAIProviderService,
+          useValue: mockOpenAIProvider,
+        },
+        {
+          provide: QuestionValidatorService,
+          useValue: mockQuestionValidator,
+        },
+        {
+          provide: NLPService,
+          useValue: mockNLPService,
+        },
+      ],
     }).compile();
 
     service = module.get<BrandVisibilityService>(BrandVisibilityService);
     validator = module.get<QuestionValidatorService>(QuestionValidatorService);
     openAIProvider = module.get<OpenAIProviderService>(OpenAIProviderService);
-    customerResearch = module.get<CustomerResearchService>(CustomerResearchService);
-    competitorRepository = module.get<Repository<CompetitorEntity>>(getRepositoryToken(CompetitorEntity));
-    businessCategoryRepository = module.get<Repository<BusinessCategoryEntity>>(getRepositoryToken(BusinessCategoryEntity));
 
-    // Create test business category
-    testBusinessCategory = new BusinessCategoryEntity();
-    testBusinessCategory.id = 'test-category-1';
-    testBusinessCategory.name = 'Athletic Footwear & Apparel';
-    testBusinessCategory.description = 'Athletic footwear and apparel industry';
-    testBusinessCategory.keywords = ['athletic', 'footwear', 'apparel', 'sports'];
-    testBusinessCategory.synonyms = ['sportswear', 'athletic wear'];
-    testBusinessCategory.isActive = true;
+    // Create test industry
+    testIndustry = new IndustryEntity();
+    testIndustry.id = 'test-industry-1';
+    testIndustry.name = 'Athletic Footwear & Apparel';
+    testIndustry.description = 'Athletic footwear and apparel industry';
 
     // Create test company
     testCompany = new CompetitorEntity();
@@ -188,23 +214,22 @@ describe('BrandVisibilityService - Batch Processing', () => {
     testCompany.description = 'Global leader in athletic footwear and apparel';
     testCompany.alternateNames = ['Nike Inc', 'Nike Corporation'];
     testCompany.keywords = ['nike', 'athletic', 'footwear', 'apparel'];
-    testCompany.businessCategory = testBusinessCategory;
+    testCompany.industry = testIndustry;
     testCompany.isCustomer = false;
     testCompany.isActive = true;
-    testCompany.industry = 'Athletic Footwear & Apparel';
     testCompany.competitors = ['Adidas', 'Puma', 'Under Armour'];
     testCompany.regions = ['North America', 'Europe', 'Asia'];
     testCompany.settings = {
-      industry: 'Athletic Footwear & Apparel',
+      industry: testIndustry.name,
       competitors: ['Adidas', 'Puma', 'Under Armour'],
-      regions: ['North America', 'Europe', 'Asia']
+      regions: ['North America', 'Europe', 'Asia'],
     };
 
     // Save test data
-    const businessCategoryRepo = module.get('BusinessCategoryEntityRepository');
-    const competitorRepo = module.get('CompetitorEntityRepository');
-    
-    await businessCategoryRepo.save(testBusinessCategory);
+    const industryRepo = module.get(getRepositoryToken(IndustryEntity));
+    const competitorRepo = module.get(getRepositoryToken(CompetitorEntity));
+
+    await industryRepo.save(testIndustry);
     await competitorRepo.save(testCompany);
   });
 
@@ -237,71 +262,80 @@ describe('BrandVisibilityService - Batch Processing', () => {
 
       Return the response strictly as a JSON array with no extra text or explanations.
 
-      Keyword: ${testCompany.industry}
+      Keyword: ${testCompany.industry.name}
       Description: ${testCompany.description}
     `;
 
     let questions;
     try {
-      console.log('Generating questions for industry:', testCompany.industry);
-      const questionsResponse = await openAIProvider.complete(generateQuestionsPrompt);
+      console.log(
+        'Generating questions for industry:',
+        testCompany.industry.name,
+      );
+      const questionsResponse = await openAIProvider.complete(
+        generateQuestionsPrompt,
+      );
       console.log('Raw response:', questionsResponse.content);
       questions = JSON.parse(questionsResponse.content.trim());
       console.log('Generated questions:', questions);
-      
+
       if (!Array.isArray(questions) || questions.length === 0) {
         throw new Error('Invalid questions format returned');
       }
 
       // Validate and filter questions
       console.log('Validating questions...');
-      const validations = await validator.validateBatch(questions, testCompany.industry);
+      const validations = await validator.validateQuestions(questions);
       questions = validations
-        .filter(v => v.isValid && v.category === 'brand-visibility')
+        .filter(v => v.isRelevant && v.category === 'brand-visibility')
         .map(v => v.suggestedRevision || v.question)
         .slice(0, 10); // Ensure we get exactly 10 questions
-      
+
       if (questions.length < 10) {
         console.log('Not enough valid questions, using fallback questions...');
         // Fallback to default questions focused on natural search queries
         const fallbackQuestions = [
-          "Best athletic shoes for long-distance running beginners",
-          "Most comfortable workout clothes for high-intensity training",
-          "What do professional athletes wear during training sessions",
-          "Top rated running shoes under 150 dollars",
-          "Most durable sportswear brands for everyday workouts",
-          "Best athletic wear for professional marathon training",
-          "Most recommended running shoes for cross-country",
-          "What sportswear do Olympic athletes prefer",
-          "Top athletic shoes for gym workouts and weightlifting",
-          "Most popular athletic wear for college athletes"
+          'Best athletic shoes for long-distance running beginners',
+          'Most comfortable workout clothes for high-intensity training',
+          'What do professional athletes wear during training sessions',
+          'Top rated running shoes under 150 dollars',
+          'Most durable sportswear brands for everyday workouts',
+          'Best athletic wear for professional marathon training',
+          'Most recommended running shoes for cross-country',
+          'What sportswear do Olympic athletes prefer',
+          'Top athletic shoes for gym workouts and weightlifting',
+          'Most popular athletic wear for college athletes',
         ];
-        
+
         // Fill remaining slots with fallback questions
         const remainingSlots = 10 - questions.length;
         questions = [
           ...questions,
-          ...fallbackQuestions.slice(0, remainingSlots)
+          ...fallbackQuestions.slice(0, remainingSlots),
         ];
       }
-      
+
       console.log('Validated questions:', questions);
     } catch (error) {
       console.error('Error generating or validating questions:', error);
       // Fallback to default questions focused on natural search queries
       questions = [
-        "Best athletic shoes for long-distance running beginners",
-        "Most comfortable workout clothes for high-intensity training",
-        "What do professional athletes wear during training sessions",
-        "Top rated running shoes under 150 dollars",
-        "Most durable sportswear brands for everyday workouts"
+        'Best athletic shoes for long-distance running beginners',
+        'Most comfortable workout clothes for high-intensity training',
+        'What do professional athletes wear during training sessions',
+        'Top rated running shoes under 150 dollars',
+        'Most durable sportswear brands for everyday workouts',
       ];
       console.log('Using fallback questions:', questions);
     }
 
     // Process the questions
     const startTime = Date.now();
-    const results = await service.analyzeBrandVisibilityBatch(testCompany, questions, { maxConcurrent: 2 });
+    const results = await service.analyzeBrandVisibilityBatch(
+      testCompany,
+      questions,
+      { maxConcurrent: 2 },
+    );
     const endTime = Date.now();
 
     // Prepare output data
@@ -330,4 +364,4 @@ describe('BrandVisibilityService - Batch Processing', () => {
       expect(result.metadata).toBeDefined();
     });
   }, 600000);
-}); 
+});

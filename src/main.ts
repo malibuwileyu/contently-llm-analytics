@@ -1,13 +1,18 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe, RequestMethod, ValidationError, BadRequestException } from '@nestjs/common';
+import {
+  ValidationPipe,
+  RequestMethod,
+  ValidationError,
+  BadRequestException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'debug', 'log', 'verbose'],
   });
-  const configService = app.get(ConfigService);
 
   // Global Pipes
   app.useGlobalPipes(
@@ -32,7 +37,7 @@ async function bootstrap() {
           };
           return acc;
         }, {});
-        
+
         return new BadRequestException({
           message: 'Validation failed',
           errors: formattedErrors,
@@ -51,7 +56,7 @@ async function bootstrap() {
     'http://localhost:10001',
     'http://127.0.0.1:10001',
     'http://127.0.0.1:3000',
-    'http://127.0.0.1:3001'
+    'http://127.0.0.1:3001',
   ];
 
   app.enableCors({
@@ -64,10 +69,16 @@ async function bootstrap() {
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+      'Origin',
+    ],
     exposedHeaders: ['Content-Range', 'X-Content-Range'],
     preflightContinue: false,
-    optionsSuccessStatus: 204
+    optionsSuccessStatus: 204,
   });
 
   // API Prefix with health check exclusions
@@ -80,6 +91,15 @@ async function bootstrap() {
       { path: 'health/readiness', method: RequestMethod.GET },
     ],
   });
+
+  // Setup Swagger
+  const config = new DocumentBuilder()
+    .setTitle('Contently Analytics API')
+    .setDescription('API documentation for Contently Analytics')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
   const port = process.env.PORT || 3001;
   await app.listen(port);

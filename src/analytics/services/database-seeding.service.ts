@@ -15,85 +15,6 @@ import { QueryType } from '../types/query.types';
 // Use require for p-limit since it doesn't have proper ESM support
 const pLimit = require('p-limit');
 
-interface AnalyticsData {
-  query_type: QueryType;
-  query_text: string;
-  response_text: string;
-  mention_count: number;
-  prominence_score: number;
-  sentiment_score: number;
-  relevance_score: number;
-  context_score: number;
-  timestamp: Date;
-  metadata: {
-    version: string;
-    batchId: string;
-    index: number;
-  };
-  response_metadata: {
-    model: string;
-    tokens: number;
-    processingTime: number;
-  };
-  analysis: {
-    question: string;
-    aiResponse: {
-      content: string;
-      metadata: {
-        model: string;
-        tokens: number;
-        rankingData: {
-          brandPosition: number;
-          competitorPositions: Record<string, number>;
-        };
-      };
-    };
-    brandMentions: any[];
-    brandHealth: {
-      visibilityMetrics: {
-        overallVisibility: number;
-        categoryRankings: Record<string, number>;
-        competitorComparison: Record<string, any>;
-      };
-      llmPresence: {
-        knowledgeBaseStrength: number;
-        contextualAuthority: number;
-        topicalLeadership: string[];
-      };
-      trendsOverTime: {
-        visibilityTrend: string;
-        rankingStability: number;
-        competitorDynamics: string;
-      };
-    };
-    citations: any[];
-    insights: any[];
-    metrics: {
-      visibilityStats: {
-        averagePosition: number;
-        prominenceScore: number;
-        leadingMentions: string;
-        competitorCooccurrence: string;
-      };
-      llmPatterns: {
-        knowledgeBaseRepresentation: number;
-        contextualAuthority: number;
-        categoryLeadership: Record<string, string>;
-      };
-      trendsOverTime: {
-        visibilityTrend: string;
-        positionStability: string;
-        contextualEvolution: string;
-      };
-    };
-    metadata: {
-      processingTime: number;
-      retryCount: number;
-      timestamp: string;
-    };
-  };
-}
-
 @Injectable()
 export class DatabaseSeedingService {
   private readonly logger = new Logger(DatabaseSeedingService.name);
@@ -112,19 +33,21 @@ export class DatabaseSeedingService {
     private readonly industryRepository: Repository<IndustryEntity>,
     private readonly dataSource: DataSource,
     private readonly queryTemplateService: QueryTemplateService,
-    private readonly analyticsResultRepository: AnalyticsResultRepository
+    private readonly analyticsResultRepository: AnalyticsResultRepository,
   ) {}
 
   async seedCustomerDatabase(companyId?: string): Promise<void> {
     try {
       // Get companies to seed
-      const competitors = companyId 
+      const competitors = companyId
         ? [await this.customerResearchService.getCompetitorById(companyId)]
         : await this.customerResearchService.getAllCompetitors();
 
       const customersToSeed = competitors.filter(c => c.isCustomer);
-      
-      this.logger.log(`Starting database seeding for ${customersToSeed.length} customers`);
+
+      this.logger.log(
+        `Starting database seeding for ${customersToSeed.length} customers`,
+      );
 
       for (const customer of customersToSeed) {
         await this.seedSingleCompany(customer);
@@ -142,39 +65,51 @@ export class DatabaseSeedingService {
       this.logger.log(`Starting analysis for company: ${competitor.name}`);
 
       // Get all competitors in the same industry
-      const industryCompetitors = await this.customerResearchService.getCompetitorsByIndustry(
-        competitor.industryId
-      );
+      const industryCompetitors =
+        await this.customerResearchService.getCompetitorsByIndustry(
+          competitor.industryId,
+        );
 
       // Get query templates for each type
-      const industryTemplates = await this.queryTemplateService.getTemplatesByType(QueryType.INDUSTRY);
-      const contextTemplates = await this.queryTemplateService.getTemplatesByType(QueryType.CONTEXT);
-      const competitiveTemplates = await this.queryTemplateService.getTemplatesByType(QueryType.COMPETITIVE);
+      const industryTemplates =
+        await this.queryTemplateService.getTemplatesByType(QueryType.INDUSTRY);
+      const contextTemplates =
+        await this.queryTemplateService.getTemplatesByType(QueryType.CONTEXT);
+      const competitiveTemplates =
+        await this.queryTemplateService.getTemplatesByType(
+          QueryType.COMPETITIVE,
+        );
 
       // Generate queries for each type
       const industryQueries = await Promise.all(
-        industryTemplates.map(template => 
-          this.queryTemplateService.generateQueryVariations(template, 100)
-        )
+        industryTemplates.map(template =>
+          this.queryTemplateService.generateQueryVariations(template, 100),
+        ),
       ).then(arrays => arrays.flat());
 
       const contextQueries = await Promise.all(
         contextTemplates.map(template =>
-          this.queryTemplateService.generateQueryVariations(template, 100)
-        )
+          this.queryTemplateService.generateQueryVariations(template, 100),
+        ),
       ).then(arrays => arrays.flat());
 
       const competitiveQueries = await Promise.all(
         competitiveTemplates.map(template =>
-          this.queryTemplateService.generateQueryVariations(template, 100)
-        )
+          this.queryTemplateService.generateQueryVariations(template, 100),
+        ),
       ).then(arrays => arrays.flat());
 
       // Combine and shuffle queries
       const allQueries = [
-        ...industryQueries.map(q => ({ type: QueryType.INDUSTRY, question: q })),
+        ...industryQueries.map(q => ({
+          type: QueryType.INDUSTRY,
+          question: q,
+        })),
         ...contextQueries.map(q => ({ type: QueryType.CONTEXT, question: q })),
-        ...competitiveQueries.map(q => ({ type: QueryType.COMPETITIVE, question: q }))
+        ...competitiveQueries.map(q => ({
+          type: QueryType.COMPETITIVE,
+          question: q,
+        })),
       ].sort(() => Math.random() - 0.5);
 
       // Process each query
@@ -183,23 +118,28 @@ export class DatabaseSeedingService {
           this.limit(async () => {
             try {
               const startTime = Date.now();
-              const result = await this.brandVisibilityService.analyzeBrandVisibility(
-                competitor,
-                query.question
-              );
+              const result =
+                await this.brandVisibilityService.analyzeBrandVisibility(
+                  competitor,
+                  query.question,
+                );
 
               // Validate response
-              const template = await this.queryTemplateService.getTemplatesByType(query.type)
+              const template = await this.queryTemplateService
+                .getTemplatesByType(query.type)
                 .then(templates => templates[0]); // Use first template for validation
 
-              const isValid = await this.queryTemplateService.validateQueryResponse(
-                query.question,
-                result,
-                template
-              );
+              const isValid =
+                await this.queryTemplateService.validateQueryResponse(
+                  query.question,
+                  result,
+                  template,
+                );
 
               if (!isValid) {
-                this.logger.warn(`Invalid response for query ${index + 1}, skipping...`);
+                this.logger.warn(
+                  `Invalid response for query ${index + 1}, skipping...`,
+                );
                 return;
               }
 
@@ -214,7 +154,11 @@ export class DatabaseSeedingService {
                 competitorProximity,
                 knowledgeBaseMetrics,
                 trends,
-              } = this.calculateMetrics(result, competitor, industryCompetitors);
+              } = this.calculateMetrics(
+                result,
+                competitor,
+                industryCompetitors,
+              );
 
               // Save the result
               const analyticsData: DeepPartial<AnalyticsResult> = {
@@ -231,24 +175,26 @@ export class DatabaseSeedingService {
                 authorityScore: authorityScore,
                 citationFrequency: citationFrequency,
                 categoryLeadership: '0.8',
-                competitorProximity: [{
-                  competitor: 'competitor-1',
-                  distance: 0.75,
-                  relationship: 'competitor'
-                }],
+                competitorProximity: [
+                  {
+                    competitor: 'competitor-1',
+                    distance: 0.75,
+                    relationship: 'competitor',
+                  },
+                ],
                 knowledgeBaseMetrics: {
                   knowledgeBaseStrength: 0.85,
                   contextualAuthority: 0.8,
-                  topicalLeadership: []
+                  topicalLeadership: [],
                 },
                 trends: {
                   visibilityTrend: 'increasing',
                   rankingStability: 0.9,
-                  competitorDynamics: 'maintaining'
+                  competitorDynamics: 'maintaining',
                 },
                 responseMetadata: {
                   processingTime: Date.now() - startTime,
-                  confidenceScore: 0.9
+                  confidenceScore: 0.9,
                 },
                 analysis: {
                   question: query.question,
@@ -259,56 +205,56 @@ export class DatabaseSeedingService {
                       tokens: 1000,
                       rankingData: {
                         brandPosition: 1,
-                        competitorPositions: {}
-                      }
-                    }
+                        competitorPositions: {},
+                      },
+                    },
                   },
                   brandHealth: {
                     visibilityMetrics: {
                       overallVisibility: 0.85,
                       categoryRankings: {},
-                      competitorComparison: {}
+                      competitorComparison: {},
                     },
                     llmPresence: {
                       knowledgeBaseStrength: 0.9,
                       contextualAuthority: 0.85,
-                      topicalLeadership: []
+                      topicalLeadership: [],
                     },
                     trendsOverTime: {
                       visibilityTrend: 'increasing',
                       rankingStability: 0.9,
-                      competitorDynamics: 'maintaining'
-                    }
+                      competitorDynamics: 'maintaining',
+                    },
                   },
                   brandMentions: [],
                   metrics: {
                     visibilityStats: {
-                      prominenceScore: 0.85
-                    }
-                  }
+                      prominenceScore: 0.85,
+                    },
+                  },
                 },
                 metadata: {
                   version: '1.0',
                   batchId: new Date().toISOString(),
                   queryType: query.type,
-                  index: 1
-                }
+                  index: 1,
+                },
               };
 
               // Create and save using repository
               await this.analyticsResultRepository.save(analyticsData);
 
               this.logger.debug(
-                `Saved analysis result ${index + 1}/${allQueries.length} for ${competitor.name}`
+                `Saved analysis result ${index + 1}/${allQueries.length} for ${competitor.name}`,
               );
             } catch (error) {
               this.logger.error(
                 `Error processing query ${index + 1} for ${competitor.name}:`,
-                error
+                error,
               );
             }
-          })
-        )
+          }),
+        ),
       );
 
       this.logger.log(`Completed analysis for company: ${competitor.name}`);
@@ -340,18 +286,26 @@ export class DatabaseSeedingService {
     ];
 
     const questions: Array<{ type: string; question: string }> = [];
-    
+
     // Generate 150 industry queries
     for (let i = 0; i < 150; i++) {
       const type = questionTypes[i % questionTypes.length];
-      const question = this.generateQuestionByType(type, competitor, categoryCompetitors);
+      const question = this.generateQuestionByType(
+        type,
+        competitor,
+        categoryCompetitors,
+      );
       questions.push({ type: 'industry', question });
     }
 
     // Generate 150 context queries
     for (let i = 0; i < 150; i++) {
       const type = questionTypes[i % questionTypes.length];
-      const question = this.generateContextQuestionByType(type, competitor, categoryCompetitors);
+      const question = this.generateContextQuestionByType(
+        type,
+        competitor,
+        categoryCompetitors,
+      );
       questions.push({ type: 'context', question });
     }
 
@@ -413,8 +367,16 @@ export class DatabaseSeedingService {
     citationFrequency: number;
     categoryLeadership: number;
     competitorProximity: { closestCompetitor: string; distanceScore: number };
-    knowledgeBaseMetrics: { coverage: number; depth: number; uniqueness: number };
-    trends: { visibilityTrend: string; rankingStability: number; competitorDynamics: string };
+    knowledgeBaseMetrics: {
+      coverage: number;
+      depth: number;
+      uniqueness: number;
+    };
+    trends: {
+      visibilityTrend: string;
+      rankingStability: number;
+      competitorDynamics: string;
+    };
   } {
     // Calculate visibility score (0-1)
     const visibilityScore = 0.5 + Math.random() * 0.5;
@@ -437,21 +399,21 @@ export class DatabaseSeedingService {
     // Generate competitor proximity data
     const competitorProximity = {
       closestCompetitor: categoryCompetitors[0]?.name || 'unknown',
-      distanceScore: 0.75
+      distanceScore: 0.75,
     };
 
     // Generate knowledge base metrics
     const knowledgeBaseMetrics = {
       coverage: 0.85,
       depth: 0.8,
-      uniqueness: 0.75
+      uniqueness: 0.75,
     };
 
     // Generate trends data
     const trends = {
       visibilityTrend: 'increasing',
       rankingStability: 0.9,
-      competitorDynamics: 'maintaining'
+      competitorDynamics: 'maintaining',
     };
 
     return {
@@ -487,26 +449,31 @@ export class DatabaseSeedingService {
     targetEntries: number;
     progress: number;
   }> {
-    const competitor = await this.customerResearchService.getCompetitorById(companyId);
-    
+    const competitor =
+      await this.customerResearchService.getCompetitorById(companyId);
+
     const totalEntries = await this.analyticsRepository.count({
-      where: { companyId: companyId }
+      where: { companyId: companyId },
     });
 
     const targetEntries = this.configService.get('ENTRIES_PER_CUSTOMER') || 300;
-    
+
     return {
       company: competitor.name,
       totalEntries,
       targetEntries,
-      progress: (totalEntries / targetEntries) * 100
+      progress: (totalEntries / targetEntries) * 100,
     };
   }
 
-  private generateBrandMentions(content: string, competitor: CompetitorEntity, categoryCompetitors: CompetitorEntity[]): any[] {
+  private generateBrandMentions(
+    content: string,
+    competitor: CompetitorEntity,
+    categoryCompetitors: CompetitorEntity[],
+  ): any[] {
     const mentions = [];
     const sentences = content.split(/[.!?]+/);
-    
+
     sentences.forEach((sentence, i) => {
       if (sentence.toLowerCase().includes(competitor.name.toLowerCase())) {
         mentions.push({
@@ -541,13 +508,16 @@ export class DatabaseSeedingService {
     return mentions;
   }
 
-  private generateBrandHealth(competitor: CompetitorEntity, categoryCompetitors: CompetitorEntity[]): any {
+  private generateBrandHealth(
+    competitor: CompetitorEntity,
+    categoryCompetitors: CompetitorEntity[],
+  ): any {
     return {
       visibilityMetrics: {
         overallVisibility: 0.85,
         categoryRankings: {
           'market-presence': 1,
-          'innovation': 2,
+          innovation: 2,
           'customer-satisfaction': 1,
         },
         competitorComparison: Object.fromEntries(
@@ -559,7 +529,7 @@ export class DatabaseSeedingService {
                 visibility: 0.6 + Math.random() * 0.2,
                 relativeDelta: 0.1 + Math.random() * 0.15,
               },
-            ])
+            ]),
         ),
       },
       llmPresence: {
@@ -574,27 +544,48 @@ export class DatabaseSeedingService {
       trendsOverTime: {
         visibilityTrend: 'increasing',
         rankingStability: 0.9,
-        competitorDynamics: 'maintaining'
+        competitorDynamics: 'maintaining',
       },
     };
   }
 
   async seedIndustries(): Promise<void> {
     const industries = [
-      { name: 'Content Marketing', description: 'Content marketing platforms and services' },
-      { name: 'Telecommunications Software', description: 'Software for telecom operations' },
-      { name: 'Computer Hardware and Technology Solutions', description: 'Hardware and tech solutions' },
-      { name: 'Banking and Financial Services', description: 'Banking and financial services' },
-      { name: 'Financial Software', description: 'Financial software solutions' },
+      {
+        name: 'Content Marketing',
+        description: 'Content marketing platforms and services',
+      },
+      {
+        name: 'Telecommunications Software',
+        description: 'Software for telecom operations',
+      },
+      {
+        name: 'Computer Hardware and Technology Solutions',
+        description: 'Hardware and tech solutions',
+      },
+      {
+        name: 'Banking and Financial Services',
+        description: 'Banking and financial services',
+      },
+      {
+        name: 'Financial Software',
+        description: 'Financial software solutions',
+      },
       { name: 'Used Car Retail', description: 'Used car retail and services' },
       { name: 'Digital Banking', description: 'Digital banking solutions' },
-      { name: 'Online Payment Systems', description: 'Online payment solutions' },
-      { name: 'Architecture and Engineering Software', description: 'Software for architecture and engineering' }
+      {
+        name: 'Online Payment Systems',
+        description: 'Online payment solutions',
+      },
+      {
+        name: 'Architecture and Engineering Software',
+        description: 'Software for architecture and engineering',
+      },
     ];
 
     for (const industry of industries) {
       const existingIndustry = await this.industryRepository.findOne({
-        where: { name: industry.name }
+        where: { name: industry.name },
       });
 
       if (!existingIndustry) {
@@ -609,36 +600,36 @@ export class DatabaseSeedingService {
         name: 'Skyword',
         website: 'https://www.skyword.com',
         industryName: 'Content Marketing',
-        isCustomer: true
+        isCustomer: true,
       },
       {
         name: 'Percolate',
         website: 'https://www.percolate.com',
         industryName: 'Content Marketing',
-        isCustomer: false
+        isCustomer: false,
       },
       {
         name: 'NewsCred',
         website: 'https://www.newscred.com',
         industryName: 'Content Marketing',
-        isCustomer: false
+        isCustomer: false,
       },
       {
         name: 'Kapost',
         website: 'https://www.kapost.com',
         industryName: 'Content Marketing',
-        isCustomer: false
-      }
+        isCustomer: false,
+      },
     ];
 
     for (const competitor of competitors) {
       const existingCompetitor = await this.competitorRepository.findOne({
-        where: { name: competitor.name }
+        where: { name: competitor.name },
       });
 
       if (!existingCompetitor) {
         const industry = await this.industryRepository.findOne({
-          where: { name: competitor.industryName }
+          where: { name: competitor.industryName },
         });
 
         if (!industry) {
@@ -647,7 +638,7 @@ export class DatabaseSeedingService {
 
         await this.competitorRepository.save({
           ...competitor,
-          industry
+          industry,
         });
       }
     }
@@ -655,7 +646,7 @@ export class DatabaseSeedingService {
 
   async seedInitialAnalytics(): Promise<void> {
     const skyword = await this.competitorRepository.findOne({
-      where: { name: 'Skyword' }
+      where: { name: 'Skyword' },
     });
 
     if (!skyword) {
@@ -669,22 +660,24 @@ export class DatabaseSeedingService {
     }> = [
       {
         query: 'What are the leading content marketing platforms?',
-        response: 'Skyword is among the top content marketing platforms, known for enterprise solutions...',
-        type: QueryType.INDUSTRY
+        response:
+          'Skyword is among the top content marketing platforms, known for enterprise solutions...',
+        type: QueryType.INDUSTRY,
       },
       {
         query: 'How does Skyword compare to other content platforms?',
-        response: 'Compared to competitors, Skyword offers strong enterprise features...',
-        type: QueryType.COMPETITIVE
-      }
+        response:
+          'Compared to competitors, Skyword offers strong enterprise features...',
+        type: QueryType.COMPETITIVE,
+      },
     ];
 
     for (const sample of sampleResponses) {
       const existingAnalysis = await this.analyticsRepository.findOne({
         where: {
           queryText: sample.query,
-          companyId: skyword.id
-        }
+          companyId: skyword.id,
+        },
       });
 
       if (!existingAnalysis) {
@@ -702,24 +695,26 @@ export class DatabaseSeedingService {
           authorityScore: 0.8,
           citationFrequency: 0.75,
           categoryLeadership: '0.8',
-          competitorProximity: [{
-            competitor: 'competitor-1',
-            distance: 0.75,
-            relationship: 'competitor'
-          }],
+          competitorProximity: [
+            {
+              competitor: 'competitor-1',
+              distance: 0.75,
+              relationship: 'competitor',
+            },
+          ],
           knowledgeBaseMetrics: {
             knowledgeBaseStrength: 0.85,
             contextualAuthority: 0.8,
-            topicalLeadership: []
+            topicalLeadership: [],
           },
           trends: {
             visibilityTrend: 'increasing',
             rankingStability: 0.9,
-            competitorDynamics: 'maintaining'
+            competitorDynamics: 'maintaining',
           },
           responseMetadata: {
             processingTime: 2000,
-            confidenceScore: 0.9
+            confidenceScore: 0.9,
           },
           analysis: {
             question: sample.query,
@@ -727,34 +722,34 @@ export class DatabaseSeedingService {
               content: sample.response,
               metadata: {
                 model: 'gpt-4',
-                tokens: 1000
-              }
+                tokens: 1000,
+              },
             },
             brandHealth: {
               visibilityMetrics: {
                 overallVisibility: 0.85,
                 categoryRankings: {},
-                competitorComparison: {}
+                competitorComparison: {},
               },
               llmPresence: {
                 knowledgeBaseStrength: 0.9,
                 contextualAuthority: 0.85,
-                topicalLeadership: []
+                topicalLeadership: [],
               },
               trendsOverTime: {
                 visibilityTrend: 'increasing',
                 rankingStability: 0.9,
-                competitorDynamics: 'maintaining'
-              }
+                competitorDynamics: 'maintaining',
+              },
             },
-            brandMentions: []
+            brandMentions: [],
           },
           metadata: {
             version: '1.0',
             batchId: new Date().toISOString(),
             queryType: sample.type,
-            index: 1
-          }
+            index: 1,
+          },
         };
 
         await this.analyticsResultRepository.save(analyticsData);
@@ -764,7 +759,7 @@ export class DatabaseSeedingService {
 
   async seedAnalytics(skyword: any): Promise<void> {
     const existing = await this.analyticsResultRepository.findOne({
-      where: { companyId: skyword.id }
+      where: { companyId: skyword.id },
     });
 
     if (existing) {
@@ -772,7 +767,7 @@ export class DatabaseSeedingService {
     }
 
     const sample = this.generateSampleData();
-    
+
     const analyticsData: DeepPartial<AnalyticsResult> = {
       companyId: skyword.id,
       queryType: QueryType.INDUSTRY,
@@ -787,24 +782,26 @@ export class DatabaseSeedingService {
       authorityScore: 0.8,
       citationFrequency: 0.75,
       categoryLeadership: '0.8',
-      competitorProximity: [{
-        competitor: 'competitor-1',
-        distance: 0.75,
-        relationship: 'competitor'
-      }],
+      competitorProximity: [
+        {
+          competitor: 'competitor-1',
+          distance: 0.75,
+          relationship: 'competitor',
+        },
+      ],
       knowledgeBaseMetrics: {
         knowledgeBaseStrength: 0.85,
         contextualAuthority: 0.8,
-        topicalLeadership: []
+        topicalLeadership: [],
       },
       trends: {
         visibilityTrend: 'increasing',
         rankingStability: 0.9,
-        competitorDynamics: 'maintaining'
+        competitorDynamics: 'maintaining',
       },
       responseMetadata: {
         processingTime: 1500,
-        confidenceScore: 0.9
+        confidenceScore: 0.9,
       },
       analysis: {
         question: sample.query,
@@ -812,34 +809,34 @@ export class DatabaseSeedingService {
           content: sample.response,
           metadata: {
             model: 'gpt-4',
-            tokens: 1000
-          }
+            tokens: 1000,
+          },
         },
         brandHealth: {
           visibilityMetrics: {
             overallVisibility: 0.85,
             categoryRankings: {},
-            competitorComparison: {}
+            competitorComparison: {},
           },
           llmPresence: {
             knowledgeBaseStrength: 0.9,
             contextualAuthority: 0.85,
-            topicalLeadership: []
+            topicalLeadership: [],
           },
           trendsOverTime: {
             visibilityTrend: 'increasing',
             rankingStability: 0.9,
-            competitorDynamics: 'maintaining'
-          }
+            competitorDynamics: 'maintaining',
+          },
         },
-        brandMentions: []
+        brandMentions: [],
       },
       metadata: {
         version: '1.0',
         batchId: new Date().toISOString(),
         queryType: QueryType.INDUSTRY,
-        index: 1
-      }
+        index: 1,
+      },
     };
 
     await this.analyticsResultRepository.save(analyticsData);
@@ -847,14 +844,14 @@ export class DatabaseSeedingService {
 
   private generateSampleData() {
     return {
-      query: 'What is Skyword\'s market position in content marketing?',
-      response: 'Skyword is a leading enterprise content marketing platform...'
+      query: "What is Skyword's market position in content marketing?",
+      response: 'Skyword is a leading enterprise content marketing platform...',
     };
   }
 
   async seedSampleData(): Promise<void> {
     const existingAnalytics = await this.analyticsResultRepository.findOne({
-      where: { companyId: 'sample-company-1' }
+      where: { companyId: 'sample-company-1' },
     });
 
     if (!existingAnalytics) {
@@ -872,24 +869,26 @@ export class DatabaseSeedingService {
         authorityScore: 0.85,
         citationFrequency: 0.75,
         categoryLeadership: '0.8',
-        competitorProximity: [{
-          competitor: 'competitor-1',
-          distance: 0.75,
-          relationship: 'competitor'
-        }],
+        competitorProximity: [
+          {
+            competitor: 'competitor-1',
+            distance: 0.75,
+            relationship: 'competitor',
+          },
+        ],
         knowledgeBaseMetrics: {
           knowledgeBaseStrength: 0.85,
           contextualAuthority: 0.8,
-          topicalLeadership: []
+          topicalLeadership: [],
         },
         trends: {
           visibilityTrend: 'increasing',
           rankingStability: 0.9,
-          competitorDynamics: 'maintaining'
+          competitorDynamics: 'maintaining',
         },
         responseMetadata: {
           processingTime: 1500,
-          confidenceScore: 0.9
+          confidenceScore: 0.9,
         },
         analysis: {
           question: 'What are the key trends in sustainable energy?',
@@ -897,37 +896,37 @@ export class DatabaseSeedingService {
             content: 'The key trends in sustainable energy include...',
             metadata: {
               model: 'gpt-4',
-              tokens: 1000
-            }
+              tokens: 1000,
+            },
           },
           brandHealth: {
             visibilityMetrics: {
               overallVisibility: 0.85,
               categoryRankings: {},
-              competitorComparison: {}
+              competitorComparison: {},
             },
             llmPresence: {
               knowledgeBaseStrength: 0.9,
               contextualAuthority: 0.85,
-              topicalLeadership: []
+              topicalLeadership: [],
             },
             trendsOverTime: {
               visibilityTrend: 'increasing',
               rankingStability: 0.9,
-              competitorDynamics: 'maintaining'
-            }
+              competitorDynamics: 'maintaining',
+            },
           },
-          brandMentions: []
+          brandMentions: [],
         },
         metadata: {
           version: '1.0',
           batchId: new Date().toISOString(),
           queryType: QueryType.INDUSTRY,
-          index: 1
-        }
+          index: 1,
+        },
       };
 
       await this.analyticsResultRepository.save(sampleData);
     }
   }
-} 
+}

@@ -1,4 +1,4 @@
-import { Repository, DeepPartial, FindOptionsWhere } from 'typeorm';
+import { Repository, DeepPartial, FindOneOptions } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -62,4 +62,4 @@ export abstract class BaseRepository<T> {
   async save(entity: T): Promise<T> {
     return this.repository.save(entity);
   }
-} 
+}

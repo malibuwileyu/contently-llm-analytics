@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
+import { SupabaseService } from '@/supabase/supabase.service';
 
 const { UserEntity } = require('./entities/user.entity');
 type User = typeof UserEntity;
@@ -18,7 +19,7 @@ export class AuthService {
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
   ) {
     this.authConfig = this.configService.get<AuthConfig>('auth');
   }

@@ -1,17 +1,27 @@
 import * as typeorm from 'typeorm';
 
 @typeorm.Entity('users')
-class UserEntity {
+export class UserEntity {
   @typeorm.PrimaryGeneratedColumn('uuid')
   id: string;
 
   @typeorm.Column({ length: 255, unique: true })
   email: string;
 
+  @typeorm.Column({ length: 255 })
+  name: string;
+
   @typeorm.Column({ length: 255, nullable: true })
   password: string;
 
-  @typeorm.Column({ name: 'raw_user_meta_data', type: process.env.NODE_ENV === 'test' ? 'simple-json' : 'jsonb', nullable: true })
+  @typeorm.Column({ type: 'uuid', nullable: true })
+  companyId?: string;
+
+  @typeorm.Column({
+    name: 'raw_user_meta_data',
+    type: process.env.NODE_ENV === 'test' ? 'simple-json' : 'jsonb',
+    nullable: true,
+  })
   metadata: {
     firstName?: string;
     lastName?: string;
@@ -28,16 +38,29 @@ class UserEntity {
   @typeorm.Column({ name: 'is_admin', default: false })
   isAdmin: boolean;
 
-  @typeorm.Column({ name: 'confirmed_at', type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp', nullable: true })
+  @typeorm.Column({
+    name: 'confirmed_at',
+    type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp',
+    nullable: true,
+  })
   confirmedAt: Date;
 
-  @typeorm.Column({ type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp', nullable: true })
+  @typeorm.Column({
+    type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp',
+    nullable: true,
+  })
   lastSignInAt: Date;
 
-  @typeorm.Column({ type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @typeorm.Column({
+    type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 
-  @typeorm.Column({ type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @typeorm.Column({
+    type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   updatedAt: Date;
 
   // Helper getters for metadata
@@ -62,4 +85,5 @@ class UserEntity {
   }
 }
 
-module.exports = { UserEntity }; 
+// For CommonJS compatibility
+module.exports = { UserEntity };
