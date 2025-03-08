@@ -9,11 +9,11 @@ applications:
             - rm -rf node_modules package-lock.json
             - npm cache clean --force
             # Install build dependencies first
-            - npm install --no-package-lock webpack webpack-cli ts-loader @nestjs/testing webpack-node-externals
+            - npm install --save webpack webpack-cli ts-loader @nestjs/testing webpack-node-externals typescript
             # Then install everything else
-            - npm install --no-package-lock --legacy-peer-deps
-            # Verify webpack is installed
-            - node -e "require.resolve('webpack')"
+            - npm install --legacy-peer-deps
+            # List installed packages to verify
+            - npm list webpack webpack-cli ts-loader
         build:
           commands:
             - npm run build
