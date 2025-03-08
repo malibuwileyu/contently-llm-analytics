@@ -8,10 +8,19 @@ applications:
             # Clean install
             - rm -rf node_modules package-lock.json
             - npm cache clean --force
-            # Install webpack globally
-            - npm install -g webpack webpack-cli
+            # Install webpack and dependencies globally
+            - npm install -g webpack webpack-cli webpack-node-externals
             # Install all dependencies
             - npm install --legacy-peer-deps
+            # Install webpack-node-externals explicitly in case it was missed
+            - npm install webpack-node-externals@3.0.0
+            # Check what's installed
+            - echo "Checking basic directory structure..."
+            - ls -la node_modules/
+            - echo "Checking for any webpack files..."
+            - find node_modules -name "webpack*" -ls || true
+            - echo "Checking package.json..."
+            - cat package.json | grep webpack
             # Verify webpack installation
             - webpack --version
         build:
