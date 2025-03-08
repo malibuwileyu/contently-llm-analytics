@@ -1,0 +1,18 @@
+version: 1
+applications:
+  - appRoot: .
+    backend:
+      phases:
+        preBuild:
+          commands:
+            - npm install -g @nestjs/cli
+            - npm ci --legacy-peer-deps
+        build:
+          commands:
+            - npm run build
+    frontend:
+      phases:
+        preBuild:
+          commands: []
+        build:
+          commands: [] 
