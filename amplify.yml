@@ -9,8 +9,12 @@ applications:
             - rm -rf node_modules package-lock.json
             - npm cache clean --force
             # Install dependencies
-            - npm install --no-package-lock --legacy-peer-deps
+            - npm ci --legacy-peer-deps
             - npm install -g @nestjs/cli
+            # Verify critical dependencies
+            - npm ls ts-loader webpack @nestjs/testing || true
+            # Link global @nestjs/cli
+            - npm link @nestjs/cli
         build:
           commands:
             - npm run build
