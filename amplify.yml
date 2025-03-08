@@ -10,9 +10,13 @@ applications:
             - npm cache clean --force
             # Install all dependencies
             - npm install --legacy-peer-deps
-            # Verify webpack-cli is installed
-            - ls -la node_modules/webpack-cli/bin/cli.js || true
-            - npm list webpack webpack-cli || true
+            # Check what's installed
+            - echo "Checking node_modules structure..."
+            - ls -la node_modules/webpack*
+            - echo "Checking webpack-cli structure..."
+            - ls -la node_modules/webpack-cli/
+            - echo "Checking bin directories..."
+            - ls -la node_modules/.bin/
         build:
           commands:
             - npm run build
