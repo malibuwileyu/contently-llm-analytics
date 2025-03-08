@@ -5,16 +5,16 @@ applications:
       phases:
         preBuild:
           commands:
-            - npm ci --legacy-peer-deps
+            # Clean install
+            - rm -rf node_modules package-lock.json
+            - npm cache clean --force
+            # Install all dependencies at once to ensure correct dependency tree
+            - npm install --legacy-peer-deps
             - npm install -g @nestjs/cli
-            # Install build dependencies
-            - npm install --save-dev webpack@5.97.1 webpack-cli@5.1.4 ts-loader@9.5.1
-            # Install test dependencies
-            - npm install --save-dev @nestjs/testing@10.0.0
-            # Install runtime dependencies
-            - npm install @supabase/supabase-js@2.39.3
-            # Verify ts-loader is available
-            - npm ls ts-loader
+            - npm install --save-dev webpack@5.97.1 webpack-cli@5.1.4 ts-loader@9.5.1 @nestjs/testing@10.0.0 @types/node@18.18.2
+            - npm install --save @supabase/supabase-js@2.39.3
+            # Verify critical dependencies
+            - npm list webpack ts-loader @nestjs/testing || true
         build:
           commands:
             - npm run build
