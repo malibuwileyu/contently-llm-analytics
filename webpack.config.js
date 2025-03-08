@@ -1,11 +1,21 @@
 const path = require('path');
-const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   entry: './src/main.ts',
   target: 'node',
   mode: 'production',
-  externals: [nodeExternals()],
+  externals: {
+    '@nestjs/common': 'commonjs @nestjs/common',
+    '@nestjs/core': 'commonjs @nestjs/core',
+    '@nestjs/platform-express': 'commonjs @nestjs/platform-express',
+    '@nestjs/typeorm': 'commonjs @nestjs/typeorm',
+    'typeorm': 'commonjs typeorm',
+    'cache-manager': 'commonjs cache-manager',
+    'class-transformer': 'commonjs class-transformer',
+    'class-validator': 'commonjs class-validator',
+    'express': 'commonjs express',
+    'reflect-metadata': 'commonjs reflect-metadata'
+  },
   module: {
     rules: [
       {
