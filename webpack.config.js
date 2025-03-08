@@ -9,6 +9,9 @@ module.exports = {
     '@nestjs/core': 'commonjs @nestjs/core',
     '@nestjs/platform-express': 'commonjs @nestjs/platform-express',
     '@nestjs/typeorm': 'commonjs @nestjs/typeorm',
+    '@nestjs/testing': 'commonjs @nestjs/testing',
+    '@nestjs/config': 'commonjs @nestjs/config',
+    '@supabase/supabase-js': 'commonjs @supabase/supabase-js',
     'typeorm': 'commonjs typeorm',
     'cache-manager': 'commonjs cache-manager',
     'class-transformer': 'commonjs class-transformer',
@@ -24,6 +27,7 @@ module.exports = {
           loader: 'ts-loader',
           options: {
             transpileOnly: true,
+            configFile: path.resolve(__dirname, 'tsconfig.json')
           },
         },
         exclude: /node_modules/,
