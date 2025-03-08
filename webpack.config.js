@@ -1,5 +1,4 @@
 const path = require('path');
-const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   entry: './src/main.ts',
@@ -31,7 +30,7 @@ module.exports = {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist')
   },
-  externals: [nodeExternals(), {
+  externals: {
     '@nestjs/common': 'commonjs @nestjs/common',
     '@nestjs/core': 'commonjs @nestjs/core',
     '@nestjs/testing': 'commonjs @nestjs/testing',
@@ -44,6 +43,18 @@ module.exports = {
     'class-transformer': 'commonjs class-transformer',
     'class-validator': 'commonjs class-validator',
     'express': 'commonjs express',
-    'reflect-metadata': 'commonjs reflect-metadata'
-  }]
+    'reflect-metadata': 'commonjs reflect-metadata',
+    'webpack-node-externals': 'commonjs webpack-node-externals',
+    'fs': 'commonjs fs',
+    'path': 'commonjs path',
+    'os': 'commonjs os',
+    'crypto': 'commonjs crypto',
+    'stream': 'commonjs stream',
+    'zlib': 'commonjs zlib',
+    'http': 'commonjs http',
+    'https': 'commonjs https',
+    'net': 'commonjs net',
+    'tls': 'commonjs tls',
+    'child_process': 'commonjs child_process'
+  }
 } 
