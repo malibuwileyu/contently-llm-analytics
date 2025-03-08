@@ -11,8 +11,8 @@ applications:
             - echo "Node and npm versions:"
             - node --version
             - npm --version
-            # Install all dependencies in one step
-            - npm ci
+            # Install dependencies with exact versions from package.json
+            - npm install --no-package-lock
             - echo "Verifying critical dependencies:"
             - npm list webpack webpack-cli ts-loader typescript || true
             - echo "Webpack version:"
