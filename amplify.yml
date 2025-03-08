@@ -7,6 +7,7 @@ applications:
           commands:
             - npm ci --legacy-peer-deps
             - npm install -g @nestjs/cli
+            - npm install --save-dev webpack-node-externals
         build:
           commands:
             - npm run build
