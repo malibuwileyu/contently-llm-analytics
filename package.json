@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "npx node_modules/webpack-cli/bin/cli.js --config webpack.config.js",
+    "build": "webpack --config webpack.config.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "cross-env NODE_ENV=development ts-node-dev -r tsconfig-paths/register --respawn --transpile-only src/main.ts",
