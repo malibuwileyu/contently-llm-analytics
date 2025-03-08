@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "prebuild": "npm install --save-dev webpack webpack-cli ts-loader @nestjs/testing",
-    "build": "npx webpack --config webpack.config.js",
+    "build": "./node_modules/.bin/webpack --config webpack.config.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "cross-env NODE_ENV=development ts-node-dev -r tsconfig-paths/register --respawn --transpile-only src/main.ts",
