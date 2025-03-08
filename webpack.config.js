@@ -1,4 +1,5 @@
 const path = require('path');
+const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   entry: './src/main.ts',
@@ -30,14 +31,19 @@ module.exports = {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist')
   },
-  externals: [
-    '@nestjs/common',
-    '@nestjs/core',
-    '@nestjs/testing',
-    '@nestjs/platform-express',
-    '@supabase/supabase-js',
-    'cache-manager',
-    'class-transformer',
-    'class-validator'
-  ]
+  externals: [nodeExternals(), {
+    '@nestjs/common': 'commonjs @nestjs/common',
+    '@nestjs/core': 'commonjs @nestjs/core',
+    '@nestjs/testing': 'commonjs @nestjs/testing',
+    '@nestjs/platform-express': 'commonjs @nestjs/platform-express',
+    '@nestjs/config': 'commonjs @nestjs/config',
+    '@nestjs/typeorm': 'commonjs @nestjs/typeorm',
+    '@supabase/supabase-js': 'commonjs @supabase/supabase-js',
+    'typeorm': 'commonjs typeorm',
+    'cache-manager': 'commonjs cache-manager',
+    'class-transformer': 'commonjs class-transformer',
+    'class-validator': 'commonjs class-validator',
+    'express': 'commonjs express',
+    'reflect-metadata': 'commonjs reflect-metadata'
+  }]
 } 
