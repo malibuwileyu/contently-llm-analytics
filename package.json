@@ -105,7 +105,6 @@
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.4.15",
     "@nestjs/typeorm": "^11.0.0",
-    "@nestjs/websockets": "^11.0.10",
     "@supabase/supabase-js": "^2.49.1",
     "@swc/cli": "^0.5.2",
     "@swc/core": "^1.11.7",

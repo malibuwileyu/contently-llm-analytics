@@ -3,7 +3,10 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { BrandVisibilityService } from '../../src/analytics/services/brand-visibility.service';
 import { OpenAIProviderService } from '../../src/modules/ai-provider/services/openai-provider.service';
-import { QuestionValidatorService } from '../../src/analytics/services/question-validator.service';
+import {
+  QuestionValidatorService,
+  QuestionValidation,
+} from '../../src/analytics/services/question-validator.service';
 import { NLPService } from '../../src/modules/nlp/nlp.service';
 import { CompetitorEntity } from '../../src/modules/brand-analytics/entities/competitor.entity';
 import { IndustryEntity } from '../../src/modules/brand-analytics/entities/industry.entity';
@@ -131,19 +134,19 @@ describe('BrandVisibilityService - Batch Processing', () => {
     complete: jest.fn(),
   };
 
-  const mockQuestionValidator: Partial<QuestionValidatorService> = {
-    validateQuestions: jest.fn().mockImplementation((questions: string[]) => {
-      return Promise.resolve(
+  const mockQuestionValidator = {
+    validateQuestions: jest.fn((questions: string[]) =>
+      Promise.resolve(
         questions.map(q => ({
           question: q,
           isRelevant: true,
           relevanceScore: 0.9,
-          category: 'brand-visibility',
+          category: 'brand-visibility' as const,
           isBrandAgnostic: true,
         })),
-      );
-    }),
-  };
+      ),
+    ),
+  } satisfies Partial<QuestionValidatorService>;
 
   const mockNLPService = {
     analyzeBrand: jest.fn(),
@@ -231,6 +234,19 @@ describe('BrandVisibilityService - Batch Processing', () => {
 
     await industryRepo.save(testIndustry);
     await competitorRepo.save(testCompany);
+
+    mockQuestionValidator.validateQuestions.mockImplementation(
+      (questions: string[]) =>
+        Promise.resolve(
+          questions.map(q => ({
+            question: q,
+            isRelevant: true,
+            relevanceScore: 0.9,
+            category: 'brand-visibility' as const,
+            isBrandAgnostic: true,
+          })),
+        ),
+    );
   });
 
   afterEach(async () => {
