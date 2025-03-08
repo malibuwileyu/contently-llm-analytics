@@ -5,14 +5,24 @@ applications:
       phases:
         preBuild:
           commands:
-            - npm install -g @nestjs/cli
             - npm ci --legacy-peer-deps
+            - npm install -g @nestjs/cli
         build:
           commands:
             - npm run build
+      artifacts:
+        baseDirectory: dist
+        files:
+          - '**/*'
     frontend:
       phases:
         preBuild:
-          commands: []
+          commands:
+            - echo "No frontend build needed"
         build:
-          commands: [] 
+          commands:
+            - echo "No frontend build needed"
+      artifacts:
+        baseDirectory: /
+        files:
+          - '**/*' 
