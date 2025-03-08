@@ -29,7 +29,7 @@
     "test:all": "npm run lint && npm test && npm run test:e2e",
     "test:all:cov": "npm run lint && npm run test:cov && npm run test:e2e",
     "fix:lint": "node scripts/fix-lint-issues.js",
-    "prepare": "husky install",
+    "prepare": "exit 0",
     "seed:brand-analytics": "node scripts/seed-brand-analytics.js",
     "seed": "ts-node src/cli.ts seed-database",
     "seed:watch": "ts-node src/cli.ts seed-database --watch",
@@ -71,7 +71,6 @@
     "@types/cache-manager": "^4.0.6",
     "@types/joi": "^17.2.3",
     "@types/passport-google-oauth20": "^2.0.16",
-    "apollo-server-express": "^3.13.0",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "cache-manager": "^6.4.1",
@@ -95,7 +94,8 @@
     "socket.io": "^4.8.1",
     "supabase-cli": "^0.0.21",
     "uuid": "^11.1.0",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "graphql-ws": "^5.14.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.0",
