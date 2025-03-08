@@ -1,15 +1,10 @@
 const path = require('path');
-let nodeExternals;
-try {
-  nodeExternals = require('webpack-node-externals');
-} catch (e) {
-  console.warn('webpack-node-externals not found, falling back to empty externals');
-  nodeExternals = () => ({});
-}
+const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   entry: './src/main.ts',
   target: 'node',
+  mode: 'production',
   externals: [nodeExternals()],
   module: {
     rules: [
@@ -30,6 +25,10 @@ module.exports = {
     alias: {
       '@': path.resolve(__dirname, 'src/'),
     },
+    modules: [
+      path.resolve(__dirname, 'node_modules'),
+      'node_modules'
+    ]
   },
   output: {
     filename: 'main.js',
