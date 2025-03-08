@@ -24,23 +24,23 @@ applications:
             - echo "NPM Config:" && npm config list
             - echo "Node version:" && node --version
             - echo "NPM version:" && npm --version
-            # Install dependencies
+            # Install ts-loader first to ensure it's in node_modules
+            - npm install --save-dev ts-loader@9.5.1 typescript webpack webpack-cli --legacy-peer-deps
+            - echo "Checking ts-loader installation:"
+            - npm list ts-loader
+            # Now install remaining dependencies
             - npm install --legacy-peer-deps
-            - echo "Installed dependencies"
-            # Install webpack tools globally
-            - npm install -g webpack webpack-cli typescript ts-loader@9.5.1
-            - echo "Webpack version:" && webpack --version
-            - echo "TypeScript version:" && tsc --version
-            # Final verification
-            - echo "Final dependency check..."
-            - npm list webpack ts-loader typescript || true
-            - echo "Directory structure:"
-            - ls -la node_modules/ts-loader || echo "ts-loader not found!"
+            - echo "Installed remaining dependencies"
+            # Verify critical dependencies
+            - echo "Verifying webpack and ts-loader versions..."
+            - npm list webpack ts-loader typescript
+            - echo "Checking ts-loader in node_modules:"
+            - ls -la node_modules/ts-loader
             - echo "Using tsconfig.build.json:"
             - cat tsconfig.build.json
         build:
           commands:
-            - WEBPACK_CONFIG="webpack.config.js" npm run build
+            - npm run build
       artifacts:
         baseDirectory: dist
         files:
