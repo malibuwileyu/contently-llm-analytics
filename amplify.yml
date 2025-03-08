@@ -8,12 +8,12 @@ applications:
             # Clean install
             - rm -rf node_modules package-lock.json
             - npm cache clean --force
-            # Install build dependencies first
-            - npm install --save webpack webpack-cli ts-loader @nestjs/testing webpack-node-externals typescript
-            # Then install everything else
+            # Install all dependencies
             - npm install --legacy-peer-deps
-            # List installed packages to verify
-            - npm list webpack webpack-cli ts-loader
+            # Create symlinks for binaries
+            - npm rebuild
+            # Add npm bin to PATH
+            - export PATH="$PATH:$(npm bin)"
         build:
           commands:
             - npm run build
