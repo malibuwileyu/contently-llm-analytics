@@ -5,45 +5,23 @@ applications:
       phases:
         preBuild:
           commands:
-            # Clean install
-            - rm -rf node_modules package-lock.json
-            - npm cache clean --force
             # Debug environment
             - pwd
             - ls -la
             - echo "Node and npm versions:"
             - node --version
             - npm --version
-            # Create temporary tsconfig with skipLibCheck
-            - |
-              echo '{
-                "compilerOptions": {
-                  "skipLibCheck": true,
-                  "target": "es5",
-                  "module": "commonjs",
-                  "strict": true,
-                  "esModuleInterop": true,
-                  "moduleResolution": "node"
-                }
-              }' > tsconfig.build.json
-            # Install dependencies with verbose logging
-            - echo "Installing ts-loader and core dependencies..."
-            - npm install --save-dev ts-loader@9.5.1 typescript@4.4.4 webpack@5.97.1 webpack-cli@5.1.4 --verbose --legacy-peer-deps
-            - echo "Verifying package.json after core install:"
-            - cat package.json
-            - echo "Checking ts-loader installation:"
-            - npm list ts-loader || true
-            - echo "Installing remaining dependencies..."
-            - npm install --legacy-peer-deps --verbose
-            - echo "Final dependency check:"
-            - npm list ts-loader webpack typescript || true
-            - echo "Node modules contents:"
-            - ls -la node_modules/
+            # Install all dependencies in one step
+            - npm ci
+            - echo "Verifying critical dependencies:"
+            - npm list webpack webpack-cli ts-loader typescript || true
+            - echo "Webpack version:"
+            - npx webpack --version
             - echo "Webpack config:"
             - cat webpack.config.js
         build:
           commands:
-            - npm run build
+            - npx webpack --config webpack.config.js
       artifacts:
         baseDirectory: dist
         files:
