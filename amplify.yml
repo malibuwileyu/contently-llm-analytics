@@ -9,9 +9,11 @@ applications:
             - rm -rf node_modules package-lock.json
             - npm cache clean --force
             # Install webpack and dependencies globally
-            - npm install -g webpack webpack-cli
+            - npm install -g webpack webpack-cli ts-loader typescript
             # Install all dependencies
             - npm install --legacy-peer-deps
+            # Ensure ts-loader is installed
+            - npm install --save-dev ts-loader@9.5.1
             # Check what's installed
             - echo "Checking basic directory structure..."
             - ls -la node_modules/
@@ -21,6 +23,9 @@ applications:
             - cat package.json | grep webpack
             # Verify webpack installation
             - webpack --version
+            # Verify TypeScript and ts-loader
+            - tsc --version
+            - ls -la node_modules/ts-loader
         build:
           commands:
             - npm run build
