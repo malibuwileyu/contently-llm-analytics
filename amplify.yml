@@ -8,24 +8,24 @@ applications:
             # Clean install
             - rm -rf node_modules package-lock.json
             - npm cache clean --force
-            # Install webpack and dependencies globally
-            - npm install -g webpack webpack-cli ts-loader typescript
-            # Install all dependencies
+            # First install TypeScript globally
+            - npm install -g typescript
+            - echo "TypeScript version:" && tsc --version
+            # Then install webpack and its CLI
+            - npm install -g webpack webpack-cli
+            - echo "Webpack version:" && webpack --version
+            # Install project dependencies first
             - npm install --legacy-peer-deps
-            # Ensure ts-loader is installed
-            - npm install --save-dev ts-loader@9.5.1
-            # Check what's installed
-            - echo "Checking basic directory structure..."
-            - ls -la node_modules/
-            - echo "Checking for any webpack files..."
-            - find node_modules -name "webpack*" -ls || true
-            - echo "Checking package.json..."
-            - cat package.json | grep webpack
-            # Verify webpack installation
-            - webpack --version
-            # Verify TypeScript and ts-loader
-            - tsc --version
-            - ls -la node_modules/ts-loader
+            - echo "Installed main dependencies"
+            # Now install ts-loader explicitly
+            - npm install ts-loader@9.5.1 --save-dev --legacy-peer-deps
+            - echo "Verifying ts-loader installation..."
+            - npm list ts-loader
+            # Additional debug info
+            - echo "Checking node_modules structure..."
+            - ls -la node_modules/ts-loader || echo "ts-loader directory not found"
+            - echo "Checking webpack dependencies..."
+            - npm list webpack webpack-cli ts-loader
         build:
           commands:
             - npm run build
