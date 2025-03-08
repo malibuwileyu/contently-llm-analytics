@@ -1,5 +1,11 @@
 const path = require('path');
-const nodeExternals = require('webpack-node-externals');
+let nodeExternals;
+try {
+  nodeExternals = require('webpack-node-externals');
+} catch (e) {
+  console.warn('webpack-node-externals not found, falling back to empty externals');
+  nodeExternals = () => ({});
+}
 
 module.exports = {
   entry: './src/main.ts',
