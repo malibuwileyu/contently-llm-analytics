@@ -96,7 +96,8 @@
     "socket.io": "^4.8.1",
     "supabase-cli": "^0.0.21",
     "uuid": "^11.1.0",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "@supabase/supabase-js": "2.39.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.0",
@@ -104,14 +105,13 @@
     "@eslint/js": "^9.21.0",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
-    "@nestjs/testing": "^10.0.0",
+    "@nestjs/testing": "10.0.0",
     "@nestjs/typeorm": "^10.0.0",
-    "@supabase/supabase-js": "^2.49.1",
     "@swc/cli": "^0.5.2",
     "@swc/core": "^1.11.7",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.14",
-    "@types/node": "^20.17.23",
+    "@types/node": "18.18.2",
     "@types/pg": "^8.11.11",
     "@types/supertest": "^2.0.16",
     "@types/uuid": "^10.0.0",
@@ -132,15 +132,15 @@
     "sqlite3": "^5.1.7",
     "supertest": "^6.3.4",
     "ts-jest": "^29.2.6",
-    "ts-loader": "^9.5.2",
+    "ts-loader": "9.5.1",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
     "typeorm": "^0.3.21",
     "typescript": "^5.8.2",
-    "webpack": "^5.98.0",
-    "webpack-cli": "^6.0.1",
-    "webpack-node-externals": "^3.0.0",
-    "yargs": "^16.2.0"
+    "webpack": "5.97.1",
+    "webpack-cli": "5.1.4",
+    "webpack-node-externals": "3.0.0",
+    "yargs": "16.2.0"
   }
 }
