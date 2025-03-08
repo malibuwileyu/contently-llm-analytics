@@ -8,6 +8,12 @@ applications:
             # Clean install
             - rm -rf node_modules package-lock.json
             - npm cache clean --force
+            # Debug environment
+            - pwd
+            - ls -la
+            - echo "Node and npm versions:"
+            - node --version
+            - npm --version
             # Create temporary tsconfig with skipLibCheck
             - |
               echo '{
@@ -20,24 +26,21 @@ applications:
                   "moduleResolution": "node"
                 }
               }' > tsconfig.build.json
-            # Debug npm config
-            - echo "NPM Config:" && npm config list
-            - echo "Node version:" && node --version
-            - echo "NPM version:" && npm --version
-            # Install ts-loader first to ensure it's in node_modules
-            - npm install --save-dev ts-loader@9.5.1 typescript webpack webpack-cli --legacy-peer-deps
+            # Install dependencies with verbose logging
+            - echo "Installing ts-loader and core dependencies..."
+            - npm install --save-dev ts-loader@9.5.1 typescript@4.4.4 webpack@5.97.1 webpack-cli@5.1.4 --verbose --legacy-peer-deps
+            - echo "Verifying package.json after core install:"
+            - cat package.json
             - echo "Checking ts-loader installation:"
-            - npm list ts-loader
-            # Now install remaining dependencies
-            - npm install --legacy-peer-deps
-            - echo "Installed remaining dependencies"
-            # Verify critical dependencies
-            - echo "Verifying webpack and ts-loader versions..."
-            - npm list webpack ts-loader typescript
-            - echo "Checking ts-loader in node_modules:"
-            - ls -la node_modules/ts-loader
-            - echo "Using tsconfig.build.json:"
-            - cat tsconfig.build.json
+            - npm list ts-loader || true
+            - echo "Installing remaining dependencies..."
+            - npm install --legacy-peer-deps --verbose
+            - echo "Final dependency check:"
+            - npm list ts-loader webpack typescript || true
+            - echo "Node modules contents:"
+            - ls -la node_modules/
+            - echo "Webpack config:"
+            - cat webpack.config.js
         build:
           commands:
             - npm run build
