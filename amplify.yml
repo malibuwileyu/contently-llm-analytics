@@ -8,34 +8,39 @@ applications:
             # Clean install
             - rm -rf node_modules package-lock.json
             - npm cache clean --force
+            # Create temporary tsconfig with skipLibCheck
+            - |
+              echo '{
+                "compilerOptions": {
+                  "skipLibCheck": true,
+                  "target": "es5",
+                  "module": "commonjs",
+                  "strict": true,
+                  "esModuleInterop": true,
+                  "moduleResolution": "node"
+                }
+              }' > tsconfig.build.json
             # Debug npm config
             - echo "NPM Config:" && npm config list
             - echo "Node version:" && node --version
             - echo "NPM version:" && npm --version
-            # First install TypeScript globally
-            - npm install -g typescript
-            - echo "TypeScript version:" && tsc --version
-            # Then install webpack and its CLI
-            - npm install -g webpack webpack-cli
-            - echo "Webpack version:" && webpack --version
-            # Install ts-loader first as direct dependency
-            - npm install ts-loader@9.5.1 --save --legacy-peer-deps
-            - echo "Checking ts-loader package..."
-            - npm list ts-loader || true
-            - ls -la node_modules/ts-loader || echo "ts-loader not found in node_modules"
-            # Now install remaining project dependencies
+            # Install dependencies
             - npm install --legacy-peer-deps
-            - echo "Installed main dependencies"
+            - echo "Installed dependencies"
+            # Install webpack tools globally
+            - npm install -g webpack webpack-cli typescript ts-loader@9.5.1
+            - echo "Webpack version:" && webpack --version
+            - echo "TypeScript version:" && tsc --version
             # Final verification
             - echo "Final dependency check..."
             - npm list webpack ts-loader typescript || true
             - echo "Directory structure:"
-            - ls -la node_modules/ts-loader || echo "ts-loader still not found!"
-            - echo "Package.json contents:"
-            - cat package.json
+            - ls -la node_modules/ts-loader || echo "ts-loader not found!"
+            - echo "Using tsconfig.build.json:"
+            - cat tsconfig.build.json
         build:
           commands:
-            - npm run build
+            - WEBPACK_CONFIG="webpack.config.js" npm run build
       artifacts:
         baseDirectory: dist
         files:
