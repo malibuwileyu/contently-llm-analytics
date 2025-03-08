@@ -8,10 +8,10 @@ applications:
             # Clean install
             - rm -rf node_modules package-lock.json
             - npm cache clean --force
-            # Install dependencies with scripts disabled to prevent husky
-            - npm install --legacy-peer-deps --ignore-scripts
-            # Verify critical dependencies
-            - npm ls ts-loader webpack @nestjs/testing || true
+            # First install dev dependencies that we need for the build
+            - npm install --no-package-lock --save-dev webpack webpack-cli ts-loader @nestjs/testing webpack-node-externals
+            # Then install everything else
+            - npm install --no-package-lock --legacy-peer-deps --ignore-scripts
         build:
           commands:
             - npm run build
